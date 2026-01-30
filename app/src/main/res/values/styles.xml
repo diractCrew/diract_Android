@@ -74,6 +74,7 @@
         <item name="android:textColor">@color/label_strong</item>
     </style>
 
+    <!-- 하단 버튼 -->
     <style name="Widget.Diract.ActionButton" parent="Widget.Material3.Button">
         <item name="android:paddingHorizontal">16dp</item>
         <item name="android:paddingVertical">14dp</item>
@@ -82,6 +83,34 @@
         <item name="android:textColor">@color/action_btn_text_selector</item>
         <item name="cornerRadius">15dp</item>
     </style>
+
+    <!-- 플레이 화면 하단 버튼 -->
+    <style name="Widget.Diract.ActionButton.Player" parent="Widget.Material3.Button">
+        <item name="android:paddingHorizontal">20dp</item>
+        <item name="android:paddingVertical">14dp</item>
+        <item name="android:textAppearance">@style/Headline1.Medium</item>
+        <item name="cornerRadius">100dp</item>
+    </style>
+
+    <!--팀원 멘션 칩 스타일-->
+    <style name="Widget.Diract.MentionChipStyle" parent="Widget.MaterialComponents.Chip.Entry">
+        <item name="android:textColor">@color/accent_blue_strong</item>
+        <item name="android:textAppearance">@style/Headline2.Medium</item>
+        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="closeIconVisible">true</item>
+        <item name="closeIcon">@drawable/ic_cancel_mention</item>
+        <item name="closeIconStartPadding">2dp</item>
+        <item name="closeIconEndPadding">0dp</item>
+        <item name="chipEndPadding">0dp</item>
+        <item name="chipStartPadding">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+        <item name="closeIconSize">18dp</item>
+        <item name="textStartPadding">0dp</item>
+        <item name="textEndPadding">0dp</item>
+        <item name="closeIconTint">@color/label_assistive</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
+
 
     <!-- ///////////// Dialog Styles ///////////// -->
 
@@ -113,7 +142,8 @@
 
     <!-- 위험 액션용 다이얼로그 테마 (삭제, 내보내기 등) -->
     <style name="Theme.Diract.Dialog.Destructive">
-        <item name="buttonBarPositiveButtonStyle">@style/Widget.Diract.Dialog.Button.Destructive</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Diract.Dialog.Button.Destructive
+        </item>
     </style>
 
     <!-- 다이얼로그 타이틀 스타일 -->

@@ -89,4 +89,17 @@
     <string name="dialog_video_name_title">비디오 이름 수정</string>
     <string name="dialog_video_name_hint">비디오 제목</string>
     <string name="back">back</string>
+
+    <!-- 비디오 플레이어 화면 -->
+    <string name="feedback_all">전체 피드백</string>
+    <string name="feedback_received">받은 피드백</string>
+    <string name="feedback_empty">피드백이 없습니다.</string>
+    <string name="feedback_interval">구간 피드백</string>
+    <string name="feedback_point">시점 피드백</string>
+    <string name="feedback_selecting_range">구간 선택 중</string>
+    <string name="feedback_time_separator"> ~ </string>
+    <string name="feedback_drawing">드로잉 하기</string>
+    <string name="feedback_input_hint">팀원을 @태그하고 피드백을 입력하세요.</string>
+    <string name="feedback_replay_to">%1$s에게 답글 남기는중</string>
+
 </resources>

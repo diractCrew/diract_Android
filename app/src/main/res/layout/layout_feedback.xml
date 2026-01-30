@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="11dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/feedback_all"
+            android:textAppearance="@style/Heading1.Semibold"
+            android:textColor="@color/label_strong" />
+
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipFilterFeedback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:paddingVertical="7dp"
+            android:text="@string/feedback_received"
+            android:textAppearance="@style/Footnote.Medium"
+            android:textColor="@color/chip_feedback_text_selector"
+            app:chipBackgroundColor="@color/chip_feedback_bg_selector"
+            app:chipCornerRadius="10dp"
+            app:chipEndPadding="5dp"
+            app:chipIconVisible="false"
+            app:chipStartPadding="5dp"
+            app:chipStrokeColor="@color/chip_feedback_stroke_selector"
+            app:chipStrokeWidth="1dp"
+            app:ensureMinTouchTargetSize="false" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/stroke_normal"
+        app:layout_constraintTop_toBottomOf="@id/header" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayoutList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/header">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/emptyView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingBottom="80dp"
+                android:text="@string/feedback_empty"
+                android:textAppearance="@style/Heading1.Medium"
+                android:textColor="@color/label_assistive" />
+        </FrameLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/actionContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_action_container"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/defaultActionView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/intervalFeedbackBtn"
+                style="@style/Widget.Diract.ActionButton.Player"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/secondary_assistive"
+                android:text="@string/feedback_interval"
+                android:textColor="@color/blue_purple700"
+                app:icon="@drawable/ic_auto_read_play"
+                app:iconGravity="textEnd"
+                app:iconPadding="8dp"
+                app:iconSize="20dp"
+                app:iconTint="@color/blue_purple700" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pointFeedbackBtn"
+                style="@style/Widget.Diract.ActionButton.Player"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/primitive_strong"
+                android:text="@string/feedback_point"
+                android:textColor="@color/label_strong"
+                app:icon="@drawable/ic_add_comment"
+                app:iconGravity="textEnd"
+                app:iconPadding="8dp"
+                app:iconSize="20dp"
+                app:iconTint="@color/label_strong" />
+        </LinearLayout>
+
+        <!--구간 선택 중일 때-->
+        <LinearLayout
+            android:id="@+id/selectingRangeBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rectangle_radius100"
+            android:backgroundTint="@color/secondary_strong"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="14dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/rangeStartTxt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/Headline1.Medium"
+                android:textColor="@color/label_strong" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_time_separator"
+                android:textAppearance="@style/Headline1.Medium"
+                android:textColor="@color/label_strong" />
+
+            <TextView
+                android:id="@+id/rangeEndTxt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/Headline1.Medium"
+                android:textColor="@color/label_strong" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/feedback_selecting_range"
+                android:textAppearance="@style/Headline1.Medium"
+                android:textColor="@color/label_strong" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="16dp"
+                android:src="@drawable/ic_auto_read_pause" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <!--댓글 작성 중일때-->
+    <include
+        android:id="@+id/commentSheet"
+        layout="@layout/layout_comment_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
