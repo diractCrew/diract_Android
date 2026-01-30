@@ -101,5 +101,7 @@
     <string name="feedback_drawing">드로잉 하기</string>
     <string name="feedback_input_hint">팀원을 @태그하고 피드백을 입력하세요.</string>
     <string name="feedback_replay_to">%1$s에게 답글 남기는중</string>
+    <string name="percentage">%</string>
+    <string name="fail_to_load_video">동영상 불러오기를 실패했습니다</string>
 
 </resources>

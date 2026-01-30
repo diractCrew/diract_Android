@@ -24,7 +24,7 @@
         android:id="@+id/playerContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/black"
+        android:background="@color/background_elevated"
         app:layout_constraintDimensionRatio="16:9"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
@@ -33,11 +33,124 @@
             android:id="@+id/playerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone"
             app:use_controller="false" />
 
         <include
-            android:id="@+id/controller"
-            layout="@layout/layout_player_controller" />
+            android:id="@+id/videoController"
+            layout="@layout/layout_player_controller"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:id="@+id/downloadingView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <!-- 원형 프로그래스바 -->
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                app:indicatorColor="@color/secondary_normal"
+                app:indicatorSize="64dp"
+                app:trackColor="@color/fill_assistive"
+                app:trackThickness="4dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:src="@drawable/ic_arrow_downward" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="100"
+                        android:textAppearance="@style/Footnote.Semibold"
+                        android:textColor="@color/secondary_normal" />
+
+                    <TextView
+                        android:id="@+id/stateText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/percentage"
+                        android:textAppearance="@style/Footnote.Semibold"
+                        android:textColor="@color/secondary_normal" />
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/videoErrorView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/retryBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:text="재시도"
+                android:textAppearance="@style/Footnote.Medium"
+                android:textColor="@color/accent_red_normal"
+                app:icon="@drawable/ic_replay_20dp"
+                app:iconGravity="textTop"
+                app:iconPadding="4dp"
+                app:iconSize="40dp"
+                app:iconTint="@color/accent_red_normal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@id/retryBtn">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="3dp"
+                    android:src="@drawable/ic_error_filled"
+                    app:tint="@color/label_normal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fail_to_load_video"
+                    android:textAppearance="@style/Footnote.Medium"
+                    android:textColor="@color/label_normal" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/loadingView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/secondary_normal"
+            app:indicatorSize="28dp"
+            app:trackColor="@android:color/transparent"
+            app:trackThickness="4dp" />
     </FrameLayout>
 
     <include
