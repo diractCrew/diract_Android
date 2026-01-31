@@ -111,6 +111,18 @@
         <item name="chipStrokeWidth">0dp</item>
     </style>
 
+    <style name="Widget.Diract.MentionChip.Comment" parent="Widget.MaterialComponents.Chip.Entry">
+        <item name="android:textColor">@color/accent_blue_strong</item>
+        <item name="android:textAppearance">@style/Headline2.Medium</item>
+        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="closeIconVisible">false</item>
+        <item name="chipEndPadding">0dp</item>
+        <item name="chipStartPadding">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+        <item name="textStartPadding">0dp</item>
+        <item name="textEndPadding">0dp</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
 
     <!-- ///////////// Dialog Styles ///////////// -->
 

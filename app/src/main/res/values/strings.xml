@@ -103,5 +103,7 @@
     <string name="feedback_replay_to">%1$s에게 답글 남기는중</string>
     <string name="percentage">%</string>
     <string name="fail_to_load_video">동영상 불러오기를 실패했습니다</string>
+    <string name="fail_to_upload">업로드 실패</string>
+    <string name="reply">답글달기</string>
 
 </resources>
