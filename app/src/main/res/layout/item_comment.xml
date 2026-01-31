@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent"
+    android:padding="16dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/nameTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/Footnote.Semibold"
+            android:textColor="@color/label_normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/dot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="2dp"
+            android:text="·"
+            android:textAppearance="@style/Footnote.Medium"
+            android:textColor="@color/label_assistive"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/nameTxt"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/timeAgoTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/Footnote.Medium"
+            android:textColor="@color/label_assistive"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/dot"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/retryBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="@string/fail_to_upload"
+            android:textAppearance="@style/Footnote.Medium"
+            android:textColor="@color/accent_red_normal"
+            android:visibility="gone"
+            app:icon="@drawable/ic_replay_20dp"
+            app:iconGravity="textEnd"
+            app:iconPadding="2dp"
+            app:iconSize="20dp"
+            app:iconTint="@color/accent_red_normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/dot"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/moreBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:src="@drawable/ic_more_horiz"
+            android:tint="@color/label_normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/mid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/header">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/timeChipBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="false"
+            android:clickable="false"
+            android:textAppearance="@style/Footnote.Medium"
+            app:chipBackgroundColor="@color/secondary_strong"
+            app:chipCornerRadius="100dp"
+            app:chipEndPadding="8dp"
+            app:chipIcon="@drawable/ic_schedule"
+            app:chipIconTint="@color/label_strong"
+            app:chipStartPadding="8dp"
+            app:chipStrokeColor="@color/secondary_assistive"
+            app:chipStrokeWidth="1dp"
+            app:ensureMinTouchTargetSize="false" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/mentionChipGroup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            app:chipSpacingHorizontal="4dp"
+            app:chipSpacingVertical="0dp"
+            app:singleLine="true" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/commentTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAppearance="@style/Body1.Medium"
+        android:textColor="@color/label_strong"
+        app:layout_constraintTop_toBottomOf="@id/mid" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/replayBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:paddingStart="10dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="0dp"
+        android:text="0"
+        android:textAppearance="@style/Caption1.Medium"
+        android:textColor="@color/secondary_assistive"
+        app:icon="@drawable/ic_comment_count"
+        app:iconGravity="textStart"
+        app:iconPadding="4dp"
+        app:iconTint="@color/secondary_assistive"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/commentTxt" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/cancelBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:paddingStart="10dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="0dp"
+        android:text="@string/cancel"
+        android:textAppearance="@style/Caption1.Medium"
+        android:textColor="@color/accent_red_normal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/commentTxt" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
