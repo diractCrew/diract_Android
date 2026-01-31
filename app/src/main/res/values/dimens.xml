@@ -5,4 +5,5 @@
     <dimen name="section_chip_spacing">8dp</dimen>
     <dimen name="section_item_spacing">8dp</dimen>
     <dimen name="move_video_item_spacing">8dp</dimen>
+    <dimen name="fullscreen_panel_width">330dp</dimen>
 </resources>
