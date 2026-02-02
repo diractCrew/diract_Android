@@ -56,7 +56,7 @@
             android:layout_marginHorizontal="24dp"
             android:background="@drawable/bg_circle"
             android:backgroundTint="#33000000"
-            android:src="@drawable/ic_pause" />
+            android:src="@drawable/ic_play_arrow" />
 
         <ImageButton
             android:id="@+id/btnForward"
@@ -73,9 +73,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_circle"
-        android:backgroundTint="#33000000"
         android:padding="4dp"
-        android:src="@drawable/ic_expand_circle_right"
+        android:src="@drawable/ic_expand_circle_left"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
