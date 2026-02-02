@@ -1,5 +1,6 @@
 package com.baek.diract.data.dto
 
+import com.baek.diract.domain.model.VideoPlay
 import com.baek.diract.domain.model.VideoSummary
 import com.google.firebase.Timestamp
 import java.time.Instant
@@ -28,6 +29,14 @@ data class VideoDto(
         } ?: LocalDate.now(),
         trackId = track_id,
         sectionId = section_id,
+        uploaderId = uploader_id
+    )
+
+    fun toPlayDomain(): VideoPlay = VideoPlay(
+        id = video_id,
+        videoTitle = video_title,
+        videoDuration = video_duration,
+        videoUrl = video_url,
         uploaderId = uploader_id
     )
 }
