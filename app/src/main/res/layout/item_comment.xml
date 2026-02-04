@@ -44,6 +44,19 @@
             app:layout_constraintStart_toEndOf="@id/dot"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/loadingTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="2dp"
+            android:text="@string/uploading"
+            android:textAppearance="@style/Footnote.Medium"
+            android:textColor="@color/label_assistive"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/dot"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/retryBtn"
             android:layout_width="wrap_content"
@@ -71,10 +84,10 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:src="@drawable/ic_more_horiz"
-            android:tint="@color/label_normal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/label_normal" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -104,13 +117,26 @@
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/mentionChipGroup"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_weight="1"
             app:chipSpacingHorizontal="4dp"
             app:chipSpacingVertical="0dp"
             app:singleLine="true" />
+
+        <TextView
+            android:id="@+id/moreMentionChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/rectangle_radius100"
+            android:backgroundTint="@color/primitive_strong"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:textAppearance="@style/Caption1.Medium"
+            android:textColor="@color/label_strong"
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <TextView
@@ -123,7 +149,7 @@
         app:layout_constraintTop_toBottomOf="@id/mid" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/replayBtn"
+        android:id="@+id/replyBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
