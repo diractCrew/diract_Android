@@ -92,7 +92,7 @@
         <item name="cornerRadius">100dp</item>
     </style>
 
-    <!--팀원 멘션 칩 스타일-->
+    <!--팀원 멘션 칩 스타일/작성중-->
     <style name="Widget.Diract.MentionChipStyle" parent="Widget.MaterialComponents.Chip.Entry">
         <item name="android:textColor">@color/accent_blue_strong</item>
         <item name="android:textAppearance">@style/Headline2.Medium</item>
@@ -111,6 +111,7 @@
         <item name="chipStrokeWidth">0dp</item>
     </style>
 
+    <!--팀원 멘션 칩 스타일/피드백,댓글에 있는-->
     <style name="Widget.Diract.MentionChip.Comment" parent="Widget.MaterialComponents.Chip.Entry">
         <item name="android:textColor">@color/accent_blue_strong</item>
         <item name="android:textAppearance">@style/Headline2.Medium</item>
@@ -122,6 +123,8 @@
         <item name="textStartPadding">0dp</item>
         <item name="textEndPadding">0dp</item>
         <item name="chipStrokeWidth">0dp</item>
+        <item name="android:checkable">false</item>
+        <item name="android:clickable">false</item>
     </style>
 
     <!-- ///////////// Dialog Styles ///////////// -->
