@@ -6,8 +6,8 @@ import java.time.LocalDateTime
 data class Feedback(
     val feedbackId: String,
     val videoId: String,
-    val author: CommentUser,
-    val taggedUsers: List<CommentUser> = emptyList(),
+    val author: FeedbackUser,
+    val taggedUsers: List<FeedbackUser> = emptyList(),
     val content: String,
     val startTime: Double,
     val endTime: Double? = null,
