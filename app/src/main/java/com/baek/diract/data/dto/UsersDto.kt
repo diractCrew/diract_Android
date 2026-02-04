@@ -1,4 +1,4 @@
-package com.baek.diract.data.remote.dto
+package com.baek.diract.data.dto
 
 import com.google.firebase.Timestamp
 
