@@ -120,7 +120,7 @@ class TeamMemberAdapter(
                 ivMore.isVisible = !item.isLeader
 
                 ivMore.isEnabled = isLeaderUser
-                ivMore.alpha = if (isLeaderUser) 1f else 0.35f
+                ivMore.alpha = if (isLeaderUser) 1f else 0f
 
                 root.setOnClickListener(null)
                 checkMember.setOnClickListener(null)
