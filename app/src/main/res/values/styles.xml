@@ -97,6 +97,7 @@
         <item name="android:textColor">@color/accent_blue_strong</item>
         <item name="android:textAppearance">@style/Headline2.Medium</item>
         <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="chipSurfaceColor">@android:color/transparent</item>
         <item name="closeIconVisible">true</item>
         <item name="closeIcon">@drawable/ic_cancel_mention</item>
         <item name="closeIconStartPadding">2dp</item>
@@ -112,10 +113,11 @@
     </style>
 
     <!--팀원 멘션 칩 스타일/피드백,댓글에 있는-->
-    <style name="Widget.Diract.MentionChip.Comment" parent="Widget.MaterialComponents.Chip.Entry">
-        <item name="android:textColor">@color/accent_blue_strong</item>
+    <style name="Widget.Diract.MentionChip.Comment" parent="Widget.MaterialComponents.Chip.Action">
         <item name="android:textAppearance">@style/Headline2.Medium</item>
+        <item name="android:textColor">@color/accent_blue_strong</item>
         <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="chipSurfaceColor">@android:color/transparent</item>
         <item name="closeIconVisible">false</item>
         <item name="chipEndPadding">0dp</item>
         <item name="chipStartPadding">0dp</item>
