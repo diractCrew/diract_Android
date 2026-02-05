@@ -125,6 +125,10 @@
     <string name="error_edit_section_message">파트를 수정하는 중에 문제가 발생했습니다.</string>
     <string name="error_delete_section_message">파트를 삭제하는 중에 문제가 발생했습니다.</string>
 
+    <!--비디오 옮기기-->
+    <string name="move_video_select_section">파트 선택</string>
+    <string name="move_video_confirm_btn_txt">비디오 이동하기</string>
+
 
     <!-- 옵션 팝업 -->
     <string name="edit_name_option">이름 수정</string>
@@ -141,9 +145,11 @@
     <string name="dialog_discard_title">변경사항이 저장되지 않았습니다. 종료하시겠어요?</string>
     <string name="dialog_discard_message">저장하지 않은 변경사항은 사라집니다.</string>
     <string name="dialog_discard">취소하기</string>
-    <string name="dialog_delete_part_title">>%1$s을/를 삭제하시겠어요?</string>
+    <string name="dialog_delete_part_title">%1$s을/를 삭제하시겠어요?</string>
     <string name="dialog_cannot_recover">모든 영상이 삭제되며 복구할 수 없습니다.</string>
     <string name="dialog_default_complete">완료되었습니다.</string>
+    <string name="dialog_delete_video_title">%1$s을/를 삭제하시겠어요?</string>
+    <string name="dialog_delete_video_content">삭제하면 복구할 수 없습니다.</string>
 
     <!-- 입력 다이얼로그 -->
     <string name="input_dialog_counter">%1$d/%2$d</string>
@@ -152,6 +158,12 @@
 
     <!-- 토스트 -->
     <string name="toast_section_name_max_length">%1$d자 이하로 입력해 주세요.</string>
+    <string name="toast_delete_video">동영상이 삭제되었습니다.</string>
+    <string name="toast_upload_video">동영상이 업로드 되었습니다.</string>
+    <string name="toast_failed_delete_video">동영상 삭제를 실패했습니다.</string>
+    <string name="toast_failed_edit_video_title">이름 수정을 실패했습니다.</string>
+    <string name="toast_move_video">동영상이 이동되었습니다.</string>
+    <string name="toast_failed_move_video">동영상을 옮기는 중에 문제가 발생했습니다.</string>
 
     <!-- 비디오 업로드 -->
     <string name="filter_all">전체</string>
@@ -166,7 +178,7 @@
     <string name="title_counter_format">%1$d/%2$d</string>
 
     <!-- 비디오 이름 수정 다이얼로그 -->
-
     <string name="dialog_video_name_title">비디오 이름 수정</string>
     <string name="dialog_video_name_hint">비디오 제목</string>
+    <string name="back">back</string>
 </resources>

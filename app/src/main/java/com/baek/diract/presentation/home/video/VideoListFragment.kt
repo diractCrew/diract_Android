@@ -22,11 +22,14 @@ import com.baek.diract.presentation.home.video.upload.UploadVideoFragment
 import com.baek.diract.R
 import com.baek.diract.databinding.FragmentVideoListBinding
 import com.baek.diract.domain.model.VideoSummary
+import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.recyclerview.SpacingItemDecoration
 import com.baek.diract.presentation.common.UiState
+import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.baek.diract.presentation.common.dialog.InputDialogFragment
 import com.baek.diract.presentation.common.option.OptionItem
 import com.baek.diract.presentation.common.option.OptionPopup
+import com.baek.diract.presentation.home.video.move_video.MoveVideoFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -62,7 +65,7 @@ class VideoListFragment : Fragment() {
     }
 
     private fun initView() {
-        binding.titleTxt.text = viewModel.trackTitle
+        binding.titleTxt.text = viewModel.tracksTitle
 
         binding.backBtn.setOnClickListener {
             findNavController().navigateUp()
@@ -99,9 +102,27 @@ class VideoListFragment : Fragment() {
         editNameDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
     }
 
+    private fun showMoveVideoDialog(video: VideoSummary) {
+        MoveVideoFragment.newInstance(
+            tracksId = viewModel.tracksId,
+            trackId = video.trackId,
+            sectionId = video.sectionId
+        ).show(childFragmentManager, MoveVideoFragment.TAG)
+
+        childFragmentManager.setFragmentResultListener(
+            MoveVideoFragment.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val movedSectionId = bundle.getString(MoveVideoFragment.MOVED_SECTION_ID)
+            if (movedSectionId != null) {
+                viewModel.selectSection(movedSectionId)
+            }
+        }
+    }
+
     private fun startVideoUploadFlow() {
         val action = VideoListFragmentDirections.actionVideoListFragmentToUploadVideoFragment(
-            viewModel.trackTitle
+            viewModel.tracksTitle
         )
         findNavController().navigate(action)
 
@@ -222,15 +243,18 @@ class VideoListFragment : Fragment() {
                             }
 
                             is UiState.Error -> {
-                                Toast.makeText(
-                                    requireContext(),
-                                    state.message ?: "수정에 실패했습니다.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
                                 viewModel.resetEditUiState()
                             }
                         }
                     }
+                }
+                viewModel.toastMessage.collect { event ->
+                    if (event.isErr) {
+                        CustomToast.showNegative(requireContext(), event.txtRes, Toast.LENGTH_LONG)
+                    } else {
+                        CustomToast.showPositive(requireContext(), event.txtRes, Toast.LENGTH_LONG)
+                    }
+
                 }
             }
         }
@@ -294,13 +318,20 @@ class VideoListFragment : Fragment() {
             }
 
             OptionItem.ID_MOVE -> {
-                // TODO: 다른 파트로 이동
-                Toast.makeText(requireContext(), "파트 이동: ${video.title}", Toast.LENGTH_SHORT).show()
+                showMoveVideoDialog(video)
             }
 
             OptionItem.ID_DELETE -> {
                 // TODO: 삭제 확인 다이얼로그 표시
-                Toast.makeText(requireContext(), "삭제: ${video.title}", Toast.LENGTH_SHORT).show()
+                BasicDialog.destructive(
+                    context = requireContext(),
+                    title = getString(R.string.dialog_delete_video_title, video.title),
+                    message = getString(R.string.dialog_delete_video_content),
+                    positiveText = getString(R.string.dialog_delete),
+                    onPositive = {
+                        viewModel.deleteVideo(video)
+                    }
+                ).show()
             }
 
             OptionItem.ID_REPORT -> {
@@ -323,8 +354,8 @@ class VideoListFragment : Fragment() {
     // 섹션 설정 버튼 클릭
     private fun onSetSectionClick() {
         val action = VideoListFragmentDirections.actionVideoListFragmentToSectionSettingFragment(
-            viewModel.trackId,
-            viewModel.trackTitle
+            viewModel.tracksId,
+            viewModel.tracksTitle
         )
         findNavController().navigate(action)
     }

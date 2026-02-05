@@ -8,6 +8,9 @@ import com.baek.diract.data.dto.VideoWithTrackDto
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -50,7 +53,7 @@ class VideoRemoteDataSourceImpl @Inject constructor(
         }
 
         // video 컬렉션에서 비디오 정보 조회
-        val videos =  videoIds.mapNotNull { (trackId, videoId) ->
+        val videos = videoIds.mapNotNull { (trackId, videoId) ->
             val videoDoc = firestore
                 .collection("video")
                 .document(videoId)
@@ -64,7 +67,7 @@ class VideoRemoteDataSourceImpl @Inject constructor(
                 )
             }
         }
-        return videos.sortedBy { it.video.created_at }
+        return videos.sortedByDescending { it.video.created_at }
     }
 
     override suspend fun addVideo(
@@ -169,7 +172,6 @@ class VideoRemoteDataSourceImpl @Inject constructor(
 
         // 기존 track 문서 데이터 가져오기
         val trackDoc = fromTrackRef.get().await()
-        val videoId = trackDoc.getString("video_id") ?: return
 
         // 새 섹션에 track 추가
         val toTrackRef = firestore
@@ -180,7 +182,14 @@ class VideoRemoteDataSourceImpl @Inject constructor(
             .collection("track")
             .document()
 
-        toTrackRef.set(hashMapOf("video_id" to videoId)).await()
+        val newTrackData = hashMapOf(
+            "video_id" to trackDoc.getString("video_id"),
+            "track_id" to toTrackRef.id,
+            "created_at" to trackDoc.getTimestamp("created_at"),
+            "updated_at" to Timestamp.now(),
+            "section_id" to toSectionId
+        )
+        toTrackRef.set(newTrackData).await()
 
         // 기존 track 삭제
         fromTrackRef.delete().await()
@@ -275,20 +284,51 @@ class VideoRemoteDataSourceImpl @Inject constructor(
     }
 
     override suspend fun deleteSection(tracksId: String, sectionId: String) {
-        //TODO: track 전부 삭제, track에 있는 문서의 video_id에 해당하는 video삭제, storage에서 video/video_id/* 삭제
-        val sectionRef = firestore
-            .collection("tracks")
-            .document(tracksId)
-            .collection("section")
-            .document(sectionId)
+        coroutineScope {
+            val sectionRef = firestore
+                .collection("tracks")
+                .document(tracksId)
+                .collection("section")
+                .document(sectionId)
 
-        // 섹션 내 모든 track 삭제
-        val trackSnapshot = sectionRef.collection("track").get().await()
-        for (trackDoc in trackSnapshot.documents) {
-            trackDoc.reference.delete().await()
+            val trackRef = sectionRef.collection("track")
+
+            val trackSnapshots = trackRef.get().await()
+
+            val videoIds = trackSnapshots.documents
+                .mapNotNull { it.getString("video_id") }
+                .distinct()
+
+            //1. video+storage 삭제
+            videoIds.map { videoId ->
+                async {
+                    // video 문서 삭제
+                    firestore.collection("video")
+                        .document(videoId)
+                        .delete()
+                        .await()
+
+                    // storage 파일 전부 삭제
+                    val videoFolderRef = storage.reference.child("video/$videoId")
+                    val listResult = videoFolderRef.listAll().await()
+
+                    listResult.items.map { item ->
+                        async {
+                            item.delete().await()
+                        }
+                    }.awaitAll()
+                }
+            }.awaitAll()
+
+            //2. track삭제
+            trackSnapshots.documents.map { doc ->
+                async {
+                    doc.reference.delete().await()
+                }
+            }.awaitAll()
+
+            // 섹션 삭제
+            sectionRef.delete().await()
         }
-
-        // 섹션 삭제
-        sectionRef.delete().await()
     }
 }

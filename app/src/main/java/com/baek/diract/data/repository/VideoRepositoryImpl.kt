@@ -27,7 +27,7 @@ class VideoRepositoryImpl @Inject constructor(
     ): DataResult<List<VideoSummary>> {
         return try {
             val videos = remoteDataSource.getVideos(tracksId, sectionId)
-            DataResult.Success(videos.map { it.toSummaryDomain() })
+            DataResult.Success(videos.map { it.toSummaryDomain(sectionId) })
         } catch (e: Exception) {
             DataResult.Error(e)
         }

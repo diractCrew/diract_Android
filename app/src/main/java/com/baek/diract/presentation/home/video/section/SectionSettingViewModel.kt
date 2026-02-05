@@ -61,15 +61,14 @@ class SectionSettingViewModel @Inject constructor(
             when (val sectionsResult = videoRepository.getSections(tracksId)) {
                 is DataResult.Success -> {
                     val sections = sectionsResult.data
-                    _sectionItems.value = sections.mapNotNull {
-                        if (it.title == DEFAULT_SECTION_TITLE) null
-                        else {
+                    _sectionItems.value = sections
+                        .drop(1)
+                        .map {
                             SectionItem(
                                 id = it.id,
                                 name = it.title
                             )
                         }
-                    }
                     _uiState.value = UiState.Success(System.currentTimeMillis())
                 }
 
@@ -165,8 +164,6 @@ class SectionSettingViewModel @Inject constructor(
         private const val TAG = "VideoListViewModel"
         private const val KEY_TRACK_ID = "tracksId"
         private const val KEY_TRACK_TITLE = "tracksTitle"
-        private const val DEFAULT_SECTION_TITLE = "일반"
-
         private const val NEW_ID = "NEW_SECTION_ITEM"
     }
 }

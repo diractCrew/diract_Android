@@ -6,5 +6,5 @@ data class VideoWithTrackDto(
     val trackId: String,
     val video: VideoDto
 ) {
-    fun toSummaryDomain(): VideoSummary = video.toSummaryDomain(trackId)
+    fun toSummaryDomain(sectionId:String): VideoSummary = video.toSummaryDomain(trackId,sectionId)
 }

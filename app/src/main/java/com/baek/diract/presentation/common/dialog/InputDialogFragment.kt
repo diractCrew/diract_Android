@@ -15,7 +15,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.core.view.isVisible
@@ -40,10 +39,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
  *
  *         // 확인 버튼 클릭 시 처리
  *     }
- * }
+ * }.show(..)
  *
  * // 다이얼로그 표시
- * dialog.show()
  *
  * //로딩중일떼
  * dialog.showLoading()
@@ -65,13 +63,6 @@ class InputDialogFragment : BottomSheetDialogFragment() {
         get() = arguments?.getInt(ARG_MAX_LENGTH, DEFAULT_MAX_LENGTH) ?: DEFAULT_MAX_LENGTH
 
     private var isError = false
-
-    //다이얼로그 표시 (setFragmentManager 호출 후 사용)
-    fun show() {
-        fragmentManager?.let { show(it, TAG) }
-            ?: throw IllegalStateException("FragmentManager가 설정되지 않았습니다. setFragmentManager()를 먼저 호출하세요.")
-    }
-
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog

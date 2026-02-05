@@ -16,7 +16,7 @@ data class VideoDto(
     val created_at: Timestamp? = null,
     val updated_at: Timestamp? = null
 ) {
-    fun toSummaryDomain(track_id: String): VideoSummary = VideoSummary(
+    fun toSummaryDomain(track_id: String, section_id: String): VideoSummary = VideoSummary(
         id = video_id,
         title = video_title,
         duration = video_duration,
@@ -27,6 +27,7 @@ data class VideoDto(
                 .toLocalDate()
         } ?: LocalDate.now(),
         trackId = track_id,
+        sectionId = section_id,
         uploaderId = uploader_id
     )
 }

@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_videoListFragment_to_uploadVideoFragment"
             app:destination="@id/uploadVideoFragment" />
+        <action
+            android:id="@+id/action_videoListFragment_to_moveVideoFragment"
+            app:destination="@id/moveVideoFragment" />
     </fragment>
     <fragment
         android:id="@+id/sectionSettingFragment"
@@ -43,6 +46,21 @@
         tools:layout="@layout/fragment_upload_video">
         <argument
             android:name="tracksTitle"
+            app:argType="string" />
+    </dialog>
+    <dialog
+        android:id="@+id/moveVideoFragment"
+        android:name="com.baek.diract.presentation.home.video.move_video.MoveVideoFragment"
+        android:label="fragment_move_video"
+        tools:layout="@layout/fragment_move_video">
+        <argument
+            android:name="tracksId"
+            app:argType="string" />
+        <argument
+            android:name="sectionId"
+            app:argType="string" />
+        <argument
+            android:name="trackId"
             app:argType="string" />
     </dialog>
 </navigation>

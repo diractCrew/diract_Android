@@ -5,17 +5,22 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.baek.diract.R
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.Section
 import com.baek.diract.domain.model.VideoSummary
 import com.baek.diract.domain.repository.AuthRepository
 import com.baek.diract.domain.repository.VideoRepository
 import com.baek.diract.domain.usecase.UploadVideoUseCase
+import com.baek.diract.presentation.common.ToastEvent
 import com.baek.diract.presentation.common.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -31,20 +36,57 @@ class VideoListViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    val trackId: String = checkNotNull(savedStateHandle[KEY_TRACK_ID]) {
+    val tracksId: String = checkNotNull(savedStateHandle[KEY_TRACK_ID]) {
         "trackId값 없이 VideoList 접근이 불가능합니다."
     }
-    val trackTitle: String = checkNotNull(savedStateHandle[KEY_TRACK_TITLE]) {
+    val tracksTitle: String = checkNotNull(savedStateHandle[KEY_TRACK_TITLE]) {
         "trackId값 없이 VideoList 접근이 불가능합니다."
     }
 
-    // 비디오 아이템
-    private val _videoItems = MutableStateFlow<List<VideoCardItem>>(emptyList())
-    val videoItems: StateFlow<List<VideoCardItem>> = _videoItems.asStateFlow()
+    /*
+        ----- 상태 플로우 -----
+     */
+    //원본 비디오
+    private val _videos = MutableStateFlow<List<VideoSummary>>(emptyList())
+
+    //업로드 중인 비디오
+    private val _uploadingItems = MutableStateFlow<List<VideoCardItem>>(emptyList())
 
     // 원본 섹션 데이터
     private val _sections = MutableStateFlow<List<Section>>(emptyList())
     private val _selectedSectionId = MutableStateFlow<String?>(null)
+
+    //로딩, 성공 실패 관리(로딩 상태 변화 관측을 위한 System.currentTimeMillis() 값 넣음)
+    private val _uiState = MutableStateFlow<UiState<Long>>(UiState.None)
+    val uiState: StateFlow<UiState<Long>> = _uiState.asStateFlow()
+
+    //이름 수정 관리
+    private val _editUiState = MutableStateFlow<UiState<Long>>(UiState.None)
+    val editUiState: StateFlow<UiState<Long>> = _editUiState.asStateFlow()
+
+    private val _toastMessage = MutableSharedFlow<ToastEvent>()
+    val toastMessage: SharedFlow<ToastEvent> = _toastMessage.asSharedFlow()
+
+    // 비디오 아이템
+    val videoItems: StateFlow<List<VideoCardItem>> =
+        combine(
+            _videos,
+            _uploadingItems,
+            _selectedSectionId
+        ) { videos, uploading, sectionId ->
+
+            if (sectionId == null) return@combine emptyList()
+
+            val uploading = uploading.filter { it.sectionId == sectionId }
+            val completed = videos
+                .map { VideoCardItem.Completed(it) }
+
+            uploading + completed
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
 
     // VideoListFragment용 섹션 칩
     val sectionChipItems: StateFlow<List<SectionChipItem>> = combine(
@@ -63,48 +105,34 @@ class VideoListViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-
-    //로딩, 성공 실패 관리(로딩 상태 변화 관측을 위한 System.currentTimeMillis() 값 넣음)
-    private val _uiState = MutableStateFlow<UiState<Long>>(UiState.None)
-    val uiState: StateFlow<UiState<Long>> = _uiState.asStateFlow()
-
-    //이름 수정 관리
-    private val _editUiState = MutableStateFlow<UiState<Long>>(UiState.None)
-    val editUiState: StateFlow<UiState<Long>> = _editUiState.asStateFlow()
-
-    // 현재 비디오 리스트 가져오기
-    private fun getCurrentVideoList(): List<VideoCardItem> {
-        return _videoItems.value
+    // 현재 선택된 섹션 ID 반환
+    private fun getSelectedSectionId(): String? {
+        return _selectedSectionId.value
     }
 
-    // 비디오 리스트 업데이트
-    private fun updateVideoList(transform: (List<VideoCardItem>) -> List<VideoCardItem>) {
-        val currentList = getCurrentVideoList()
-        _videoItems.value = transform(currentList)
-    }
-
-    // 초기 데이터 로드 (섹션 -> 비디오)
+    /*
+        초기화면 데이터
+     */
     fun refreshAll() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
 
             // 1. 섹션 로드
-            when (val sectionsResult = videoRepository.getSections(trackId)) {
+            when (val sectionsResult = videoRepository.getSections(tracksId)) {
                 is DataResult.Success -> {
                     val sections = sectionsResult.data
                     _sections.value = sections
 
-                    val defaultSectionId = _selectedSectionId.value
-                        ?: sections.find { it.title == DEFAULT_SECTION_TITLE }?.id
+                    val defaultSectionId = getSelectedSectionId()
+                        ?.takeIf { id -> sections.any { it.id == id } }
                         ?: sections.firstOrNull()?.id
-
                     _selectedSectionId.value = defaultSectionId
 
                     // 2. 선택된 섹션의 비디오 로드
                     if (defaultSectionId != null) {
                         loadVideosForSection(defaultSectionId)
                     } else {
-                        _videoItems.value = emptyList()
+                        _videos.value = emptyList()
                         _uiState.value = UiState.Success(System.currentTimeMillis())
                     }
                 }
@@ -121,17 +149,9 @@ class VideoListViewModel @Inject constructor(
 
     // 특정 섹션의 비디오 로드
     private suspend fun loadVideosForSection(sectionId: String) {
-        when (val videosResult = videoRepository.getVideos(trackId, sectionId)) {
+        when (val videosResult = videoRepository.getVideos(tracksId, sectionId)) {
             is DataResult.Success -> {
-                val completedItems = videosResult.data.map { VideoCardItem.Completed(it) }
-                // 진행 중인 아이템 유지
-                val inProgressItems = getCurrentVideoList().filter { item ->
-                    item is VideoCardItem.Compressing ||
-                            item is VideoCardItem.Uploading ||
-                            item is VideoCardItem.Failed
-                }
-                _videoItems.value = inProgressItems + completedItems
-                Log.d("VideoListViewModel", completedItems.toString())
+                _videos.value = videosResult.data
                 _uiState.value = UiState.Success(System.currentTimeMillis())
             }
 
@@ -145,15 +165,129 @@ class VideoListViewModel @Inject constructor(
         }
     }
 
+    // 선택된 섹션에 대한 영상 리스트 새로고침
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            val selectedSectionId = getSelectedSectionId()
+            Log.d(TAG, "선택된 섹션: $selectedSectionId")
+            if (selectedSectionId != null) {
+                loadVideosForSection(selectedSectionId)
+                return@launch
+            }
+            _uiState.value = UiState.Success(System.currentTimeMillis())
+        }
+    }
+
+
+    // 섹션 선택
+    fun selectSection(sectionId: String) {
+        if (getSelectedSectionId() == sectionId) return
+
+        _selectedSectionId.value = sectionId
+
+        // 선택된 섹션의 비디오 로드
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            loadVideosForSection(sectionId)
+        }
+    }
+
+
+    /*
+        ---------- 비디오 업로드 ----------
+     */
+
+    // ----- 업로딩 아이템 관리 -----
+    private fun updateUploadingItem(
+        transform: (List<VideoCardItem>) -> List<VideoCardItem>
+    ) {
+        val cur = _uploadingItems.value
+        _uploadingItems.value = transform(cur)
+    }
+
     // 실패 아이템 취소 (리스트에서 제거)
     fun cancelFailedItem(item: VideoCardItem.Failed) {
-        updateVideoList { list -> list.filter { it.id != item.id } }
+        updateUploadingItem() { list -> list.filter { it.id != item.id } }
+    }
+
+    // ----- 업로드/재시도 -----
+
+    // 비디오 업로드 (압축 -> 업로드)
+    fun uploadVideo(videoUri: Uri, title: String) {
+        val uploadId = UUID.randomUUID().toString()
+        val sectionId = getSelectedSectionId() ?: return
+        val uploaderId = authRepository.getCurrentUser()?.uid ?: return
+
+        // 압축 상태로 리스트에 추가
+        updateUploadingItem { list ->
+            listOf(
+                VideoCardItem.Compressing(
+                    id = uploadId,
+                    sectionId = sectionId,
+                    progress = 0
+                )
+            ) + list
+        }
+
+
+        viewModelScope.launch {
+            val result = uploadVideoUseCase(
+                videoUri = videoUri,
+                title = title,
+                tracksId = tracksId,
+                sectionId = sectionId,
+                uploaderId = uploaderId,
+                onStateChanged = { state ->
+                    when (state) {
+                        is UploadVideoUseCase.UploadState.Compressing -> {
+                            updateCompressionProgress(uploadId, state.progress)
+                        }
+
+                        is UploadVideoUseCase.UploadState.Uploading -> {
+                            changeToUploadingState(uploadId)
+                            updateUploadProgress(uploadId, state.progress)
+                        }
+
+                        is UploadVideoUseCase.UploadState.Completed -> {
+                            updateUploadingItem { list -> list.filter { it.id != uploadId } }
+                            refresh()
+                            viewModelScope.launch {
+                                _toastMessage.emit(
+                                    ToastEvent(R.string.toast_upload_video, false)
+                                )
+                            }
+                        }
+
+                        is UploadVideoUseCase.UploadState.Failed -> {
+                            val failType = when (state.phase) {
+                                UploadVideoUseCase.FailPhase.COMPRESSION -> FailType.COMPRESSION
+                                UploadVideoUseCase.FailPhase.UPLOAD -> FailType.UPLOAD
+                            }
+                            val retryInfo = RetryInfo(
+                                originalUri = videoUri,
+                                title = title,
+                                sectionId = sectionId,
+                                compressedUri = state.compressedUri,
+                                thumbnailUri = state.thumbnailUri,
+                                duration = state.duration
+                            )
+                            changeToFailedState(uploadId, failType, state.message, retryInfo)
+                        }
+                    }
+                }
+            )
+
+            if (result is DataResult.Error) {
+                Log.e("VideoListViewModel", "Upload failed", result.throwable)
+            }
+        }
     }
 
     // 실패 아이템 재시도
     fun retryFailedItem(item: VideoCardItem.Failed) {
         val retryInfo = item.retryInfo ?: return
-        val selectedSectionId = getSelectedSectionId() ?: return
+        val selectedSectionId = item.sectionId
         val uploaderId = authRepository.getCurrentUser()?.uid ?: return
         val retryId = item.id
 
@@ -165,7 +299,7 @@ class VideoListViewModel @Inject constructor(
                     uploadVideoUseCase(
                         videoUri = retryInfo.originalUri,
                         title = retryInfo.title,
-                        tracksId = trackId,
+                        tracksId = tracksId,
                         sectionId = selectedSectionId,
                         uploaderId = uploaderId,
                         onStateChanged = { state ->
@@ -187,7 +321,7 @@ class VideoListViewModel @Inject constructor(
                         thumbnailUri = thumbnailUri,
                         duration = duration,
                         title = retryInfo.title,
-                        tracksId = trackId,
+                        tracksId = tracksId,
                         sectionId = selectedSectionId,
                         uploaderId = uploaderId,
                         onStateChanged = { state ->
@@ -201,6 +335,9 @@ class VideoListViewModel @Inject constructor(
         }
     }
 
+    /*
+        ----- 업로드 상태 변경 -----
+     */
     // 업로드 상태 변경 처리 (공통 로직)
     private fun handleUploadState(
         uploadId: String,
@@ -218,7 +355,7 @@ class VideoListViewModel @Inject constructor(
             }
 
             is UploadVideoUseCase.UploadState.Completed -> {
-                removeItem(uploadId)
+                updateUploadingItem { list -> list.filter { it.id != uploadId } }
                 refresh()
             }
 
@@ -239,104 +376,10 @@ class VideoListViewModel @Inject constructor(
 
     // 압축 상태로 변경
     private fun changeToCompressingState(id: String) {
-        updateVideoList { list ->
+        updateUploadingItem { list ->
             list.map { item ->
                 if (item.id == id) {
-                    VideoCardItem.Compressing(id = id, progress = 0)
-                } else {
-                    item
-                }
-            }
-        }
-    }
-
-    // 섹션 선택
-    fun selectSection(sectionId: String) {
-        if (getSelectedSectionId() == sectionId) return
-
-        _selectedSectionId.value = sectionId
-
-        // 선택된 섹션의 비디오 로드
-        viewModelScope.launch {
-            _uiState.value = UiState.Loading
-            loadVideosForSection(sectionId)
-        }
-    }
-
-    // 비디오 업로드 (압축 -> 업로드)
-    fun uploadVideo(videoUri: Uri, title: String) {
-        val uploadId = UUID.randomUUID().toString()
-        val selectedSectionId = getSelectedSectionId() ?: return
-        val uploaderId = authRepository.getCurrentUser()?.uid ?: return
-
-        // 압축 상태로 리스트에 추가
-        addCompressingItem(uploadId)
-
-        viewModelScope.launch {
-            val result = uploadVideoUseCase(
-                videoUri = videoUri,
-                title = title,
-                tracksId = trackId,
-                sectionId = selectedSectionId,
-                uploaderId = uploaderId,
-                onStateChanged = { state ->
-                    when (state) {
-                        is UploadVideoUseCase.UploadState.Compressing -> {
-                            updateCompressionProgress(uploadId, state.progress)
-                        }
-
-                        is UploadVideoUseCase.UploadState.Uploading -> {
-                            changeToUploadingState(uploadId)
-                            updateUploadProgress(uploadId, state.progress)
-                        }
-
-                        is UploadVideoUseCase.UploadState.Completed -> {
-                            removeItem(uploadId)
-                            refresh()
-                        }
-
-                        is UploadVideoUseCase.UploadState.Failed -> {
-                            val failType = when (state.phase) {
-                                UploadVideoUseCase.FailPhase.COMPRESSION -> FailType.COMPRESSION
-                                UploadVideoUseCase.FailPhase.UPLOAD -> FailType.UPLOAD
-                            }
-                            val retryInfo = RetryInfo(
-                                originalUri = videoUri,
-                                title = title,
-                                compressedUri = state.compressedUri,
-                                thumbnailUri = state.thumbnailUri,
-                                duration = state.duration
-                            )
-                            changeToFailedState(uploadId, failType, state.message, retryInfo)
-                        }
-                    }
-                }
-            )
-
-            if (result is DataResult.Error) {
-                Log.e("VideoListViewModel", "Upload failed", result.throwable)
-            }
-        }
-    }
-
-    // 현재 선택된 섹션 ID 반환
-    private fun getSelectedSectionId(): String? {
-        return _selectedSectionId.value
-    }
-
-    // 압축 중 아이템 추가
-    private fun addCompressingItem(id: String) {
-        updateVideoList { list ->
-            listOf(VideoCardItem.Compressing(id = id, progress = 0)) + list
-        }
-    }
-
-    // 압축 진행률 업데이트
-    private fun updateCompressionProgress(id: String, progress: Int) {
-        updateVideoList { list ->
-            list.map { item ->
-                if (item.id == id && item is VideoCardItem.Compressing) {
-                    item.copy(progress = progress)
+                    VideoCardItem.Compressing(id = id, item.sectionId, progress = 0)
                 } else {
                     item
                 }
@@ -346,10 +389,10 @@ class VideoListViewModel @Inject constructor(
 
     // 업로드 상태로 변경
     private fun changeToUploadingState(id: String) {
-        updateVideoList { list ->
+        updateUploadingItem { list ->
             list.map { item ->
                 if (item.id == id) {
-                    VideoCardItem.Uploading(id = id, progress = 0)
+                    VideoCardItem.Uploading(id = id, sectionId = item.sectionId, progress = 0)
                 } else {
                     item
                 }
@@ -364,11 +407,12 @@ class VideoListViewModel @Inject constructor(
         message: String?,
         retryInfo: RetryInfo
     ) {
-        updateVideoList { list ->
+        updateUploadingItem { list ->
             list.map { item ->
                 if (item.id == id) {
                     VideoCardItem.Failed(
                         id = id,
+                        sectionId = item.sectionId,
                         type = type,
                         message = message,
                         retryInfo = retryInfo
@@ -380,28 +424,22 @@ class VideoListViewModel @Inject constructor(
         }
     }
 
-    // 아이템 제거
-    private fun removeItem(id: String) {
-        updateVideoList { list -> list.filter { it.id != id } }
-    }
-
-    // 새로고침
-    fun refresh() {
-        viewModelScope.launch {
-            _uiState.value = UiState.Loading
-            val selectedSectionId = getSelectedSectionId()
-            Log.d(TAG, "선택된 섹션: $selectedSectionId")
-            if (selectedSectionId != null) {
-                loadVideosForSection(selectedSectionId)
-                return@launch
+    // 압축 진행률 업데이트
+    private fun updateCompressionProgress(id: String, progress: Int) {
+        updateUploadingItem { list ->
+            list.map { item ->
+                if (item.id == id && item is VideoCardItem.Compressing) {
+                    item.copy(progress = progress)
+                } else {
+                    item
+                }
             }
-            _uiState.value = UiState.Success(System.currentTimeMillis())
         }
     }
 
     // 업로드 진행률 업데이트
     private fun updateUploadProgress(id: String, progress: Int) {
-        updateVideoList { list ->
+        updateUploadingItem { list ->
             list.map { item ->
                 if (item.id == id && item is VideoCardItem.Uploading) {
                     item.copy(progress = progress)
@@ -433,11 +471,13 @@ class VideoListViewModel @Inject constructor(
                     _editUiState.value = UiState.Success(System.currentTimeMillis())
                     refresh()
                 }
+
                 is DataResult.Error -> {
                     _editUiState.value = UiState.Error(
                         message = result.throwable.message,
                         throwable = result.throwable
                     )
+                    _toastMessage.emit(ToastEvent(R.string.toast_failed_edit_video_title, true))
                 }
             }
         }
@@ -447,10 +487,27 @@ class VideoListViewModel @Inject constructor(
         _editUiState.value = UiState.None
     }
 
+    fun deleteVideo(video: VideoSummary) {
+        val sectionId = getSelectedSectionId() ?: return
+        viewModelScope.launch {
+            when (videoRepository.deleteVideo(tracksId, sectionId, video.trackId, video.id)) {
+
+                is DataResult.Success -> {
+                    _toastMessage.emit(ToastEvent(R.string.toast_delete_video, false))
+                    refresh()
+                }
+
+                is DataResult.Error -> {
+                    _toastMessage.emit(ToastEvent(R.string.toast_failed_delete_video, true))
+                }
+            }
+
+        }
+    }
+
     companion object {
         private const val TAG = "VideoListViewModel"
         private const val KEY_TRACK_ID = "tracksId"
         private const val KEY_TRACK_TITLE = "tracksTitle"
-        private const val DEFAULT_SECTION_TITLE = "일반"
     }
 }
