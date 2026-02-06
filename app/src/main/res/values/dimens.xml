@@ -6,7 +6,12 @@
     <dimen name="section_item_spacing">8dp</dimen>
     <dimen name="move_video_item_spacing">8dp</dimen>
     <dimen name="fullscreen_panel_width">330dp</dimen>
-    <dimen name="player_container_height">230dp</dimen>
+    <dimen name="player_container_height">210dp</dimen>
     <dimen name="action_container_horiz_padding">16dp</dimen>
     <dimen name="action_container_vert_padding">10dp</dimen>
+    <dimen name="comment_sheet_padding">16dp</dimen>
+    <dimen name="mention_item_height">36dp</dimen>
+    <dimen name="mention_list_margin">8dp</dimen>
+    <dimen name="mention_list_horiz_margin">16dp</dimen>
+    <dimen name="feedback_img_radius">10dp</dimen>
 </resources>

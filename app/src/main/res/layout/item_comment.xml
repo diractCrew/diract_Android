@@ -5,17 +5,10 @@
     android:layout_height="wrap_content"
     android:background="@android:color/transparent">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/stroke_normal"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:padding="16dp">
-
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/header"
@@ -150,14 +143,35 @@
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/commentTxt"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/commentLayer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textAppearance="@style/Body1.Medium"
-            android:textColor="@color/label_strong"
-            app:layout_constraintTop_toBottomOf="@id/mid" />
+            app:layout_constraintTop_toBottomOf="@id/mid">
+
+            <TextView
+                android:id="@+id/commentTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAppearance="@style/Body1.Medium"
+                android:textColor="@color/label_strong"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/feedbackImg"
+                android:layout_width="90dp"
+                android:layout_height="100dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/rectangle_radius10"
+                android:backgroundTint="@color/black"
+                android:visibility="gone"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/commentTxt" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/replyBtn"
@@ -178,7 +192,7 @@
             app:iconPadding="4dp"
             app:iconTint="@color/secondary_assistive"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/commentTxt" />
+            app:layout_constraintTop_toBottomOf="@id/commentLayer" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cancelBtn"
@@ -196,7 +210,13 @@
             android:textColor="@color/accent_red_normal"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/commentTxt" />
+            app:layout_constraintTop_toBottomOf="@id/commentLayer" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/stroke_normal"
+        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

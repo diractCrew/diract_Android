@@ -58,6 +58,8 @@
     <string name="dialog_default_complete">완료되었습니다.</string>
     <string name="dialog_delete_video_title">%1$s을/를 삭제하시겠어요?</string>
     <string name="dialog_delete_video_content">삭제하면 복구할 수 없습니다.</string>
+    <string name="dialog_cancel_writing_feedback_title">작성 중인 피드백이 있습니다. 나가시겠어요?</string>
+    <string name="dialog_cancel_writing_feedback_content">작성 중인 피드백은 저장되지 않습니다.</string>
 
     <!-- 입력 다이얼로그 -->
     <string name="input_dialog_counter">%1$d/%2$d</string>
@@ -113,5 +115,7 @@
     <string name="time_months_ago">%d개월 전</string>
     <string name="time_years_ago">%d년 전</string>
     <string name="uploading">업로드 중..</string>
+    <string name="no_team_members">팀원이 없습니다.팀원을 초대해 주세요.</string>
+    <string name="mention_all">\@All</string>
 
 </resources>
