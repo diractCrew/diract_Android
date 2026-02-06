@@ -26,7 +26,11 @@ interface FeedbackRepository {
     ): DataResult<Unit>
 
     //피드백 수정
-    suspend fun editFeedback(feedbackId: String, newContent: String): DataResult<Unit>
+    suspend fun editFeedback(
+        feedbackId: String,
+        newContent: String,
+        taggedUserIds: List<String> = emptyList()
+    ): DataResult<Unit>
 
     //피드백 삭제
     suspend fun deleteFeedback(feedbackId: String): DataResult<Unit>
