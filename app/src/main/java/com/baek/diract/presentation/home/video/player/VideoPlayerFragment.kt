@@ -3,7 +3,6 @@ package com.baek.diract.presentation.home.video.player
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -31,9 +30,11 @@ import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import com.baek.diract.R
 import com.baek.diract.databinding.FragmentVideoPlayerBinding
+import com.baek.diract.presentation.common.Formatter.toTimeAgoString
 import com.baek.diract.presentation.common.Formatter.toTimeString
 import com.baek.diract.domain.model.FeedbackUser
 import com.baek.diract.presentation.common.CustomToast
+import com.baek.diract.presentation.common.LoadingOverlay
 import com.baek.diract.presentation.common.UiState
 import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.baek.diract.presentation.common.option.OptionItem
@@ -43,6 +44,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.core.graphics.drawable.toDrawable
 
 @AndroidEntryPoint
 class VideoPlayerFragment : Fragment() {
@@ -66,13 +68,17 @@ class VideoPlayerFragment : Fragment() {
 
     private var isSeekBarTracking = false
     private var systemBarInset = 0
+    private var isReplyMentionMode = false
 
     private lateinit var feedbackAdapter: FeedbackAdapter
     private lateinit var mentionListAdapter: MentionListAdapter
+    private lateinit var replyAdapter: ReplyAdapter
+    private val loadingOverlay by lazy { LoadingOverlay(this) }
 
     private val backPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             when {
+                feedbackViewModel.replyTarget.value != null -> confirmDiscardAndCloseReply()
                 isFullscreen -> toggleFullscreen()
                 feedbackViewModel.feedbackInputState.value != FeedbackInputState.DEFAULT -> confirmDiscardAndReset()
             }
@@ -116,6 +122,9 @@ class VideoPlayerFragment : Fragment() {
         // 하단 네비게이션 바 높이만큼 feedbackView 내부 요소에 패딩 적용
         applyNavigationBarPadding()
 
+        // ReplyView 초기화
+        setupReplyView()
+
         // FeedbackAdapter 초기화 및 RecyclerView 연결
         setupFeedbackRecyclerView()
     }
@@ -126,7 +135,7 @@ class VideoPlayerFragment : Fragment() {
                 showFeedbackOptionPopup(feedback, view)
             },
             onReplyClick = { feedback ->
-                // TODO: 답글 화면으로 이동
+                feedbackViewModel.openReply(feedback)
             },
             onTimeChipClick = { feedback ->
                 // 해당 시간으로 이동 (초 → 밀리초 변환)
@@ -186,7 +195,9 @@ class VideoPlayerFragment : Fragment() {
 
         // 구간 선택 완료 버튼
         binding.feedbackView.selectingRangeBtn.setOnClickListener {
-            feedbackViewModel.completeRangeSelection(player?.currentPosition ?: feedbackViewModel.rangeStartTime)
+            feedbackViewModel.completeRangeSelection(
+                player?.currentPosition ?: feedbackViewModel.rangeStartTime
+            )
         }
 
         // 댓글 시트 닫기 버튼
@@ -229,6 +240,24 @@ class VideoPlayerFragment : Fragment() {
     }
 
 
+    //댓글 나가기
+    private fun confirmDiscardAndCloseReply() {
+        val hasContent = !binding.replyView.commentSheet.commentEditTxt.text.isNullOrBlank()
+        hideKeyboard()
+        if (hasContent) {
+            BasicDialog.destructive(
+                context = requireContext(),
+                title = getString(R.string.dialog_cancel_writing_comment_title),
+                message = getString(R.string.dialog_cancel_writing_comment_content),
+                positiveText = getString(R.string.dialog_exit),
+                onPositive = { feedbackViewModel.closeReply()}
+            ).show()
+        } else {
+            feedbackViewModel.closeReply()
+        }
+    }
+
+    //피드백 나가기
     private fun confirmDiscardAndReset() {
         val hasContent = !binding.feedbackView.commentSheet.commentEditTxt.text.isNullOrBlank()
         if (hasContent) {
@@ -245,7 +274,9 @@ class VideoPlayerFragment : Fragment() {
     }
 
     private fun renderFeedbackInputState(state: FeedbackInputState) {
-        backPressedCallback.isEnabled = isFullscreen || state != FeedbackInputState.DEFAULT
+        backPressedCallback.isEnabled = isFullscreen
+                || state != FeedbackInputState.DEFAULT
+                || feedbackViewModel.replyTarget.value != null
 
         when (state) {
             FeedbackInputState.DEFAULT -> {
@@ -266,8 +297,10 @@ class VideoPlayerFragment : Fragment() {
                 binding.feedbackView.defaultActionView.visibility = View.GONE
                 binding.feedbackView.selectingRangeBtn.visibility = View.VISIBLE
                 binding.feedbackView.commentSheet.root.visibility = View.GONE
-                binding.feedbackView.rangeStartTxt.text = feedbackViewModel.rangeStartTime.toTimeString()
-                binding.feedbackView.rangeEndTxt.text = feedbackViewModel.rangeStartTime.toTimeString()
+                binding.feedbackView.rangeStartTxt.text =
+                    feedbackViewModel.rangeStartTime.toTimeString()
+                binding.feedbackView.rangeEndTxt.text =
+                    feedbackViewModel.rangeStartTime.toTimeString()
                 hideKeyboard()
             }
 
@@ -288,21 +321,20 @@ class VideoPlayerFragment : Fragment() {
                 // 수정 모드일 때 기존 내용 및 멘션 칩 설정
                 feedbackViewModel.editingFeedback?.let { editing ->
                     binding.feedbackView.commentSheet.commentEditTxt.setText(editing.content)
-                    bindEditMentionChips(editing)
+                    renderMentionChips()
                 }
                 showKeyboard()
             }
         }
     }
 
-    private fun showKeyboard() {
-        binding.feedbackView.commentSheet.commentEditTxt.requestFocus()
+    private fun showKeyboard(
+        target: android.widget.EditText = binding.feedbackView.commentSheet.commentEditTxt
+    ) {
+        target.requestFocus()
         val imm =
             requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(
-            binding.feedbackView.commentSheet.commentEditTxt,
-            InputMethodManager.SHOW_IMPLICIT
-        )
+        imm.showSoftInput(target, InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun hideKeyboard() {
@@ -336,7 +368,7 @@ class VideoPlayerFragment : Fragment() {
         val maxVisibleItems = 4
         val itemHeight = resources.getDimensionPixelSize(R.dimen.mention_item_height)
         if (feedback.taggedUsers.size > maxVisibleItems) {
-            rv.layoutParams.height = itemHeight * maxVisibleItems - itemHeight/4
+            rv.layoutParams.height = itemHeight * maxVisibleItems - itemHeight / 4
         }
 
         val popupWindow = android.widget.PopupWindow(
@@ -346,7 +378,7 @@ class VideoPlayerFragment : Fragment() {
             true
         )
         popupWindow.elevation = 8f
-        popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popupWindow.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 
         // 뷰 오른쪽 끝에서 margin만큼 떨어지도록 배치
         popupView.measure(
@@ -382,23 +414,424 @@ class VideoPlayerFragment : Fragment() {
                 // 이미 WRITING_COMMENT 상태일 경우 StateFlow가 재방출하지 않으므로 수동 렌더링
                 renderFeedbackInputState(FeedbackInputState.WRITING_COMMENT)
             }
+
             OptionItem.ID_DELETE -> {
                 feedbackViewModel.deleteFeedback(feedback.feedbackId)
             }
+
             OptionItem.ID_REPORT -> {
                 feedbackViewModel.reportFeedback(feedback.feedbackId)
             }
         }
     }
 
-    private fun bindEditMentionChips(feedback: FeedbackItem) {
-        // startEditFeedback에서 이미 selectedMentions에 추가했으므로 렌더링만 수행
-        renderMentionChips()
+    /*
+        답글 화면
+     */
+
+    private fun setupReplyView() {
+        replyAdapter = ReplyAdapter(
+            onMoreClick = { reply, view ->
+                showReplyOptionPopup(reply, view)
+            },
+            onReplyClick = { reply ->
+                feedbackViewModel.setReplyTo(reply.author)
+                showKeyboard(binding.replyView.commentSheet.commentEditTxt)
+            },
+            onRetryClick = { reply ->
+                feedbackViewModel.retryUploadReply(reply)
+            },
+            onCancelClick = { reply ->
+                feedbackViewModel.cancelFailedReply(reply.replyId)
+            }
+        )
+        binding.replyView.rvReply.adapter = replyAdapter
+
+        // 답글 리스트 터치 시 멘션 리스트 숨기기 + 키보드 내리기
+        binding.replyView.rvReply.addOnItemTouchListener(
+            object : RecyclerView.SimpleOnItemTouchListener() {
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                    if (e.action == MotionEvent.ACTION_DOWN) {
+                        dismissMentionAndKeyboard()
+                    }
+                    return false
+                }
+            }
+        )
+
+        // 피드백 정보 영역 터치 시 멘션 리스트 숨기기 + 키보드 내리기
+        binding.replyView.feedbackView.setOnClickListener {
+            dismissMentionAndKeyboard()
+        }
+
+        binding.replyView.commentSheet.commentEditTxt.hint = getString(R.string.reply_input_hint)
+
+        // 답글 화면 닫기 버튼
+        binding.replyView.closeBtn.setOnClickListener {
+            confirmDiscardAndCloseReply()
+        }
+
+        // commentSheet 내 닫기 버튼 (작성 중인 답글 초기화)
+        binding.replyView.commentSheet.closeBtn.setOnClickListener {
+            feedbackViewModel.clearReplyTo()
+            feedbackViewModel.clearReplyMentions()
+            binding.replyView.commentSheet.commentEditTxt.text?.clear()
+            hideKeyboard()
+        }
+
+        // 답글 전송 버튼
+        binding.replyView.commentSheet.sendBtn.isEnabled = false
+        binding.replyView.commentSheet.commentEditTxt.addTextChangedListener(
+            object : android.text.TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    handleReplyMentionInput(s, start, before, count)
+                }
+
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    binding.replyView.commentSheet.sendBtn.isEnabled = !s.isNullOrBlank()
+                }
+            }
+        )
+        binding.replyView.commentSheet.sendBtn.setOnClickListener {
+            val content = binding.replyView.commentSheet.commentEditTxt.text.toString().trim()
+            if (content.isEmpty()) return@setOnClickListener
+            feedbackViewModel.submitReply(content)
+            binding.replyView.commentSheet.commentEditTxt.text?.clear()
+            hideKeyboard()
+        }
+
+        // 시간 칩 영역 숨기기 (답글은 시간 칩 불필요)
+        binding.replyView.commentSheet.chipContainer.visibility = View.GONE
+        // 초기 상태: 헤더/태그 숨김
+        binding.replyView.commentSheet.commentHeader.visibility = View.GONE
+        binding.replyView.commentSheet.tagContainer.visibility = View.GONE
+    }
+
+    private fun showReplyView(feedback: FeedbackItem) {
+        binding.replyView.root.visibility = View.VISIBLE
+
+        // 피드백 정보 바인딩
+        binding.replyView.nameTxt.text = feedback.author.name
+        binding.replyView.timeAgoTxt.text = feedback.updatedAt.toTimeAgoString(requireContext())
+        binding.replyView.feedbackTxt.text = feedback.content
+        binding.replyView.replyCountBtn.text = feedback.replyCount.toString()
+
+        // 시간 칩
+        val timeText = if (feedback.endTime != null) {
+            "${feedback.startTime.toTimeString()} ~ ${feedback.endTime.toTimeString()}"
+        } else {
+            feedback.startTime.toTimeString()
+        }
+        binding.replyView.timeChipBtn.text = timeText
+
+        binding.replyView.replyBtn.setOnClickListener {
+            feedbackViewModel.setReplyTo(feedback.author)
+            showKeyboard(binding.replyView.commentSheet.commentEditTxt)
+        }
+
+        // 멘션 칩
+        bindReplyMentionChips(feedback)
+
+        // 전체화면 모드에 따른 constraint 조정
+        updateReplyViewConstraints()
+
+        backPressedCallback.isEnabled = true
+    }
+
+    private fun hideReplyView() {
+        binding.replyView.root.visibility = View.GONE
+        binding.replyView.commentSheet.commentEditTxt.text?.clear()
+        binding.replyView.commentSheet.commentHeader.visibility = View.GONE
+        binding.replyView.commentSheet.tagContainer.visibility = View.GONE
+        binding.replyView.commentSheet.mentionChipGroup.removeAllViews()
+        hideMentionList()
+        hideKeyboard()
+        backPressedCallback.isEnabled = isFullscreen
+                || feedbackViewModel.feedbackInputState.value != FeedbackInputState.DEFAULT
+    }
+
+    private fun updateReplyViewConstraints() {
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(binding.root)
+
+        if (isFullscreen) {
+            // 전체화면: feedbackView와 동일한 위치에 배치
+            constraintSet.clear(binding.replyView.root.id)
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.TOP,
+                binding.feedbackView.root.id, ConstraintSet.TOP
+            )
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.BOTTOM,
+                binding.feedbackView.root.id, ConstraintSet.BOTTOM
+            )
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.START,
+                binding.feedbackView.root.id, ConstraintSet.START
+            )
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.END,
+                binding.feedbackView.root.id, ConstraintSet.END
+            )
+        } else {
+            // 일반 모드: 전체 화면 덮기
+            constraintSet.clear(binding.replyView.root.id)
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.TOP,
+                ConstraintSet.PARENT_ID, ConstraintSet.TOP
+            )
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.BOTTOM,
+                ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM
+            )
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.START,
+                ConstraintSet.PARENT_ID, ConstraintSet.START
+            )
+            constraintSet.connect(
+                binding.replyView.root.id, ConstraintSet.END,
+                ConstraintSet.PARENT_ID, ConstraintSet.END
+            )
+        }
+        constraintSet.constrainWidth(binding.replyView.root.id, ConstraintSet.MATCH_CONSTRAINT)
+        constraintSet.constrainHeight(binding.replyView.root.id, ConstraintSet.MATCH_CONSTRAINT)
+        constraintSet.applyTo(binding.root)
+    }
+
+    private fun bindReplyMentionChips(feedback: FeedbackItem) {
+        val mentionChipGroup = binding.replyView.mentionChipGroup
+        mentionChipGroup.removeAllViews()
+
+        if (feedback.taggedUsers.isEmpty()) {
+            mentionChipGroup.visibility = View.GONE
+            binding.replyView.moreMentionChip.visibility = View.GONE
+            return
+        }
+
+        mentionChipGroup.visibility = View.VISIBLE
+        val inflater = LayoutInflater.from(requireContext())
+        feedback.taggedUsers.take(FeedbackAdapter.MAX_VISIBLE_MENTION).forEach { user ->
+            val chip = inflater.inflate(
+                R.layout.item_mention_chip, mentionChipGroup, false
+            ) as Chip
+            chip.text = "@${user.name}"
+            mentionChipGroup.addView(chip)
+        }
+
+        val remain = feedback.taggedUsers.size - FeedbackAdapter.MAX_VISIBLE_MENTION
+        if (remain > 0) {
+            binding.replyView.moreMentionChip.visibility = View.VISIBLE
+            binding.replyView.moreMentionChip.text = "+${remain}"
+            binding.replyView.moreMentionChip.setOnClickListener { view ->
+                showMentionMorePopup(feedback, view)
+            }
+        } else {
+            binding.replyView.moreMentionChip.visibility = View.GONE
+        }
+    }
+
+    private fun showReplyOptionPopup(reply: ReplyItem, anchorView: View) {
+        val popup = if (feedbackViewModel.isMyReply(reply)) {
+            OptionPopup.commentAuthorOptions(requireContext()) { option ->
+                onReplyOptionSelected(option, reply)
+            }
+        } else {
+            OptionPopup.commentOptions(requireContext()) { option ->
+                onReplyOptionSelected(option, reply)
+            }
+        }
+        popup.show(anchorView)
+    }
+
+    private fun onReplyOptionSelected(option: OptionItem, reply: ReplyItem) {
+        when (option.id) {
+            OptionItem.ID_EDIT_COMMENT -> {
+                feedbackViewModel.startEditReply(reply)
+                // commentSheet에 기존 내용 세팅
+                binding.replyView.commentSheet.commentEditTxt.setText(reply.content)
+                binding.replyView.commentSheet.commentEditTxt.setSelection(reply.content.length)
+                renderReplyMentionChips()
+                renderReplyCommentHeader()
+                showKeyboard(binding.replyView.commentSheet.commentEditTxt)
+            }
+            OptionItem.ID_DELETE -> feedbackViewModel.deleteReply(reply.replyId)
+            OptionItem.ID_REPORT -> feedbackViewModel.reportReply(reply.replyId)
+        }
+    }
+
+    /*
+        답글 멘션 처리
+     */
+
+    private fun handleReplyMentionInput(s: CharSequence?, start: Int, before: Int, count: Int) {
+        val text = s?.toString() ?: ""
+
+        if (count == 1 && text.endsWith("@")) {
+            feedbackViewModel.setReplyMentioning(true)
+            showReplyMentionList("")
+            return
+        }
+
+        if (!feedbackViewModel.isReplyMentioning) return
+
+        val lastAtIndex = text.lastIndexOf('@')
+        if (lastAtIndex == -1) {
+            hideMentionList()
+            feedbackViewModel.setReplyMentioning(false)
+            return
+        }
+
+        val query = text.substring(lastAtIndex + 1)
+        if (query.contains(" ")) {
+            hideMentionList()
+            feedbackViewModel.setReplyMentioning(false)
+            return
+        }
+
+        showReplyMentionList(query)
+    }
+
+    private fun showReplyMentionList(query: String) {
+        isReplyMentionMode = true
+        val filteredMembers = feedbackViewModel.filterMentionMembers(query)
+        val maxVisibleItems = 5
+        val itemHeight = resources.getDimensionPixelSize(R.dimen.mention_item_height)
+
+        if (filteredMembers.isEmpty()) {
+            binding.mentionListRv.visibility = View.GONE
+            binding.mentionEmptyTxt.visibility = View.VISIBLE
+        } else {
+            binding.mentionListRv.visibility = View.VISIBLE
+            binding.mentionEmptyTxt.visibility = View.GONE
+            mentionListAdapter.submitList(filteredMembers)
+
+            val layoutParams = binding.mentionListRv.layoutParams
+            layoutParams.height = if (filteredMembers.size > maxVisibleItems) {
+                itemHeight * maxVisibleItems - itemHeight / 4
+            } else {
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+            binding.mentionListRv.layoutParams = layoutParams
+        }
+
+        binding.mentionListContainer.visibility = View.VISIBLE
+        updateReplyMentionListPosition()
+    }
+
+    private fun updateReplyMentionListPosition() {
+        binding.replyView.commentSheet.root.post {
+            val commentSheetHeight = binding.replyView.commentSheet.root.height
+            val margin = resources.getDimensionPixelSize(R.dimen.mention_list_margin)
+            val horizontalMargin =
+                resources.getDimensionPixelSize(R.dimen.mention_list_horiz_margin)
+
+            val params = binding.mentionListContainer.layoutParams as
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.bottomMargin = commentSheetHeight + margin
+
+            val replyView = binding.replyView.root
+            params.width = replyView.width - (horizontalMargin * 2)
+            params.marginStart = replyView.left + horizontalMargin
+            params.marginEnd = horizontalMargin
+
+            binding.mentionListContainer.layoutParams = params
+        }
+    }
+
+    private fun onReplyMentionSelected(member: FeedbackUser) {
+        val editText = binding.replyView.commentSheet.commentEditTxt
+        val text = editText.text ?: return
+
+        // 마지막 '@'부터 끝까지 삭제
+        val lastAtIndex = text.lastIndexOf('@')
+        if (lastAtIndex != -1) {
+            text.delete(lastAtIndex, text.length)
+        }
+
+        feedbackViewModel.addReplyMention(member)
+        renderReplyMentionChips()
+
+        feedbackViewModel.setReplyMentioning(false)
+        hideMentionList()
+    }
+
+    private fun renderReplyMentionChips() {
+        val tagContainer = binding.replyView.commentSheet.tagContainer
+        val mentionChipGroup = binding.replyView.commentSheet.mentionChipGroup
+        mentionChipGroup.removeAllViews()
+
+        val selected = feedbackViewModel.replySelectedMentions.value
+        if (selected.isEmpty()) {
+            tagContainer.visibility = View.GONE
+            renderReplyCommentHeader()
+            return
+        }
+
+        tagContainer.visibility = View.VISIBLE
+        mentionChipGroup.visibility = View.VISIBLE
+
+        if (feedbackViewModel.isAllMembersSelectedForReply()) {
+            val chip = layoutInflater.inflate(
+                R.layout.item_added_mention_chip, mentionChipGroup, false
+            ) as Chip
+            chip.text = "@All"
+            chip.tag = FeedbackViewModel.ALL_MEMBER_ID
+            chip.setOnCloseIconClickListener {
+                feedbackViewModel.clearReplyMentions()
+                renderReplyMentionChips()
+            }
+            mentionChipGroup.addView(chip)
+        } else {
+            selected.forEach { user ->
+                val chip = layoutInflater.inflate(
+                    R.layout.item_added_mention_chip, mentionChipGroup, false
+                ) as Chip
+                chip.text = "@${user.name}"
+                chip.tag = user.userId
+                chip.setOnCloseIconClickListener {
+                    feedbackViewModel.removeReplyMention(
+                        user.userId ?: return@setOnCloseIconClickListener
+                    )
+                    renderReplyMentionChips()
+                }
+                mentionChipGroup.addView(chip)
+            }
+        }
+        renderReplyCommentHeader()
+    }
+
+    private fun renderReplyCommentHeader() {
+        val hasReplyTo = feedbackViewModel.replyToUser.value != null
+        val hasMentions = feedbackViewModel.replySelectedMentions.value.isNotEmpty()
+
+        binding.replyView.commentSheet.commentHeader.visibility =
+            if (hasReplyTo) View.VISIBLE else View.GONE
+
+        if (hasReplyTo) {
+            val userName = feedbackViewModel.replyToUser.value?.name ?: ""
+            binding.replyView.commentSheet.replyToTxt.visibility = View.VISIBLE
+            binding.replyView.commentSheet.replyToTxt.text =
+                getString(R.string.reply_to_format, userName)
+        } else {
+            binding.replyView.commentSheet.replyToTxt.visibility = View.GONE
+        }
     }
 
     private fun setupMentionList() {
         mentionListAdapter = MentionListAdapter { member ->
-            onMentionSelected(member)
+            if (isReplyMentionMode) {
+                onReplyMentionSelected(member)
+            } else {
+                onMentionSelected(member)
+            }
         }
         binding.mentionListRv.apply {
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
@@ -441,6 +874,7 @@ class VideoPlayerFragment : Fragment() {
     }
 
     private fun showMentionList(query: String) {
+        isReplyMentionMode = false
         val filteredMembers = feedbackViewModel.filterMentionMembers(query)
         val maxVisibleItems = 5
         val itemHeight = resources.getDimensionPixelSize(R.dimen.mention_item_height)
@@ -456,7 +890,7 @@ class VideoPlayerFragment : Fragment() {
             // 5개 이상이면 높이 제한
             val layoutParams = binding.mentionListRv.layoutParams
             layoutParams.height = if (filteredMembers.size > maxVisibleItems) {
-                itemHeight * maxVisibleItems - itemHeight/4
+                itemHeight * maxVisibleItems - itemHeight / 4
             } else {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             }
@@ -473,9 +907,16 @@ class VideoPlayerFragment : Fragment() {
 
     // 멘션 리스트 숨기기 + 키보드 내리기 (외부 영역 터치 시)
     private fun dismissMentionAndKeyboard() {
-        if (feedbackViewModel.feedbackInputState.value != FeedbackInputState.WRITING_COMMENT) return
-        if (feedbackViewModel.isMentioning) {
+        // 피드백 멘션 모드
+        if (feedbackViewModel.feedbackInputState.value == FeedbackInputState.WRITING_COMMENT
+            && feedbackViewModel.isMentioning
+        ) {
             feedbackViewModel.setMentioning(false)
+            hideMentionList()
+        }
+        // 답글 멘션 모드
+        if (feedbackViewModel.replyTarget.value != null && feedbackViewModel.isReplyMentioning) {
+            feedbackViewModel.setReplyMentioning(false)
             hideMentionList()
         }
         hideKeyboard()
@@ -486,9 +927,11 @@ class VideoPlayerFragment : Fragment() {
         binding.feedbackView.commentSheet.root.post {
             val commentSheetHeight = binding.feedbackView.commentSheet.root.height
             val margin = resources.getDimensionPixelSize(R.dimen.mention_list_margin)
-            val horizontalMargin = resources.getDimensionPixelSize(R.dimen.mention_list_horiz_margin)
+            val horizontalMargin =
+                resources.getDimensionPixelSize(R.dimen.mention_list_horiz_margin)
 
-            val params = binding.mentionListContainer.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            val params =
+                binding.mentionListContainer.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
             params.bottomMargin = commentSheetHeight + margin
 
             // feedbackView 기준으로 너비와 위치 조정
@@ -559,7 +1002,9 @@ class VideoPlayerFragment : Fragment() {
                 chip.text = "@${user.name}"
                 chip.tag = user.userId
                 chip.setOnCloseIconClickListener {
-                    feedbackViewModel.removeMention(user.userId ?: return@setOnCloseIconClickListener)
+                    feedbackViewModel.removeMention(
+                        user.userId ?: return@setOnCloseIconClickListener
+                    )
                     renderMentionChips()
                 }
                 mentionChipGroup.addView(chip)
@@ -611,6 +1056,23 @@ class VideoPlayerFragment : Fragment() {
                 resources.getDimensionPixelSize(R.dimen.comment_sheet_padding) + bottomPadding
             )
 
+            // replyView commentSheet: 일반 모드에서만 네비게이션 바/키보드 패딩 적용
+            if (!isFullscreen) {
+                val replyCommentSheet = binding.replyView.commentSheet.root
+                val replyBottomPadding = if (imeBottom > 0) imeBottom else navBarBottom
+                replyCommentSheet.setPadding(
+                    replyCommentSheet.paddingLeft,
+                    replyCommentSheet.paddingTop,
+                    replyCommentSheet.paddingRight,
+                    resources.getDimensionPixelSize(R.dimen.comment_sheet_padding) + replyBottomPadding
+                )
+            }
+
+            // 답글 멘션 모드일 때 위치 업데이트
+            if (feedbackViewModel.isReplyMentioning) {
+                updateReplyMentionListPosition()
+            }
+
             insets
         }
     }
@@ -654,12 +1116,56 @@ class VideoPlayerFragment : Fragment() {
                     }
                 }
 
-                //토스트 메세지
-                feedbackViewModel.toastMessage.collect { event ->
-                    if (event.isErr) {
-                        CustomToast.showNegative(requireContext(), event.txtRes, Toast.LENGTH_LONG)
-                    } else {
-                        CustomToast.showPositive(requireContext(), event.txtRes, Toast.LENGTH_LONG)
+                // 답글 대상 관찰
+                launch {
+                    feedbackViewModel.replyTarget.collect { target ->
+                        if (target != null) {
+                            showReplyView(target)
+                        } else {
+                            hideReplyView()
+                        }
+                    }
+                }
+                // 답글 목록 관찰
+                launch {
+                    feedbackViewModel.replyItems.collect { replies ->
+                        replyAdapter.submitList(replies)
+                    }
+                }
+                // 답글 상태 관찰 (수정 시 로딩 오버레이)
+                launch {
+                    feedbackViewModel.replyState.collect { state ->
+                        loadingOverlay.setVisible(state is UiState.Loading)
+                    }
+                }
+                // 답글 대상 유저 관찰 (답글의 답글)
+                launch {
+                    feedbackViewModel.replyToUser.collect {
+                        renderReplyCommentHeader()
+                    }
+                }
+                // 답글 멘션 관찰
+                launch {
+                    feedbackViewModel.replySelectedMentions.collect {
+                        renderReplyMentionChips()
+                    }
+                }
+                // 토스트 메세지
+                launch {
+                    feedbackViewModel.toastMessage.collect { event ->
+                        if (event.isErr) {
+                            CustomToast.showNegative(
+                                requireContext(),
+                                event.txtRes,
+                                Toast.LENGTH_LONG
+                            )
+                        } else {
+                            CustomToast.showPositive(
+                                requireContext(),
+                                event.txtRes,
+                                Toast.LENGTH_LONG
+                            )
+                        }
                     }
                 }
             }
@@ -1109,6 +1615,10 @@ class VideoPlayerFragment : Fragment() {
         } else {
             exitFullscreen()
         }
+        // 답글 화면이 열려있으면 constraint 재설정
+        if (feedbackViewModel.replyTarget.value != null) {
+            updateReplyViewConstraints()
+        }
     }
 
     private fun enterFullscreen() {
@@ -1332,9 +1842,21 @@ class VideoPlayerFragment : Fragment() {
                 basePadding + imeBottom
             )
 
+            // replyView commentSheet: 전체화면에서는 키보드만 반영
+            val replyCommentSheet = binding.replyView.commentSheet.root
+            replyCommentSheet.setPadding(
+                replyCommentSheet.paddingLeft,
+                replyCommentSheet.paddingTop,
+                replyCommentSheet.paddingRight,
+                basePadding + imeBottom
+            )
+
             // 멘션 모드일 때 위치 업데이트
             if (feedbackViewModel.isMentioning) {
                 updateMentionListPosition()
+            }
+            if (feedbackViewModel.isReplyMentioning) {
+                updateReplyMentionListPosition()
             }
 
             insets
