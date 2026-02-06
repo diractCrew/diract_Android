@@ -24,6 +24,8 @@ data class OptionItem(
         const val ID_REPORT = "report"
         const val ID_EDIT_FEEDBACK = "edit_feedback"
 
+        const val ID_EDIT_COMMENT = "edit_comment"
+
         //이름 수정
         fun editName() = OptionItem(
             id = ID_EDIT_NAME,
@@ -54,6 +56,11 @@ data class OptionItem(
         fun editFeedback() = OptionItem(
             id = ID_EDIT_FEEDBACK,
             titleRes = R.string.edit_feedback_option
+        )
+
+        fun editComment() = OptionItem(
+            id = ID_EDIT_COMMENT,
+            titleRes = R.string.edit_comment_option
         )
     }
 }
