@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.baek.diract.R
 import com.baek.diract.databinding.ItemCommentBinding
 import com.baek.diract.presentation.common.Formatter.toTimeAgoString
@@ -53,6 +54,18 @@ class FeedbackAdapter(
             // 시간 칩 (구간 또는 포인트)
             bindTimeChip(feedback)
 
+            // 피드백 이미지
+            if (feedback.imgUrl != null) {
+                binding.feedbackImg.visibility = View.VISIBLE
+                val radius = itemView.resources.getDimensionPixelSize(R.dimen.feedback_img_radius)
+                Glide.with(itemView)
+                    .load(feedback.imgUrl)
+                    .transform(com.bumptech.glide.load.resource.bitmap.RoundedCorners(radius))
+                    .into(binding.feedbackImg)
+            } else {
+                binding.feedbackImg.visibility = View.GONE
+            }
+
             // 멘션 칩
             bindMentionChips(feedback)
             // 작성 시간 (상대 시간)
@@ -66,7 +79,12 @@ class FeedbackAdapter(
             binding.timeChipBtn.setOnClickListener { onTimeChipClick(feedback) }
             binding.retryBtn.setOnClickListener { onRetryClick(feedback) }
             binding.cancelBtn.setOnClickListener { onCancelClick(feedback) }
-            binding.moreMentionChip.setOnClickListener {view -> onMoreMentionClick(feedback,view) }
+            binding.moreMentionChip.setOnClickListener { view ->
+                onMoreMentionClick(
+                    feedback,
+                    view
+                )
+            }
         }
 
         private fun setSuccessView() {
@@ -75,7 +93,7 @@ class FeedbackAdapter(
             binding.timeAgoTxt.visibility = View.VISIBLE
             binding.replyBtn.visibility = View.VISIBLE
             binding.moreBtn.visibility = View.VISIBLE
-            binding.loadingTxt.visibility = View.VISIBLE
+            binding.loadingTxt.visibility = View.GONE
         }
 
         private fun setLoadingView() {
@@ -118,18 +136,16 @@ class FeedbackAdapter(
 
             binding.mentionChipGroup.visibility = View.VISIBLE
 
+            val inflater = LayoutInflater.from(binding.root.context)
             feedback.taggedUsers
                 .take(MAX_VISIBLE_MENTION)
                 .forEach { user ->
-                    val chip = Chip(
-                        binding.root.context,
-                        null,
-                        R.style.Widget_Diract_MentionChip_Comment
-                    ).apply {
-                        text = "@${user.name}"
-                        isClickable = false
-                    }
-
+                    val chip = inflater.inflate(
+                        R.layout.item_mention_chip,
+                        binding.mentionChipGroup,
+                        false
+                    ) as Chip
+                    chip.text = "@${user.name}"
                     binding.mentionChipGroup.addView(chip)
                 }
 
