@@ -11,6 +11,8 @@
     <dimen name="action_container_vert_padding">10dp</dimen>
     <dimen name="comment_sheet_padding">16dp</dimen>
     <dimen name="mention_item_height">36dp</dimen>
+    <dimen name="mention_popup_min_width">140dp</dimen>
+    <dimen name="mention_popup_vert_padding">8dp</dimen>
     <dimen name="mention_list_margin">8dp</dimen>
     <dimen name="mention_list_horiz_margin">16dp</dimen>
     <dimen name="feedback_img_radius">10dp</dimen>

@@ -101,9 +101,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_input_comment"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="12dp">
+        android:background="@drawable/bg_input_comment">
 
         <EditText
             android:id="@+id/commentEditTxt"
@@ -115,6 +113,8 @@
             android:hint="@string/feedback_input_hint"
             android:imeOptions="flagNoExtractUi"
             android:inputType="textMultiLine|textCapSentences"
+            android:paddingVertical="12dp"
+            android:paddingStart="16dp"
             android:textAppearance="@style/Headline2.Medium"
             android:textColor="@color/label_strong"
             android:textColorHint="@color/label_assistive" />
@@ -125,6 +125,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:background="@android:color/transparent"
+            android:paddingVertical="12dp"
+            android:paddingEnd="12dp"
             android:src="@drawable/ic_send"
             app:tint="@color/send_btn_selector" />
     </LinearLayout>

@@ -74,6 +74,7 @@
     <string name="toast_failed_edit_video_title">이름 수정을 실패했습니다.</string>
     <string name="toast_move_video">동영상이 이동되었습니다.</string>
     <string name="toast_failed_move_video">동영상을 옮기는 중에 문제가 발생했습니다.</string>
+    <string name="toast_set_time_after_start">시작 시점 이후에서 생성해 주세요!</string>
 
     <!-- 비디오 업로드 -->
     <string name="filter_all">전체</string>
