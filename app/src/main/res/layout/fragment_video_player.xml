@@ -225,6 +225,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/playerContainer" />
 
+    <!-- 답글 화면 (일반 모드: 전체 화면, 전체화면 모드: feedbackView 위) -->
+    <include
+        android:id="@+id/replyView"
+        layout="@layout/layout_reply"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!--멘션 리스트 (commentSheet 위에 표시, 위치는 동적으로 조정)-->
     <androidx.cardview.widget.CardView
         android:id="@+id/mentionListContainer"

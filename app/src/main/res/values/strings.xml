@@ -44,6 +44,7 @@
     <string name="move_part_option">다른 파트로 이동</string>
     <string name="report_option">신고하기</string>
     <string name="edit_feedback_option">피드백 수정</string>
+    <string name="edit_comment_option">댓글 수정</string>
 
     <!-- 다이얼로그 메세지 -->
     <string name="dialog_confirm">확인</string>
@@ -60,6 +61,8 @@
     <string name="dialog_delete_video_content">삭제하면 복구할 수 없습니다.</string>
     <string name="dialog_cancel_writing_feedback_title">작성 중인 피드백이 있습니다. 나가시겠어요?</string>
     <string name="dialog_cancel_writing_feedback_content">작성 중인 피드백은 저장되지 않습니다.</string>
+    <string name="dialog_cancel_writing_comment_title">작성 중인 내용이 있습니다. 나가시겠어요?</string>
+    <string name="dialog_cancel_writing_comment_content">작성 중인 내용은 저장되지 않습니다.</string>
 
     <!-- 입력 다이얼로그 -->
     <string name="input_dialog_counter">%1$d/%2$d</string>
@@ -119,5 +122,7 @@
     <string name="uploading">업로드 중..</string>
     <string name="no_team_members">팀원이 없습니다.팀원을 초대해 주세요.</string>
     <string name="mention_all">\@All</string>
+    <string name="reply_input_hint">답글을 입력해 주세요.</string>
+    <string name="reply_to_format">%s에게 답글 남기는중</string>
 
 </resources>
