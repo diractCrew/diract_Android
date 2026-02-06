@@ -923,7 +923,7 @@ class VideoPlayerFragment : Fragment() {
         val gestureDetector = android.view.GestureDetector(
             requireContext(),
             object : android.view.GestureDetector.SimpleOnGestureListener() {
-                override fun onDoubleTap(e: android.view.MotionEvent): Boolean {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
                     if (_binding == null) return false
                     val viewWidth = binding.playerView.width
                     val tapX = e.x
@@ -940,7 +940,7 @@ class VideoPlayerFragment : Fragment() {
                     return true
                 }
 
-                override fun onSingleTapConfirmed(e: android.view.MotionEvent): Boolean {
+                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                     if (_binding == null) return false
                     dismissMentionAndKeyboard()
                     toggleController()

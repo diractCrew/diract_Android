@@ -108,6 +108,7 @@
     <string name="fail_to_load_video">동영상 불러오기를 실패했습니다</string>
     <string name="fail_to_upload">업로드 실패</string>
     <string name="reply">답글달기</string>
+    <string name="comment">댓글</string>
     <string name="time_just_now">방금 전</string>
     <string name="time_minutes_ago">%d분 전</string>
     <string name="time_hours_ago">%d시간 전</string>
