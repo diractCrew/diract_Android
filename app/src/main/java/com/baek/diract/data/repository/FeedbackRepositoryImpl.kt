@@ -15,7 +15,7 @@ class FeedbackRepositoryImpl @Inject constructor() : FeedbackRepository {
     }
 
     override suspend fun getFeedbacks(videoId: String): DataResult<List<Feedback>> {
-        val feedbacks = mockFeedbacks.filter { it.videoId == videoId }
+        val feedbacks = mockFeedbacks
         return DataResult.Success(feedbacks)
     }
 
@@ -34,8 +34,8 @@ class FeedbackRepositoryImpl @Inject constructor() : FeedbackRepository {
             Feedback(
                 feedbackId = "feedback${idx + 2}",
                 videoId = videoId,
-                author = FeedbackUser(authorId,"name"),
-                taggedUsers = taggedUserIds.map { FeedbackUser(it,"name") },
+                author = FeedbackUser(authorId, "name"),
+                taggedUsers = taggedUserIds.map { FeedbackUser(it, "name") },
                 content = "이 부분에서 동작이 조금 어색해 보입니다. 좀 더 자연스럽게 수정해주세요.",
                 startTime = startTime,
                 endTime = endTime,
@@ -47,7 +47,11 @@ class FeedbackRepositoryImpl @Inject constructor() : FeedbackRepository {
         return DataResult.Success(Unit)
     }
 
-    override suspend fun editFeedback(feedbackId: String, newContent: String): DataResult<Unit> {
+    override suspend fun editFeedback(
+        feedbackId: String,
+        newContent: String,
+        taggedUserIds: List<String>
+    ): DataResult<Unit> {
         val index = mockFeedbacks.indexOfFirst { it.feedbackId == feedbackId }
         if (index != -1) {
             mockFeedbacks[index] = mockFeedbacks[index].copy(
@@ -92,11 +96,16 @@ class FeedbackRepositoryImpl @Inject constructor() : FeedbackRepository {
         return DataResult.Success(Unit)
     }
 
-    override suspend fun editReply(replyId: String, newContent: String): DataResult<Unit> {
+    override suspend fun editReply(replyId: String, newContent: String, taggedUserIds: List<String>): DataResult<Unit> {
         val index = mockReplies.indexOfFirst { it.replyId == replyId }
         if (index != -1) {
+            val taggedUsers = taggedUserIds.map { id ->
+                mockReplies[index].taggedUsers.find { it.userId == id }
+                    ?: FeedbackUser(userId = id, name = id)
+            }
             mockReplies[index] = mockReplies[index].copy(
                 content = newContent,
+                taggedUsers = taggedUsers,
                 updatedAt = LocalDateTime.now()
             )
             return DataResult.Success(Unit)
@@ -139,9 +148,9 @@ class FeedbackRepositoryImpl @Inject constructor() : FeedbackRepository {
             feedbackId = "feedback1",
             videoId = "video1",
             author = mockUsers[0],
-            taggedUsers = listOf(mockUsers[1]),
+            taggedUsers = listOf(mockUsers[0], mockUsers[1], mockUsers[2], mockUsers[3], mockUsers[4]),
             content = "이 부분에서 동작이 조금 어색해 보입니다. 좀 더 자연스럽게 수정해주세요.",
-            startTime = 10.5,
+            startTime = 1.5,
             endTime = 15.0,
             imgUrl = null,
             teamspaceId = "team1",
@@ -165,7 +174,7 @@ class FeedbackRepositoryImpl @Inject constructor() : FeedbackRepository {
             feedbackId = "feedback3",
             videoId = "video1",
             author = mockUsers[2],
-            taggedUsers = listOf(mockUsers[0], mockUsers[1]),
+            taggedUsers = listOf(mockUsers[0], mockUsers[1], mockUsers[2], mockUsers[3], mockUsers[4]),
             content = "이 구간 전체적으로 템포가 느린 것 같아요. 확인 부탁드립니다.",
             startTime = 45.0,
             endTime = 60.0,

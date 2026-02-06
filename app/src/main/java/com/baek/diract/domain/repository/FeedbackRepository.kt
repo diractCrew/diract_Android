@@ -45,7 +45,7 @@ interface FeedbackRepository {
     suspend fun uploadReply(reply: Reply): DataResult<Unit>
 
     //댓글 수정
-    suspend fun editReply(replyId: String, newContent: String): DataResult<Unit>
+    suspend fun editReply(replyId: String, newContent: String, taggedUserIds: List<String> = emptyList()): DataResult<Unit>
 
     //댓글 삭제
     suspend fun deleteReply(replyId: String): DataResult<Unit>
