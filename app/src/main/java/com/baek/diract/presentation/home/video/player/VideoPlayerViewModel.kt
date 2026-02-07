@@ -43,10 +43,17 @@ class VideoPlayerViewModel @Inject constructor(
     private var _playWhenReady: Boolean = false
     val playWhenReady: Boolean get() = _playWhenReady
 
+    private var _playbackSpeed: Float = 1.0f
+    val playbackSpeed: Float get() = _playbackSpeed
+
     // 재생 상태 저장
     fun savePlaybackState(position: Long, playWhenReady: Boolean) {
         _playbackPosition = position
         _playWhenReady = playWhenReady
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        _playbackSpeed = speed
     }
 
     init {

@@ -68,7 +68,6 @@ class VideoPlayerFragment : Fragment() {
 
     private var isSeekBarTracking = false
     private var systemBarInset = 0
-    private var isReplyMentionMode = false
 
     private lateinit var feedbackAdapter: FeedbackAdapter
     private lateinit var mentionListAdapter: MentionListAdapter
@@ -102,6 +101,7 @@ class VideoPlayerFragment : Fragment() {
         setupFullscreenButton()
         setupPanelButton()
         setupBackPressedCallback()
+        setupSpeedResult()
     }
 
     private fun initView() {
@@ -700,7 +700,6 @@ class VideoPlayerFragment : Fragment() {
     }
 
     private fun showReplyMentionList(query: String) {
-        isReplyMentionMode = true
         val filteredMembers = feedbackViewModel.filterMentionMembers(query)
         val maxVisibleItems = 5
         val itemHeight = resources.getDimensionPixelSize(R.dimen.mention_item_height)
@@ -810,7 +809,6 @@ class VideoPlayerFragment : Fragment() {
 
     private fun renderReplyCommentHeader() {
         val hasReplyTo = feedbackViewModel.replyToUser.value != null
-        val hasMentions = feedbackViewModel.replySelectedMentions.value.isNotEmpty()
 
         binding.replyView.commentSheet.commentHeader.visibility =
             if (hasReplyTo) View.VISIBLE else View.GONE
@@ -827,7 +825,7 @@ class VideoPlayerFragment : Fragment() {
 
     private fun setupMentionList() {
         mentionListAdapter = MentionListAdapter { member ->
-            if (isReplyMentionMode) {
+            if (feedbackViewModel.isReplyMentioning) {
                 onReplyMentionSelected(member)
             } else {
                 onMentionSelected(member)
@@ -874,7 +872,6 @@ class VideoPlayerFragment : Fragment() {
     }
 
     private fun showMentionList(query: String) {
-        isReplyMentionMode = false
         val filteredMembers = feedbackViewModel.filterMentionMembers(query)
         val maxVisibleItems = 5
         val itemHeight = resources.getDimensionPixelSize(R.dimen.mention_item_height)
@@ -1230,6 +1227,7 @@ class VideoPlayerFragment : Fragment() {
                 // ViewModel에서 저장된 재생 위치로 복원
                 seekTo(viewModel.playbackPosition)
                 playWhenReady = viewModel.playWhenReady
+                setPlaybackSpeed(viewModel.playbackSpeed)
                 prepare()
 
                 // 플레이어 상태 리스너
@@ -1334,7 +1332,9 @@ class VideoPlayerFragment : Fragment() {
 
     private fun setupControllerAction() {
         binding.videoController.btnSpeed.setOnClickListener {
-            //TODO: 속도조절 다이얼로그 띄우기
+            player?.pause()
+            SpeedBottomSheetFragment.newInstance(viewModel.playbackSpeed)
+                .show(childFragmentManager, SpeedBottomSheetFragment.TAG)
             resetHideTimer()
         }
 
@@ -1508,6 +1508,17 @@ class VideoPlayerFragment : Fragment() {
         hideControllerJob = viewLifecycleOwner.lifecycleScope.launch {
             delay(CONTROLLER_HIDE_DELAY)
             hideController()
+        }
+    }
+
+    private fun setupSpeedResult() {
+        childFragmentManager.setFragmentResultListener(
+            SpeedBottomSheetFragment.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val speed = bundle.getFloat(SpeedBottomSheetFragment.RESULT_SPEED, viewModel.playbackSpeed)
+            viewModel.setPlaybackSpeed(speed)
+            player?.setPlaybackSpeed(speed)
         }
     }
 
