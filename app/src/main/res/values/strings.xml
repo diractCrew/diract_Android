@@ -1,5 +1,22 @@
 <resources>
-    <string name="app_name">Diract</string>
+    <string name="app_name">DirAct</string>
+    <string name="introduce_app">댄스팀을 위한 효과적인 피드백 앱</string>
+    <string name="google_login">Google 계정으로 로그인</string>
+    <string name="google_login_failed">구글 로그인에 실패했습니다.</string>
+    <string name="close">닫기</string>
+
+    <!--로그인 플로우-->
+    <string name="agreement_prompt">서비스 이용을 위해\n약관에 동의해주세요.</string>
+    <string name="agree_all">전체 동의</string>
+    <string name="required">필수</string>
+
+    <string name="privacy_policy"><u>개인정보 처리 방침 동의</u></string>
+    <string name="age_confirmation"><u>저는 만 14세 이상입니다.</u></string>
+    <string name="terms_of_service"><u>서비스 이용약관 동의</u></string>
+
+    <string name="greeting_title">만나서 반가워요!</string>
+    <string name="name_edit_text_hint">이름을 입력하세요</string>
+    <string name="name_confirmation">이름이 정확한가요?</string>
 
     <!-- 바텀 네비게이션 바-->
     <string name="home">홈</string>

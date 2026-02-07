@@ -200,6 +200,13 @@
         <item name="android:textColor">@color/accent_red_normal</item>
     </style>
 
+    <!-- 풀스크린 다이얼로그 (WebView 등) -->
+    <style name="Theme.Diract.FullScreenDialog" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@color/background_normal</item>
+        <item name="android:windowAnimationStyle">@style/Animation.MaterialComponents.BottomSheetDialog</item>
+    </style>
+
     <style name="Widget.Diract.SpeedButton" parent="Widget.Material3.Button.TextButton">
         <!-- 크기 / 여백 -->
         <item name="android:minWidth">0dp</item>
