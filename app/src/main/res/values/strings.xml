@@ -116,9 +116,6 @@
     <string name="time_minutes_ago">%d분 전</string>
     <string name="time_hours_ago">%d시간 전</string>
     <string name="time_days_ago">%d일 전</string>
-    <string name="time_weeks_ago">%d주 전</string>
-    <string name="time_months_ago">%d개월 전</string>
-    <string name="time_years_ago">%d년 전</string>
     <string name="uploading">업로드 중..</string>
     <string name="no_team_members">팀원이 없습니다.팀원을 초대해 주세요.</string>
     <string name="mention_all">\@All</string>
