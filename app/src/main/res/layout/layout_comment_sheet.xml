@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_comment_sheet"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+    <FrameLayout
+        android:id="@+id/commentHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/chipContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/timeChipTxt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="false"
+                android:clickable="false"
+                android:textAppearance="@style/Footnote.Medium"
+                app:chipBackgroundColor="@color/secondary_strong"
+                app:chipCornerRadius="100dp"
+                app:chipEndPadding="8dp"
+                app:chipIcon="@drawable/ic_schedule"
+                app:chipIconTint="@color/label_strong"
+                app:chipStartPadding="8dp"
+                app:chipStrokeColor="@color/secondary_assistive"
+                app:chipStrokeWidth="1dp"
+                app:ensureMinTouchTargetSize="false" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawingBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:checkable="false"
+                android:text="@string/feedback_drawing"
+                android:textAppearance="@style/Footnote.Medium"
+                android:visibility="gone"
+                app:chipBackgroundColor="@color/fill_assistive"
+                app:chipCornerRadius="100dp"
+                app:chipEndPadding="8dp"
+                app:chipIcon="@drawable/ic_draw"
+                app:chipIconTint="@color/label_strong"
+                app:chipStartPadding="8dp"
+                app:chipStrokeWidth="0dp"
+                app:ensureMinTouchTargetSize="false" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/replyToTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:textAppearance="@style/Footnote.Medium"
+            android:textColor="@color/label_normal"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/closeBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end|center_vertical"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/dialog_cancel"
+            android:src="@drawable/ic_close"
+            app:tint="@color/label_normal" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/tagContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/mentionChipGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="0dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_input_comment">
+
+        <EditText
+            android:id="@+id/commentEditTxt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:autofillHints=""
+            android:background="@android:color/transparent"
+            android:hint="@string/feedback_input_hint"
+            android:imeOptions="flagNoExtractUi"
+            android:inputType="textMultiLine|textCapSentences"
+            android:paddingVertical="12dp"
+            android:paddingStart="16dp"
+            android:textAppearance="@style/Headline2.Medium"
+            android:textColor="@color/label_strong"
+            android:textColorHint="@color/label_assistive" />
+
+        <ImageButton
+            android:id="@+id/sendBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:background="@android:color/transparent"
+            android:paddingVertical="12dp"
+            android:paddingEnd="12dp"
+            android:src="@drawable/ic_send"
+            app:tint="@color/send_btn_selector" />
+    </LinearLayout>
+</LinearLayout>

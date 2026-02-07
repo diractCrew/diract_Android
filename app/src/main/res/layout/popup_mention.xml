@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rectangle_radius20"
+    android:backgroundTint="@color/background_elevated"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/mentionListRv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="always" />
+
+    <TextView
+        android:id="@+id/mentionEmptyTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:text="@string/no_team_members"
+        android:textAppearance="@style/Headline2.Medium"
+        android:textColor="@color/label_assistive"
+        android:visibility="gone" />
+
+</LinearLayout>
+

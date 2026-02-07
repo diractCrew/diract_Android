@@ -19,6 +19,17 @@ class VideoRemoteDataSourceImpl @Inject constructor(
     private val storage: FirebaseStorage
 ) : VideoRemoteDataSource {
 
+    override suspend fun getVideo(videoId: String): VideoDto {
+        val videoDoc = firestore
+            .collection("video")
+            .document(videoId)
+            .get()
+            .await()
+
+        return videoDoc.toObject(VideoDto::class.java)
+            ?: throw NoSuchElementException("비디오를 찾을 수 없습니다: $videoId")
+    }
+
     override suspend fun getSections(tracksId: String): List<SectionDto> {
         val snapshot = firestore
             .collection("tracks")

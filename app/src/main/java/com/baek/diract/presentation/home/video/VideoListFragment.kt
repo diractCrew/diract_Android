@@ -278,8 +278,12 @@ class VideoListFragment : Fragment() {
 
     // 비디오 아이템 클릭 (완료된 비디오만 클릭 가능)
     private fun onVideoItemClick(video: VideoSummary) {
-        Toast.makeText(requireContext(), "영상 선택: ${video.title}", Toast.LENGTH_SHORT).show()
-        // TODO: 비디오 상세 화면으로 이동
+        val action = VideoListFragmentDirections.actionVideoListFragmentToVideoPlayerFragment(
+            videoId = video.id,
+            videoTitle = video.title,
+            tracksTitle = viewModel.tracksTitle
+        )
+        findNavController().navigate(action)
     }
 
     // 더보기 버튼 클릭
