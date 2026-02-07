@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_speed_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingHorizontal="7dp"
+    android:paddingVertical="16dp"
+    tools:context=".presentation.home.video.player.SpeedBottomSheetFragment">
+
+    <TextView
+        android:id="@+id/speedTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="0.8 X"
+        android:textAppearance="@style/Headline2.Medium"
+        android:textColor="@color/label_strong" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/speedDownBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_minus_circle" />
+
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/speedSlider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:stepSize="0.05"
+            android:value="0.25"
+            android:valueFrom="0.25"
+            android:valueTo="1.0"
+            app:labelBehavior="gone"
+            app:thumbColor="@color/label_strong"
+            app:thumbHeight="10dp"
+            app:thumbTint="@android:color/white"
+            app:thumbWidth="10dp"
+            app:haloColor="@android:color/transparent"
+            app:haloRadius="0dp"
+            app:tickVisible="false"
+            app:trackColorActive="@color/primitive_assistive"
+            app:trackColorInactive="@color/fill_assistive"
+            app:trackHeight="4dp" />
+
+        <ImageButton
+            android:id="@+id/speedUpBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_add_circle" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn03"
+            style="@style/Widget.Diract.SpeedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="0.3" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn05"
+            style="@style/Widget.Diract.SpeedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="0.5" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn075"
+            style="@style/Widget.Diract.SpeedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="0.75" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn08"
+            style="@style/Widget.Diract.SpeedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="0.8" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn10"
+            style="@style/Widget.Diract.SpeedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="1.0" />
+
+    </LinearLayout>
+</LinearLayout>

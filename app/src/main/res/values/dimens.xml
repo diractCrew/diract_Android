@@ -16,4 +16,5 @@
     <dimen name="mention_list_margin">8dp</dimen>
     <dimen name="mention_list_horiz_margin">16dp</dimen>
     <dimen name="feedback_img_radius">10dp</dimen>
+    <dimen name="speed_dialog_max_width">360dp</dimen>
 </resources>

@@ -199,4 +199,27 @@
         <item name="android:textAppearance">@style/Footnote.Medium</item>
         <item name="android:textColor">@color/accent_red_normal</item>
     </style>
+
+    <style name="Widget.Diract.SpeedButton" parent="Widget.Material3.Button.TextButton">
+        <!-- 크기 / 여백 -->
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+
+        <!-- Material inset 제거 -->
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+
+        <!-- 패딩 -->
+        <item name="android:paddingHorizontal">0dp</item>
+        <item name="android:paddingVertical">8dp</item>
+
+        <!-- 색상 -->
+        <item name="backgroundTint">@color/fill_assistive</item>
+        <item name="android:textColor">@color/label_strong</item>
+
+        <!-- 텍스트 -->
+        <item name="android:textAppearance">@style/Caption1.Medium</item>
+    </style>
 </resources>

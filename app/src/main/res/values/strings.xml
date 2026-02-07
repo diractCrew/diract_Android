@@ -124,5 +124,6 @@
     <string name="mention_all">\@All</string>
     <string name="reply_input_hint">답글을 입력해 주세요.</string>
     <string name="reply_to_format">%s에게 답글 남기는중</string>
+    <string name="speed_value">%1$.2f X</string>
 
 </resources>
