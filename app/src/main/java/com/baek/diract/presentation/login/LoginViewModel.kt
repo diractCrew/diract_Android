@@ -20,6 +20,7 @@ class LoginViewModel @Inject constructor(
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     init {
+        logout()
         checkLoginStatus()
     }
 
@@ -49,6 +50,27 @@ class LoginViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    // 이름 설정 (회원가입 마지막 단계)
+    private val _isProfileSaving = MutableStateFlow(false)
+    val isProfileSaving: StateFlow<Boolean> = _isProfileSaving.asStateFlow()
+
+    fun updateMyName(name: String) {
+        viewModelScope.launch {
+            _isProfileSaving.value = true
+            when (val result = authRepository.updateMyName(name)) {
+                is DataResult.Success -> {
+                    _authState.value = AuthState.LoggedIn(email = result.data.email)
+                }
+                is DataResult.Error -> {
+                    _authState.value = AuthState.Error(
+                        message = result.throwable.message ?: "이름 설정에 실패했습니다."
+                    )
+                }
+            }
+            _isProfileSaving.value = false
         }
     }
 

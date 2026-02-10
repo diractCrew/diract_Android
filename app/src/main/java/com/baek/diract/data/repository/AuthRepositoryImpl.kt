@@ -4,6 +4,7 @@ import android.util.Log
 import com.baek.diract.data.local.TokenManager
 import com.baek.diract.data.remote.api.AuthApi
 import com.baek.diract.data.remote.api.GoogleLoginRequest
+import com.baek.diract.data.remote.api.UpdateMeRequest
 import com.baek.diract.data.remote.api.UserApi
 import com.baek.diract.data.remote.dto.UserDto
 import com.baek.diract.domain.common.DataResult
@@ -58,6 +59,24 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "getMe: 예외 발생", e)
+            DataResult.Error(e)
+        }
+    }
+
+    override suspend fun updateMyName(name: String): DataResult<UserDto> {
+        Log.d(TAG, "updateMyName: 이름 설정 요청 — name=$name")
+        return try {
+            val response = userApi.updateMe(UpdateMeRequest(name))
+            if (response.success && response.data != null) {
+                Log.d(TAG, "updateMyName: 성공 — ${response.data}")
+                _currentUserInfo.value = response.data
+                DataResult.Success(response.data)
+            } else {
+                Log.w(TAG, "updateMyName: 실패 — message=${response.message}")
+                DataResult.Error(Exception(response.message ?: "이름 설정에 실패했습니다."))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "updateMyName: 예외 발생", e)
             DataResult.Error(e)
         }
     }

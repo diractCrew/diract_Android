@@ -22,6 +22,9 @@ interface AuthRepository {
     // 내 정보 조회
     suspend fun getMe(): DataResult<UserDto>
 
+    // 이름 설정 (회원가입 프로필 설정)
+    suspend fun updateMyName(name: String): DataResult<UserDto>
+
     // 로그인 여부 확인 (토큰 존재 여부)
     suspend fun hasToken(): Boolean
 
