@@ -1,32 +1,32 @@
 package com.baek.diract.domain.repository
 
 import com.baek.diract.domain.common.DataResult
+import com.baek.diract.domain.model.TeamMemberSummary
 import com.baek.diract.domain.model.TeamspaceSummary
-import com.baek.diract.domain.model.MemberSummary
 
 interface TeamspaceRepository {
 
-    // 팀스페이스 기본 정보
-    suspend fun getTeamspace(teamspaceId: String): DataResult<TeamspaceSummary>
+    /** 홈 분기: 내가 속한 팀스페이스 목록(없으면 empty) */
+    suspend fun getMyTeamspaces(): DataResult<List<TeamspaceSummary>>
 
-    // 팀스페이스 이름 수정
+    /** 팀스페이스 생성 (생성자는 ownerId=현재 팀장) */
+    suspend fun createTeamspace(name: String): DataResult<TeamspaceSummary>
+
+    /** 이름 수정 (팀장만) */
     suspend fun renameTeamspace(teamspaceId: String, newName: String): DataResult<Unit>
 
-    // 팀스페이스 삭제 (보통 owner만)
+    /** 삭제 (팀장만) */
     suspend fun deleteTeamspace(teamspaceId: String): DataResult<Unit>
 
-    // 팀스페이스 나가기 (멤버가 나감)
-    suspend fun leaveTeamspace(teamspaceId: String, userId: String): DataResult<Unit>
+    /** 멤버 목록 */
+    suspend fun getMembers(teamspaceId: String): DataResult<List<TeamMemberSummary>>
 
-    // 멤버 목록 (MembersDto + UsersDto 조합해서 UI에 쓰기 좋게)
-    suspend fun getMembers(teamspaceId: String): DataResult<List<MemberSummary>>
+    /** 팀장 위임: 성공하면 서버에서 ownerId가 newLeaderId로 바뀜 */
+    suspend fun transferLeader(teamspaceId: String, newLeaderId: String): DataResult<Unit>
 
-    // 팀원 추방 (owner/관리자 권한)
-    suspend fun kickMember(teamspaceId: String, targetUserId: String): DataResult<Unit>
+    /** 나가기 (팀장 정책은 서버가 결정: 보통 팀장은 위임 후 가능) */
+    suspend fun leaveTeamspace(teamspaceId: String): DataResult<Unit>
 
-    // 팀장(소유자) 권한 넘기기
-    suspend fun transferOwnership(teamspaceId: String, newOwnerId: String): DataResult<Unit>
-
-    // 팀원 경고 (정책에 따라: warning_count 증가 or warning 기록 추가)
-    suspend fun warnMember(teamspaceId: String, targetUserId: String, reason: String?): DataResult<Unit>
+    /** 내보내기 (팀장만) */
+    suspend fun kickMembers(teamspaceId: String, memberIds: List<String>): DataResult<Unit>
 }

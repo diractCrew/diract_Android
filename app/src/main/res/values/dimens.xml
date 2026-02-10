@@ -4,5 +4,6 @@
     <dimen name="video_card_spacing">16dp</dimen>
     <dimen name="section_chip_spacing">8dp</dimen>
     <dimen name="section_item_spacing">8dp</dimen>
+    <dimen name="move_video_item_spacing">8dp</dimen>
     <dimen name="spacing_12">12dp</dimen>
 </resources>
