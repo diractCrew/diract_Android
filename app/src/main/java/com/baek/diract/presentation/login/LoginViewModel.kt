@@ -16,57 +16,106 @@ class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _authState = MutableStateFlow<AuthState>(AuthState.None)
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    // Repository의 전역 로그인 상태를 직접 노출
-    val isLoggedIn: StateFlow<Boolean> = authRepository.isLoggedIn
-
     init {
+        logout()
         checkLoginStatus()
     }
 
-    // 로그인 상태 확인
+    // 앱 시작 시 토큰 있으면 바로 MainActivity로
     private fun checkLoginStatus() {
-        if (authRepository.isLoggedIn.value) {
-            _authState.value = AuthState.LoggedIn(
-                email = authRepository.getCurrentUser()?.email ?: ""
-            )
+        viewModelScope.launch {
+            if (!authRepository.hasToken()) return@launch
+            // TODO: 테스트용 — getMe() 분기 없이 토큰만 확인. 추후 getMe() 분기 복원 필요
+            _authState.value = AuthState.LoggedIn(email = "")
         }
     }
 
-    // 테스트용 로그인
-    fun login() {
+    // Google ID Token으로 서버 로그인
+    fun loginWithGoogle(idToken: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
 
-            when (val result = authRepository.login(TEST_EMAIL, TEST_PASSWORD)) {
+            when (val result = authRepository.loginWithGoogle(idToken)) {
                 is DataResult.Success -> {
-                    // isLoggedIn은 AuthStateListener가 자동 업데이트
-                    _authState.value = AuthState.LoggedIn(
-                        email = result.data.email ?: ""
-                    )
+                    // TODO: 테스트용 — 무조건 회원가입 플로우로 이동. 추후 getMe() 분기 복원 필요
+                    _authState.value = AuthState.NeedsSignUp
                 }
 
                 is DataResult.Error -> {
                     _authState.value = AuthState.Error(
-                        message = result.throwable.message ?: "로그인에 실패했습니다."
+                        message = result.throwable.message ?: "구글 로그인에 실패했습니다."
                     )
                 }
             }
         }
     }
 
-    // 로그아웃
-    fun logout() {
-        authRepository.logout()
-        // isLoggedIn은 AuthStateListener가 자동 업데이트
-        _authState.value = AuthState.LoggedOut
+    // 이름 설정 (회원가입 마지막 단계)
+    private val _isProfileSaving = MutableStateFlow(false)
+    val isProfileSaving: StateFlow<Boolean> = _isProfileSaving.asStateFlow()
+
+    fun updateMyName(name: String) {
+        viewModelScope.launch {
+            _isProfileSaving.value = true
+            when (val result = authRepository.updateMyName(name)) {
+                is DataResult.Success -> {
+                    _authState.value = AuthState.LoggedIn(email = result.data.email)
+                }
+                is DataResult.Error -> {
+                    _authState.value = AuthState.Error(
+                        message = result.throwable.message ?: "이름 설정에 실패했습니다."
+                    )
+                }
+            }
+            _isProfileSaving.value = false
+        }
     }
 
-    companion object {
-        // 테스트용 계정 정보
-        private const val TEST_EMAIL = "android1234@android.com"
-        private const val TEST_PASSWORD = "android1234"
+    // 로그아웃
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.logout()
+            _authState.value = AuthState.Idle
+        }
+    }
+
+    // 구글 계정에서 가져온 이름 (UserSettingFragment 기본값)
+    private val _googleDisplayName = MutableStateFlow("")
+    val googleDisplayName: StateFlow<String> = _googleDisplayName.asStateFlow()
+
+    fun setGoogleDisplayName(name: String) {
+        _googleDisplayName.value = name
+    }
+
+    // 약관 동의 상태
+    private val _isPrivacyAgreed = MutableStateFlow(false)
+    val isPrivacyAgreed: StateFlow<Boolean> = _isPrivacyAgreed.asStateFlow()
+
+    private val _isServiceAgreed = MutableStateFlow(false)
+    val isServiceAgreed: StateFlow<Boolean> = _isServiceAgreed.asStateFlow()
+
+    private val _isAgeAgreed = MutableStateFlow(false)
+    val isAgeAgreed: StateFlow<Boolean> = _isAgeAgreed.asStateFlow()
+
+    fun togglePrivacyAgreed() {
+        _isPrivacyAgreed.value = !_isPrivacyAgreed.value
+    }
+
+    fun toggleServiceAgreed() {
+        _isServiceAgreed.value = !_isServiceAgreed.value
+    }
+
+    fun toggleAgeAgreed() {
+        _isAgeAgreed.value = !_isAgeAgreed.value
+    }
+
+    fun toggleAllAgreed() {
+        val newState = !(_isPrivacyAgreed.value && _isServiceAgreed.value && _isAgeAgreed.value)
+        _isPrivacyAgreed.value = newState
+        _isServiceAgreed.value = newState
+        _isAgeAgreed.value = newState
     }
 }
