@@ -11,7 +11,7 @@
     <string name="required">필수</string>
 
     <string name="privacy_policy"><u>개인정보 처리 방침 동의</u></string>
-    <string name="age_confirmation"><u>저는 만 14세 이상입니다.</u></string>
+    <string name="age_confirmation">저는 만 14세 이상입니다.</string>
     <string name="terms_of_service"><u>서비스 이용약관 동의</u></string>
 
     <string name="greeting_title">만나서 반가워요!</string>
