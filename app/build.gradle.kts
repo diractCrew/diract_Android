@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,14 @@ plugins {
     //hilt
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+}
+
+// local.properties에서 BASE_URL 읽기
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -23,6 +33,24 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val baseUrl = localProperties.getProperty("BASE_URL")
+            ?: error("BASE_URL is missing in local.properties")
+
+        buildConfigField(
+            "String",
+            "BASE_URL",
+            "\"$baseUrl\""
+        )
+
+        val webClientId = localProperties.getProperty("WEB_CLIENT_ID")
+            ?: error("WEB_CLIENT_ID is missing in local.properties")
+
+        buildConfigField(
+            "String",
+            "WEB_CLIENT_ID",
+            "\"$webClientId\""
+        )
     }
 
     buildTypes {
@@ -45,7 +73,7 @@ android {
     //뷰바인딩
     buildFeatures {
         viewBinding = true
-
+        buildConfig = true
     }
 }
 
@@ -55,6 +83,12 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.splashscreen)
+
+    //credential manager (Google 로그인)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.googleid)
     implementation(libs.androidx.swiperefreshlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -79,6 +113,14 @@ dependencies {
     //glide
     implementation(libs.glide)
     ksp(libs.glide.ksp)
+
+    //retrofit + okhttp
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging.interceptor)
+
+    //datastore
+    implementation(libs.datastore.preferences)
 
     //media3
     implementation(libs.media3.transformer)
