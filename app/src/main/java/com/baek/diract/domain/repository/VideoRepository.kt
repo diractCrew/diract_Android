@@ -3,6 +3,7 @@ package com.baek.diract.domain.repository
 import android.net.Uri
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.Section
+import com.baek.diract.domain.model.VideoPlay
 import com.baek.diract.domain.model.VideoSummary
 
 interface VideoRepository {
@@ -53,6 +54,16 @@ interface VideoRepository {
 
     // 섹션 삭제
     suspend fun deleteSection(tracksId: String, sectionId: String): DataResult<Unit>
+
+    // 비디오 정보 조회
+    suspend fun getVideo(videoId: String): DataResult<VideoPlay>
+
+    // 비디오 다운로드 (캐시 확인 후 필요시 다운로드)
+    suspend fun downloadVideo(
+        videoId: String,
+        videoUrl: String,
+        onProgress: ((Int) -> Unit)? = null
+    ): DataResult<Uri>
 }
 
 /*

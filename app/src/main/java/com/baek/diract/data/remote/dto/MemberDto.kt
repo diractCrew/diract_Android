@@ -2,8 +2,8 @@ package com.baek.diract.data.remote.dto
 
 import com.google.firebase.Timestamp
 
-data class MemberDto(
+//TODO: 삭제 or 수정
+data class MembersDto(
     val user_id: String = "",
-    val user_name: String = "",
     val joined_at: Timestamp? = null
 )

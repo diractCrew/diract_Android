@@ -190,9 +190,34 @@ class OptionPopup private constructor(
                 .setOnOptionSelectedListener(onOptionSelected)
         }
 
-        fun feedbackOptions(context: Context, onOptionSelected: (OptionItem) -> Unit): Builder {
+        fun feedbackAuthorOptions(
+            context: Context,
+            onOptionSelected: (OptionItem) -> Unit
+        ): Builder {
             return builder(context)
                 .addOption(OptionItem.editFeedback())
+                .addOption(OptionItem.delete())
+                .setOnOptionSelectedListener(onOptionSelected)
+        }
+
+        fun feedbackOptions(context: Context, onOptionSelected: (OptionItem) -> Unit): Builder {
+            return builder(context)
+                .addOption(OptionItem.report())
+                .setOnOptionSelectedListener(onOptionSelected)
+        }
+
+        fun commentAuthorOptions(
+            context: Context,
+            onOptionSelected: (OptionItem) -> Unit
+        ): Builder {
+            return builder(context)
+                .addOption(OptionItem.editComment())
+                .addOption(OptionItem.delete())
+                .setOnOptionSelectedListener(onOptionSelected)
+        }
+
+        fun commentOptions(context: Context, onOptionSelected: (OptionItem) -> Unit): Builder {
+            return builder(context)
                 .addOption(OptionItem.report())
                 .setOnOptionSelectedListener(onOptionSelected)
         }

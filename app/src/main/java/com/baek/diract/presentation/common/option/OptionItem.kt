@@ -25,6 +25,9 @@ data class OptionItem(
         const val ID_EDIT_FEEDBACK = "edit_feedback"
         const val ID_RENAME_TEAMSPACE="rename_teamspace"
         const val ID_KICK_MEMBER="kick_member"
+
+        const val ID_EDIT_COMMENT = "edit_comment"
+
         //이름 수정
         fun editName() = OptionItem(
             id = ID_EDIT_NAME,
@@ -71,5 +74,10 @@ data class OptionItem(
             textColorRes= R.color.accent_red_normal
         )
 
+
+        fun editComment() = OptionItem(
+            id = ID_EDIT_COMMENT,
+            titleRes = R.string.edit_comment_option
+        )
     }
 }

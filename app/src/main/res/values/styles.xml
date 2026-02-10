@@ -74,6 +74,7 @@
         <item name="android:textColor">@color/label_strong</item>
     </style>
 
+    <!-- 하단 버튼 -->
     <style name="Widget.Diract.ActionButton" parent="Widget.Material3.Button">
         <item name="android:paddingHorizontal">16dp</item>
         <item name="android:paddingVertical">14dp</item>
@@ -81,6 +82,51 @@
         <item name="android:textAppearance">@style/Headline2.Medium</item>
         <item name="android:textColor">@color/action_btn_text_selector</item>
         <item name="cornerRadius">15dp</item>
+    </style>
+
+    <!-- 플레이 화면 하단 버튼 -->
+    <style name="Widget.Diract.ActionButton.Player" parent="Widget.Material3.Button">
+        <item name="android:paddingHorizontal">0dp</item>
+        <item name="android:paddingVertical">14dp</item>
+        <item name="android:textAppearance">@style/Headline1.Medium</item>
+        <item name="cornerRadius">100dp</item>
+    </style>
+
+    <!--팀원 멘션 칩 스타일/작성중-->
+    <style name="Widget.Diract.MentionChipStyle" parent="Widget.MaterialComponents.Chip.Entry">
+        <item name="android:textColor">@color/accent_blue_strong</item>
+        <item name="android:textAppearance">@style/Headline2.Medium</item>
+        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="chipSurfaceColor">@android:color/transparent</item>
+        <item name="closeIconVisible">true</item>
+        <item name="closeIcon">@drawable/ic_cancel_mention</item>
+        <item name="closeIconStartPadding">2dp</item>
+        <item name="closeIconEndPadding">0dp</item>
+        <item name="chipEndPadding">0dp</item>
+        <item name="chipStartPadding">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+        <item name="closeIconSize">18dp</item>
+        <item name="textStartPadding">0dp</item>
+        <item name="textEndPadding">0dp</item>
+        <item name="closeIconTint">@color/label_assistive</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
+
+    <!--팀원 멘션 칩 스타일/피드백,댓글에 있는-->
+    <style name="Widget.Diract.MentionChip.Comment" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="android:textAppearance">@style/Headline2.Medium</item>
+        <item name="android:textColor">@color/accent_blue_strong</item>
+        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="chipSurfaceColor">@android:color/transparent</item>
+        <item name="closeIconVisible">false</item>
+        <item name="chipEndPadding">0dp</item>
+        <item name="chipStartPadding">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+        <item name="textStartPadding">0dp</item>
+        <item name="textEndPadding">0dp</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="android:checkable">false</item>
+        <item name="android:clickable">false</item>
     </style>
 
     <!-- ///////////// Dialog Styles ///////////// -->
@@ -113,7 +159,8 @@
 
     <!-- 위험 액션용 다이얼로그 테마 (삭제, 내보내기 등) -->
     <style name="Theme.Diract.Dialog.Destructive">
-        <item name="buttonBarPositiveButtonStyle">@style/Widget.Diract.Dialog.Button.Destructive</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Diract.Dialog.Button.Destructive
+        </item>
     </style>
 
     <!-- 다이얼로그 타이틀 스타일 -->
@@ -189,5 +236,28 @@
         <!-- 버튼 기본 inset 제거(모양 더 피그마처럼) -->
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <style name="Widget.Diract.SpeedButton" parent="Widget.Material3.Button.TextButton">
+        <!-- 크기 / 여백 -->
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+
+        <!-- Material inset 제거 -->
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+
+        <!-- 패딩 -->
+        <item name="android:paddingHorizontal">0dp</item>
+        <item name="android:paddingVertical">8dp</item>
+
+        <!-- 색상 -->
+        <item name="backgroundTint">@color/fill_assistive</item>
+        <item name="android:textColor">@color/label_strong</item>
+
+        <!-- 텍스트 -->
+        <item name="android:textAppearance">@style/Caption1.Medium</item>
     </style>
 </resources>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 본 배경 -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp" />
+            <solid android:color="@color/stroke_strong" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="top"
+        android:top="1dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp" />
+            <solid android:color="@color/background_elevated" />
+        </shape>
+    </item>
+
+</layer-list>
+

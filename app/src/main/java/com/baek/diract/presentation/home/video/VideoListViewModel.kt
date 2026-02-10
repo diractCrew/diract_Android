@@ -263,6 +263,7 @@ class VideoListViewModel @Inject constructor(
                             val failType = when (state.phase) {
                                 UploadVideoUseCase.FailPhase.COMPRESSION -> FailType.COMPRESSION
                                 UploadVideoUseCase.FailPhase.UPLOAD -> FailType.UPLOAD
+                                UploadVideoUseCase.FailPhase.EXCEEDED -> FailType.EXCEEDED
                             }
                             val retryInfo = RetryInfo(
                                 originalUri = videoUri,
@@ -363,6 +364,7 @@ class VideoListViewModel @Inject constructor(
                 val failType = when (state.phase) {
                     UploadVideoUseCase.FailPhase.COMPRESSION -> FailType.COMPRESSION
                     UploadVideoUseCase.FailPhase.UPLOAD -> FailType.UPLOAD
+                    UploadVideoUseCase.FailPhase.EXCEEDED -> FailType.EXCEEDED
                 }
                 val updatedRetryInfo = retryInfo.copy(
                     compressedUri = state.compressedUri ?: retryInfo.compressedUri,

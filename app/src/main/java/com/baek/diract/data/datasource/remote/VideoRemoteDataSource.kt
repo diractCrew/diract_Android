@@ -2,9 +2,13 @@ package com.baek.diract.data.datasource.remote
 
 import android.net.Uri
 import com.baek.diract.data.dto.SectionDto
+import com.baek.diract.data.dto.VideoDto
 import com.baek.diract.data.dto.VideoWithTrackDto
 
 interface VideoRemoteDataSource {
+
+    // 단일 비디오 정보 조회
+    suspend fun getVideo(videoId: String): VideoDto
 
     // 섹션 목록 조회
     suspend fun getSections(tracksId: String): List<SectionDto>

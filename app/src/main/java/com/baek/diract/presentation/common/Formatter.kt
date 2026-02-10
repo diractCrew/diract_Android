@@ -1,14 +1,20 @@
 package com.baek.diract.presentation.common
 
+import android.content.Context
+import com.baek.diract.R
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 
 object Formatter {
-    private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")
+    private val LOCALIZED_DATE_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+        .withLocale(Locale.getDefault())
 
+    private val STANDARD_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.mm.dd")
     fun LocalDate.toUiString(): String {
-        return this.format(DATE_FORMATTER)
+        return this.format(LOCALIZED_DATE_FORMATTER)
     }
 
     fun Double.toTimeString(): String {
@@ -28,6 +34,28 @@ object Formatter {
             String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
         } else {
             String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        }
+    }
+
+    fun LocalDateTime.toTimeAgoString(context: Context): String {
+        val now = LocalDateTime.now()
+        val duration = java.time.Duration.between(this, now)
+
+        return when {
+            duration.toMinutes() < 1 ->
+                context.getString(R.string.time_just_now)
+
+            duration.toMinutes() < 60 ->
+                context.getString(R.string.time_minutes_ago, duration.toMinutes())
+
+            duration.toHours() < 24 ->
+                context.getString(R.string.time_hours_ago, duration.toHours())
+
+            duration.toDays() < 7 ->
+                context.getString(R.string.time_days_ago, duration.toDays())
+
+            else ->
+                this.format(STANDARD_DATE_FORMATTER)
         }
     }
 }

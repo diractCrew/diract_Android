@@ -2,14 +2,17 @@ package com.baek.diract.data.repository
 
 import android.net.Uri
 import com.baek.diract.data.datasource.remote.VideoRemoteDataSource
+import com.baek.diract.data.util.VideoCacheManager
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.Section
+import com.baek.diract.domain.model.VideoPlay
 import com.baek.diract.domain.model.VideoSummary
 import com.baek.diract.domain.repository.VideoRepository
 import javax.inject.Inject
 
 class VideoRepositoryImpl @Inject constructor(
-    private val remoteDataSource: VideoRemoteDataSource
+    private val remoteDataSource: VideoRemoteDataSource,
+    private val videoCacheManager: VideoCacheManager
 ) : VideoRepository {
 
     override suspend fun getSections(tracksId: String): DataResult<List<Section>> {
@@ -132,6 +135,28 @@ class VideoRepositoryImpl @Inject constructor(
         return try {
             remoteDataSource.deleteSection(tracksId, sectionId)
             DataResult.Success(Unit)
+        } catch (e: Exception) {
+            DataResult.Error(e)
+        }
+    }
+
+    override suspend fun getVideo(videoId: String): DataResult<VideoPlay> {
+        return try {
+            val video = remoteDataSource.getVideo(videoId)
+            DataResult.Success(video.toPlayDomain())
+        } catch (e: Exception) {
+            DataResult.Error(e)
+        }
+    }
+
+    override suspend fun downloadVideo(
+        videoId: String,
+        videoUrl: String,
+        onProgress: ((Int) -> Unit)?
+    ): DataResult<Uri> {
+        return try {
+            val uri = videoCacheManager.downloadAndCache(videoId, videoUrl, onProgress)
+            DataResult.Success(uri)
         } catch (e: Exception) {
             DataResult.Error(e)
         }

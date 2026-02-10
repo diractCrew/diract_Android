@@ -20,7 +20,10 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/ic_close" />
+            android:src="@drawable/ic_close"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:id="@+id/linearLayout"
@@ -80,7 +83,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:background="@color/background_normal"
-                    app:layout_constraintDimensionRatio="16:9">
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintDimensionRatio="16:9"
+                    app:layout_constraintTop_toTopOf="parent">
 
                     <!-- 빈 상태 아이콘 -->
                     <ImageView

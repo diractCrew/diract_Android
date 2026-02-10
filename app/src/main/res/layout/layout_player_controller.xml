@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#33000000"
+    android:padding="8dp">
+
+    <ImageButton
+        android:id="@+id/btnDraw"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="#33000000"
+        android:src="@drawable/ic_draw"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/btnSpeed"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/label_strong" />
+
+    <ImageButton
+        android:id="@+id/btnSpeed"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="#33000000"
+        android:src="@drawable/ic_pace"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/label_strong" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnRewind"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_circle"
+            android:backgroundTint="#33000000"
+            android:src="@drawable/ic_replay5" />
+
+        <ImageButton
+            android:id="@+id/btnPlayPause"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginHorizontal="24dp"
+            android:background="@drawable/bg_circle"
+            android:backgroundTint="#33000000"
+            android:src="@drawable/ic_play_arrow" />
+
+        <ImageButton
+            android:id="@+id/btnForward"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_circle"
+            android:backgroundTint="#33000000"
+            android:src="@drawable/ic_forward5" />
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/openPanelBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_circle"
+        android:padding="4dp"
+        android:src="@drawable/ic_expand_circle_left"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/btnFullscreen"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginBottom="3dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="#33000000"
+        android:src="@drawable/ic_fullscreen"
+        app:layout_constraintBottom_toTopOf="@+id/seekBar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+    <androidx.appcompat.widget.AppCompatSeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:maxHeight="6dp"
+        android:minHeight="6dp"
+        android:progress="100"
+        android:progressDrawable="@drawable/seekbar_progress"
+        android:thumb="@drawable/seekbar_thumb"
+        app:layout_constraintBottom_toTopOf="@id/curTimeTxt" />
+
+
+    <TextView
+        android:id="@+id/curTimeTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/label_strong"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+    <!-- 총 시간 -->
+    <TextView
+        android:id="@+id/durationTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/label_strong"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

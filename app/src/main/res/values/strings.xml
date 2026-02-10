@@ -1,5 +1,22 @@
 <resources>
-    <string name="app_name">Diract</string>
+    <string name="app_name">DirAct</string>
+    <string name="introduce_app">댄스팀을 위한 효과적인 피드백 앱</string>
+    <string name="google_login">Google 계정으로 로그인</string>
+    <string name="google_login_failed">구글 로그인에 실패했습니다.</string>
+    <string name="close">닫기</string>
+
+    <!--로그인 플로우-->
+    <string name="agreement_prompt">서비스 이용을 위해\n약관에 동의해주세요.</string>
+    <string name="agree_all">전체 동의</string>
+    <string name="required">필수</string>
+
+    <string name="privacy_policy"><u>개인정보 처리 방침 동의</u></string>
+    <string name="age_confirmation">저는 만 14세 이상입니다.</string>
+    <string name="terms_of_service"><u>서비스 이용약관 동의</u></string>
+
+    <string name="greeting_title">만나서 반가워요!</string>
+    <string name="name_edit_text_hint">이름을 입력하세요</string>
+    <string name="name_confirmation">이름이 정확한가요?</string>
 
     <!-- 바텀 네비게이션 바-->
     <string name="home">홈</string>
@@ -139,6 +156,7 @@
     <string name="move_part_option">다른 파트로 이동</string>
     <string name="report_option">신고하기</string>
     <string name="edit_feedback_option">피드백 수정</string>
+    <string name="edit_comment_option">댓글 수정</string>
 
     <!-- 다이얼로그 메세지 -->
     <string name="dialog_confirm">확인</string>
@@ -153,6 +171,10 @@
     <string name="dialog_default_complete">완료되었습니다.</string>
     <string name="dialog_delete_video_title">%1$s을/를 삭제하시겠어요?</string>
     <string name="dialog_delete_video_content">삭제하면 복구할 수 없습니다.</string>
+    <string name="dialog_cancel_writing_feedback_title">작성 중인 피드백이 있습니다. 나가시겠어요?</string>
+    <string name="dialog_cancel_writing_feedback_content">작성 중인 피드백은 저장되지 않습니다.</string>
+    <string name="dialog_cancel_writing_comment_title">작성 중인 내용이 있습니다. 나가시겠어요?</string>
+    <string name="dialog_cancel_writing_comment_content">작성 중인 내용은 저장되지 않습니다.</string>
 
     <!-- 입력 다이얼로그 -->
     <string name="input_dialog_counter">%1$d/%2$d</string>
@@ -167,6 +189,7 @@
     <string name="toast_failed_edit_video_title">이름 수정을 실패했습니다.</string>
     <string name="toast_move_video">동영상이 이동되었습니다.</string>
     <string name="toast_failed_move_video">동영상을 옮기는 중에 문제가 발생했습니다.</string>
+    <string name="toast_set_time_after_start">시작 시점 이후에서 생성해 주세요!</string>
 
     <!-- 비디오 업로드 -->
     <string name="filter_all">전체</string>
@@ -184,4 +207,32 @@
     <string name="dialog_video_name_title">비디오 이름 수정</string>
     <string name="dialog_video_name_hint">비디오 제목</string>
     <string name="back">back</string>
+
+    <!-- 비디오 플레이어 화면 -->
+    <string name="feedback_all">전체 피드백</string>
+    <string name="feedback_received">받은 피드백</string>
+    <string name="feedback_empty">피드백이 없습니다.</string>
+    <string name="feedback_interval">구간 피드백</string>
+    <string name="feedback_point">시점 피드백</string>
+    <string name="feedback_selecting_range">구간 선택 중</string>
+    <string name="feedback_time_separator"> ~ </string>
+    <string name="feedback_drawing">드로잉 하기</string>
+    <string name="feedback_input_hint">팀원을 @태그하고 피드백을 입력하세요.</string>
+    <string name="feedback_replay_to">%1$s에게 답글 남기는중</string>
+    <string name="percentage">%</string>
+    <string name="fail_to_load_video">동영상 불러오기를 실패했습니다</string>
+    <string name="fail_to_upload">업로드 실패</string>
+    <string name="reply">답글달기</string>
+    <string name="comment">댓글</string>
+    <string name="time_just_now">방금 전</string>
+    <string name="time_minutes_ago">%d분 전</string>
+    <string name="time_hours_ago">%d시간 전</string>
+    <string name="time_days_ago">%d일 전</string>
+    <string name="uploading">업로드 중..</string>
+    <string name="no_team_members">팀원이 없습니다.팀원을 초대해 주세요.</string>
+    <string name="mention_all">\@All</string>
+    <string name="reply_input_hint">답글을 입력해 주세요.</string>
+    <string name="reply_to_format">%s에게 답글 남기는중</string>
+    <string name="speed_value">%1$.2f X</string>
+
 </resources>

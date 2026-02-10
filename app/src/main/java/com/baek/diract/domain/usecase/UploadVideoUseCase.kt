@@ -1,6 +1,7 @@
 package com.baek.diract.domain.usecase
 
 import android.net.Uri
+import com.baek.diract.data.util.VideoCompressionException
 import com.baek.diract.data.util.VideoCompressor
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.repository.VideoRepository
@@ -24,7 +25,8 @@ class UploadVideoUseCase @Inject constructor(
         ) : UploadState
     }
 
-    enum class FailPhase { COMPRESSION, UPLOAD }
+    // 실패 단계 (EXCEEDED: 용량 초과로 재시도 불가)
+    enum class FailPhase { COMPRESSION, UPLOAD, EXCEEDED }
 
     suspend operator fun invoke(
         videoUri: Uri,
@@ -66,9 +68,12 @@ class UploadVideoUseCase @Inject constructor(
             // 3. 결과 처리
             when (result) {
                 is DataResult.Success -> {
+                    // 업로드 성공 시 압축 파일 정리
+                    videoCompressor.cleanupCompressedFile(compressionResult.compressedUri)
                     onStateChanged(UploadState.Completed)
                     DataResult.Success(Unit)
                 }
+
                 is DataResult.Error -> {
                     onStateChanged(
                         UploadState.Failed(
@@ -82,6 +87,14 @@ class UploadVideoUseCase @Inject constructor(
                     result
                 }
             }
+        } catch (e: VideoCompressionException.FileTooLarge) {
+            // 용량 초과는 재시도 불가
+            onStateChanged(UploadState.Failed(FailPhase.EXCEEDED, e.message))
+            DataResult.Error(e)
+        } catch (e: VideoCompressionException.CompressionFailed) {
+            // 압축 실패
+            onStateChanged(UploadState.Failed(FailPhase.COMPRESSION, e.message))
+            DataResult.Error(e)
         } catch (e: Exception) {
             onStateChanged(UploadState.Failed(FailPhase.COMPRESSION, e.message))
             DataResult.Error(e)
@@ -117,9 +130,12 @@ class UploadVideoUseCase @Inject constructor(
 
             when (result) {
                 is DataResult.Success -> {
+                    // 업로드 성공 시 압축 파일 정리
+                    videoCompressor.cleanupCompressedFile(compressedUri)
                     onStateChanged(UploadState.Completed)
                     DataResult.Success(Unit)
                 }
+
                 is DataResult.Error -> {
                     onStateChanged(
                         UploadState.Failed(
