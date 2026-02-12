@@ -53,6 +53,7 @@ class WebViewDialogFragment : BottomSheetDialogFragment() {
         BottomSheetBehavior.from(bottomSheet).apply {
             state = BottomSheetBehavior.STATE_EXPANDED
             skipCollapsed = true
+            isDraggable = false
         }
     }
 
