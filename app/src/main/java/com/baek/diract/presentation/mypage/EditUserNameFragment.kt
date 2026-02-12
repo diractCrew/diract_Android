@@ -1,4 +1,4 @@
-package com.baek.diract.presentation.login
+package com.baek.diract.presentation.mypage
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,24 +12,18 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.baek.diract.R
-import com.baek.diract.databinding.FragmentUserSettingBinding
+import com.baek.diract.databinding.FragmentEditUserNameBinding
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.MaxLengthInputFilter
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class UserSettingFragment : Fragment() {
+class EditUserNameFragment : Fragment() {
 
-    private var _binding: FragmentUserSettingBinding? = null
+    private var _binding: FragmentEditUserNameBinding? = null
     private val binding get() = _binding!!
-
-    private val viewModel: LoginViewModel by activityViewModels()
 
     private var isError = false
 
@@ -37,29 +31,22 @@ class UserSettingFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentUserSettingBinding.inflate(inflater, container, false)
+        _binding = FragmentEditUserNameBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        observeGoogleDisplayName()
+        setupToolbar()
         setupInput()
         setupConfirmButton()
-        observeProfileSaving()
         setupWindowInsets()
         setupTouchOutsideToDismissKeyboard()
     }
 
-    private fun observeGoogleDisplayName() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.googleDisplayName.collect { name ->
-                    if (name.isNotBlank() && binding.nameEditTxt.text.isNullOrEmpty()) {
-                        binding.nameEditTxt.setText(name)
-                    }
-                }
-            }
+    private fun setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
+            findNavController().popBackStack()
         }
     }
 
@@ -99,20 +86,13 @@ class UserSettingFragment : Fragment() {
     }
 
     private fun setupConfirmButton() {
-        binding.confirmBtn.setOnClickListener {
-            val name = binding.nameEditTxt.text.toString().trim()
-            viewModel.updateMyName(name)
-        }
-    }
+        binding.confirmBtn.isEnabled = false
 
-    private fun observeProfileSaving() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.isProfileSaving.collect { isSaving ->
-                    binding.loadingView.visibility = if (isSaving) View.VISIBLE else View.GONE
-                    binding.confirmBtn.visibility = if (isSaving) View.GONE else View.VISIBLE
-                }
-            }
+        binding.confirmBtn.setOnClickListener {
+            val name = binding.nameEditTxt.text?.toString().orEmpty()
+            if (name.isBlank()) return@setOnClickListener
+
+            // TODO: 이름 변경 API 호출
         }
     }
 
