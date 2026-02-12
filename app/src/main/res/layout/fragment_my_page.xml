@@ -95,6 +95,7 @@
             android:background="@color/stroke_normal" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/privacyPolicyBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
@@ -116,6 +117,7 @@
             android:background="@color/stroke_normal" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/termsOfServiceBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
@@ -137,6 +139,7 @@
             android:background="@color/stroke_normal" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/notificationBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
@@ -158,6 +161,7 @@
 
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/accountSettingBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
@@ -195,6 +199,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
+                android:id="@+id/appVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1.0.0"
@@ -213,6 +218,7 @@
             android:background="@color/stroke_normal" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/inquiryBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
@@ -234,6 +240,7 @@
             android:background="@color/stroke_normal" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/aboutDiractBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"

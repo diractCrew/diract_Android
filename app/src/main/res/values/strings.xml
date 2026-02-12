@@ -33,6 +33,13 @@
     <string name="customer_support">문의 및 고객 지원</string>
     <string name="about_diract">Diract를 만든 사람들</string>
 
+    <string name="logout">로그아웃</string>
+    <string name="delete_account">회원 탈퇴</string>
+    <string name="set_my_name">나의 이름 설정</string>
+    <string name="change_name">변경하기</string>
+    <string name="inquiry_title">문의 및 제보 사항을 작성해 주세요.</string>
+    <string name="submit_inquiry">접수하기</string>
+
     <!-- 바텀 네비게이션 바-->
     <string name="home">홈</string>
     <string name="inbox">수신함</string>
@@ -95,6 +102,10 @@
     <string name="dialog_cancel_writing_feedback_content">작성 중인 피드백은 저장되지 않습니다.</string>
     <string name="dialog_cancel_writing_comment_title">작성 중인 내용이 있습니다. 나가시겠어요?</string>
     <string name="dialog_cancel_writing_comment_content">작성 중인 내용은 저장되지 않습니다.</string>
+
+    <!-- 문의 화면 -->
+    <string name="inquiry_hint">작은 피드백이라도 큰 힘이 됩니다.</string>
+    <string name="inquiry_error_max_length">100자 미만으로 입력해 주세요.</string>
 
     <!-- 입력 다이얼로그 -->
     <string name="input_dialog_counter">%1$d/%2$d</string>
