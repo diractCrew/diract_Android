@@ -11,13 +11,27 @@
     <string name="agree_all">전체 동의</string>
     <string name="required">필수</string>
 
-    <string name="privacy_policy"><u>개인정보 처리 방침 동의</u></string>
+    <string name="agree_privacy_policy"><u>개인정보 처리 방침 동의</u></string>
     <string name="age_confirmation">저는 만 14세 이상입니다.</string>
-    <string name="terms_of_service"><u>서비스 이용약관 동의</u></string>
+    <string name="agree_terms_of_service"><u>서비스 이용약관 동의</u></string>
 
     <string name="greeting_title">만나서 반가워요!</string>
     <string name="name_edit_text_hint">이름을 입력하세요</string>
     <string name="name_confirmation">이름이 정확한가요?</string>
+
+    <!--마이페이지-->
+    <string name="id">ID</string>
+    <string name="unknown">UNKNOWN</string>
+    <string name="my_name">나의 이름</string>
+
+    <string name="privacy_policy">개인정보처리방침</string>
+    <string name="terms_of_service">서비스 이용약관</string>
+    <string name="notification">알림 수신</string>
+
+    <string name="account_setting">계정 설정</string>
+    <string name="app_version">앱 버전</string>
+    <string name="customer_support">문의 및 고객 지원</string>
+    <string name="about_diract">Diract를 만든 사람들</string>
 
     <!-- 바텀 네비게이션 바-->
     <string name="home">홈</string>
