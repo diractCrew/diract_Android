@@ -16,17 +16,20 @@ interface AuthRepository {
     // TODO: 현재 로그인된 사용자 조회 (Firebase 의존 — 추후 삭제 예정)
     fun getCurrentUser(): FirebaseUser?
 
-    // Google ID Token으로 서버 로그인 (서버가 자체 JWT 발급)
-    suspend fun loginWithGoogle(idToken: String): DataResult<Unit>
+    // 로그인 여부 확인 (토큰 존재 여부)
+    suspend fun hasToken(): Boolean
+
+    // Google ID Token으로 서버 로그인 (서버가 자체 JWT 발급, isNewUser 반환)
+    suspend fun loginWithGoogle(idToken: String): DataResult<Boolean>
+
+    // 신규 유저 약관 동의 후 보류 중인 토큰 저장
+    suspend fun savePendingTokens()
 
     // 내 정보 조회 (캐시 우선, forceRefresh로 서버 갱신)
     suspend fun getMe(forceRefresh: Boolean = false): DataResult<User>
 
     // 이름 설정 (회원가입 프로필 설정)
     suspend fun updateMyName(name: String): DataResult<User>
-
-    // 로그인 여부 확인 (토큰 존재 여부)
-    suspend fun hasToken(): Boolean
 
     // 로그아웃
     suspend fun logout()

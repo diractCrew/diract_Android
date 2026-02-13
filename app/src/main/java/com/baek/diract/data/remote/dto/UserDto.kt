@@ -8,6 +8,8 @@ data class UserDto(
     val name: String = "",
     val loginType: String = "",
     val status: String = "",
+    val termsAgreed: Boolean = false,
+    val privacyAgreed: Boolean = false,
     val lastLoginAt: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null

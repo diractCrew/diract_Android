@@ -3,6 +3,7 @@ package com.baek.diract.presentation.login
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -44,6 +45,10 @@ class LoginActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.authState.collect { state ->
+                    val showLoading = state is AuthState.Loading || state is AuthState.LoggedIn
+                    binding.loadingView.visibility = if (showLoading) View.VISIBLE else View.GONE
+                    binding.navHostFragment.visibility = if (showLoading) View.GONE else View.VISIBLE
+
                     when (state) {
                         is AuthState.LoggedIn -> {
                             Log.d(TAG, "로그인 완료 → MainActivity 이동")
