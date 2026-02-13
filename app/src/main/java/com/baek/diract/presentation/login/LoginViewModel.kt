@@ -16,7 +16,7 @@ class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     val currentUserInfo = authRepository.currentUserInfo
@@ -25,12 +25,14 @@ class LoginViewModel @Inject constructor(
         checkLoginStatus()
     }
 
-    // 앱 시작 시 토큰 있으면 바로 MainActivity로
+    // 앱 시작 시 토큰 확인 후 분기
     private fun checkLoginStatus() {
         viewModelScope.launch {
-            if (!authRepository.hasToken()) return@launch
-            // TODO: 테스트용 — getMe() 분기 없이 토큰만 확인. 추후 getMe() 분기 복원 필요
-            _authState.value = AuthState.LoggedIn(email = "")
+            if (authRepository.hasToken()) {
+                _authState.value = AuthState.LoggedIn(email = "")
+            } else {
+                _authState.value = AuthState.Idle
+            }
         }
     }
 

@@ -94,7 +94,7 @@ class AuthRepositoryImpl @Inject constructor(
         // 캐시가 있고, 강제 갱신이 아니면 캐시 반환
         val cached = _currentUserInfo.value
         if (cached != null && !forceRefresh) {
-            Log.d(TAG, "getMe: 캐시 반환 — $cached")
+            Log.d(TAG, "getMe: 캐시 반환 — ${cached.name}: ${cached.userId.take(8)}..")
             return DataResult.Success(cached)
         }
 
@@ -103,7 +103,7 @@ class AuthRepositoryImpl @Inject constructor(
             val response = userApi.getMe()
             if (response.success && response.data != null) {
                 val user = response.data.toDomain()
-                Log.d(TAG, "getMe: 성공 — ${user.name}: ${user.userId.take(8)}..}")
+                Log.d(TAG, "getMe: 성공 — ${user.name}: ${user.userId.take(8)}..")
                 _currentUserInfo.value = user
                 DataResult.Success(user)
             } else {
@@ -122,7 +122,7 @@ class AuthRepositoryImpl @Inject constructor(
             val response = userApi.updateMe(UpdateMeRequest(name))
             if (response.success && response.data != null) {
                 val user = response.data.toDomain()
-                Log.d(TAG, "updateMyName: 성공 — $user")
+                Log.d(TAG, "updateMyName: 성공 — ${user.name}: ${user.userId.take(8)}..")
                 _currentUserInfo.value = user
                 DataResult.Success(user)
             } else {
