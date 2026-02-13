@@ -136,6 +136,11 @@ class EditUserNameFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
+                    viewModel.userInfo.collect { user ->
+                        user?.let { binding.nameEditTxt.setText(it.name) }
+                    }
+                }
+                launch {
                     viewModel.isUpdatingName.collect { isUpdating ->
                         binding.confirmBtn.visibility = if (isUpdating) View.GONE else View.VISIBLE
                         binding.loadingView.visibility = if (isUpdating) View.VISIBLE else View.GONE
