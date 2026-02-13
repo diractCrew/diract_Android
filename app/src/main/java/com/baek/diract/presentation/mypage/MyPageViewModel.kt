@@ -37,6 +37,14 @@ class MyPageViewModel @Inject constructor(
     private val _navigateToLogin = MutableSharedFlow<Unit>()
     val navigateToLogin: SharedFlow<Unit> = _navigateToLogin.asSharedFlow()
 
+    // 이름 변경 로딩 상태
+    private val _isUpdatingName = MutableStateFlow(false)
+    val isUpdatingName: StateFlow<Boolean> = _isUpdatingName.asStateFlow()
+
+    // 이름 변경 성공 시 뒤로가기 이벤트
+    private val _navigateBack = MutableSharedFlow<Unit>()
+    val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
+
     init {
         getUserInfo()
     }
@@ -47,6 +55,25 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
+    /*
+        EditUserNameFragment 로직
+     */
+    fun updateMyName(name: String) {
+        viewModelScope.launch {
+            _isUpdatingName.value = true
+            when (authRepository.updateMyName(name)) {
+                is DataResult.Success -> {
+                    _isUpdatingName.value = false
+                    _navigateBack.emit(Unit)
+                }
+
+                is DataResult.Error -> {
+                    _isUpdatingName.value = false
+                    _toastEvent.emit(ToastEvent(R.string.update_name_failed, isErr = true))
+                }
+            }
+        }
+    }
 
     /*
         AccountSettingFragment 로직
@@ -68,6 +95,7 @@ class MyPageViewModel @Inject constructor(
                     _isLoading.value = false
                     _navigateToLogin.emit(Unit)
                 }
+
                 is DataResult.Error -> {
                     _isLoading.value = false
                     _toastEvent.emit(ToastEvent(R.string.delete_account_failed, isErr = true))

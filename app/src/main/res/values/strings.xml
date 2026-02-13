@@ -40,6 +40,7 @@
     <string name="dialog_delete_account_content">회원 정보가 삭제되고 되돌릴 수 없습니다.</string>
     <string name="dialog_delete_account_btn">탈퇴</string>
     <string name="delete_account_failed">회원 탈퇴에 실패했습니다. 다시 시도해 주세요.</string>
+    <string name="update_name_failed">문제가 발생했습니다.</string>
 
     <string name="set_my_name">나의 이름 설정</string>
     <string name="change_name">변경하기</string>
