@@ -5,17 +5,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.baek.diract.R
 import com.baek.diract.databinding.FragmentMyPageBinding
 import com.baek.diract.presentation.common.WebViewDialogFragment
-import com.baek.diract.presentation.login.TermsFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MyPageFragment : Fragment() {
     private var _binding: FragmentMyPageBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: MyPageViewModel by hiltNavGraphViewModels(R.id.mypage_nav_graph)
 
 
     override fun onCreateView(
@@ -30,8 +35,19 @@ class MyPageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupOnClickListener()
+        observeViewModel()
     }
 
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.userInfo.collect { user ->
+                    binding.emailTxt.text = user?.email ?: getString(R.string.unknown)
+                    binding.nameBtn.text = user?.name ?: getString(R.string.unknown)
+                }
+            }
+        }
+    }
     private fun setupOnClickListener() {
 
 
