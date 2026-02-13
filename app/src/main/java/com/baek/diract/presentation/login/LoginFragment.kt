@@ -10,7 +10,6 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
-import androidx.credentials.exceptions.NoCredentialException
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -21,7 +20,6 @@ import com.baek.diract.R
 import com.baek.diract.databinding.FragmentLoginBinding
 import com.baek.diract.presentation.common.LoadingOverlay
 import com.baek.diract.presentation.common.dialog.BasicDialog
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import dagger.hilt.android.AndroidEntryPoint
@@ -93,7 +91,6 @@ class LoginFragment : Fragment() {
                     val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data)
                     Log.d(TAG, "Google ID Token 수신: ${googleIdToken.idToken.take(20)}...")
 
-                    googleIdToken.displayName?.let { viewModel.setGoogleDisplayName(it) }
                     viewModel.loginWithGoogle(googleIdToken.idToken)
                 } else {
                     Log.w(TAG, "예상치 못한 Credential 타입: ${credential.type}")

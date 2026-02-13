@@ -26,7 +26,9 @@
 
         <action
             android:id="@+id/action_termsFragment_to_userSettingFragment"
-            app:destination="@id/userSettingFragment" />
+            app:destination="@id/userSettingFragment"
+            app:popUpTo="@id/termsFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment

@@ -43,7 +43,7 @@ class UserSettingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        observeGoogleDisplayName()
+        observeUserInfo()
         setupInput()
         setupConfirmButton()
         observeProfileSaving()
@@ -51,12 +51,12 @@ class UserSettingFragment : Fragment() {
         setupTouchOutsideToDismissKeyboard()
     }
 
-    private fun observeGoogleDisplayName() {
+    private fun observeUserInfo() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.googleDisplayName.collect { name ->
-                    if (name.isNotBlank() && binding.nameEditTxt.text.isNullOrEmpty()) {
-                        binding.nameEditTxt.setText(name)
+                viewModel.currentUserInfo.collect { user ->
+                    if (user != null && user.name.isNotBlank() && binding.nameEditTxt.text.isNullOrEmpty()) {
+                        binding.nameEditTxt.setText(user.name)
                     }
                 }
             }
@@ -64,6 +64,8 @@ class UserSettingFragment : Fragment() {
     }
 
     private fun setupInput() {
+        binding.confirmBtn.isEnabled = !binding.nameEditTxt.text.isNullOrEmpty()
+
         binding.nameEditTxt.filters = arrayOf(
             MaxLengthInputFilter(MAX_LENGTH) {
                 isError = true

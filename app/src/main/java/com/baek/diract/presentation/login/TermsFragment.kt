@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.baek.diract.R
 import com.baek.diract.databinding.FragmentTermsBinding
@@ -20,8 +21,10 @@ import kotlinx.coroutines.launch
 class TermsFragment : Fragment() {
 
     companion object {
-        private const val PRIVACY_POLICY_URL = "https://mammoth-eyelash-f4f.notion.site/29610840462c8014ba1be32d01ef3edb"
-        private const val TERMS_OF_SERVICE_URL = "https://mammoth-eyelash-f4f.notion.site/29610840462c8038a85bf08362518b03"
+        private const val PRIVACY_POLICY_URL =
+            "https://mammoth-eyelash-f4f.notion.site/29610840462c8014ba1be32d01ef3edb"
+        private const val TERMS_OF_SERVICE_URL =
+            "https://mammoth-eyelash-f4f.notion.site/29610840462c8038a85bf08362518b03"
     }
 
     private var _binding: FragmentTermsBinding? = null
@@ -64,7 +67,9 @@ class TermsFragment : Fragment() {
         }
 
         binding.confirmBtn.setOnClickListener {
-            findNavController().navigate(R.id.action_termsFragment_to_userSettingFragment)
+            viewModel.savePendingTokens()
+            val action = TermsFragmentDirections.actionTermsFragmentToUserSettingFragment()
+            findNavController().navigate(action)
         }
     }
 

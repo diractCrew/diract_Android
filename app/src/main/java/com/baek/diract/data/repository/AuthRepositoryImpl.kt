@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import kotlin.text.take
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
@@ -32,10 +33,9 @@ class AuthRepositoryImpl @Inject constructor(
     private val _currentUserInfo = MutableStateFlow<User?>(null)
     override val currentUserInfo: StateFlow<User?> = _currentUserInfo.asStateFlow()
 
-    // 초기 로그인 상태를 TokenManager에서 확인
-    suspend fun checkInitialLoginState() {
-        _isLoggedIn.value = tokenManager.accessToken.first() != null
-    }
+    // 신규 유저의 토큰을 약관 동의 전까지 메모리에 보관
+    private var pendingAccessToken: String? = null
+    private var pendingRefreshToken: String? = null
 
     // Firebase 의존 — 추후 삭제 예정 (다른 ViewModel에서 사용 중)
     override fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
@@ -44,6 +44,50 @@ class AuthRepositoryImpl @Inject constructor(
         val has = tokenManager.accessToken.first() != null
         Log.d(TAG, "hasToken: $has")
         return has
+    }
+
+    override suspend fun loginWithGoogle(idToken: String): DataResult<Boolean> {
+        Log.d(TAG, "loginWithGoogle: 서버 로그인 요청 — idToken=${idToken.take(20)}...")
+        return try {
+            val response = authApi.loginWithGoogle(GoogleLoginRequest(idToken))
+            if (response.success && response.data != null) {
+                val isNewUser = response.data.isNewUser
+                Log.d(TAG, "loginWithGoogle: 성공 — isNewUser=$isNewUser")
+
+                if (isNewUser) {
+                    // 신규 유저: 약관 동의 전까지 토큰 보류
+                    pendingAccessToken = response.data.accessToken
+                    pendingRefreshToken = response.data.refreshToken
+                } else {
+                    // 기존 유저: 토큰 즉시 저장
+                    tokenManager.saveTokens(
+                        accessToken = response.data.accessToken,
+                        refreshToken = response.data.refreshToken
+                    )
+                    _isLoggedIn.value = true
+                    getMe(forceRefresh = true)
+                }
+
+                DataResult.Success(isNewUser)
+            } else {
+                Log.w(TAG, "loginWithGoogle: 실패 — message=${response.message}")
+                DataResult.Error(Exception(response.message ?: "로그인에 실패했습니다."))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "loginWithGoogle: 예외 발생", e)
+            DataResult.Error(e)
+        }
+    }
+
+    override suspend fun savePendingTokens() {
+        val accessToken = pendingAccessToken ?: return
+        val refreshToken = pendingRefreshToken ?: return
+        Log.d(TAG, "savePendingTokens: 보류 중인 토큰 저장")
+        tokenManager.saveTokens(accessToken, refreshToken)
+        _isLoggedIn.value = true
+        pendingAccessToken = null
+        pendingRefreshToken = null
+        getMe(forceRefresh = true)
     }
 
     override suspend fun getMe(forceRefresh: Boolean): DataResult<User> {
@@ -59,7 +103,7 @@ class AuthRepositoryImpl @Inject constructor(
             val response = userApi.getMe()
             if (response.success && response.data != null) {
                 val user = response.data.toDomain()
-                Log.d(TAG, "getMe: 성공 — $user")
+                Log.d(TAG, "getMe: 성공 — ${user.name}: ${user.userId.take(8)}..}")
                 _currentUserInfo.value = user
                 DataResult.Success(user)
             } else {
@@ -91,28 +135,11 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun loginWithGoogle(idToken: String): DataResult<Unit> {
-        Log.d(TAG, "loginWithGoogle: 서버 로그인 요청 — idToken=${idToken.take(20)}...")
-        return try {
-            val response = authApi.loginWithGoogle(GoogleLoginRequest(idToken))
-            if (response.success && response.data != null) {
-                Log.d(TAG, "loginWithGoogle: 성공 — 토큰 저장")
-                tokenManager.saveTokens(
-                    accessToken = response.data.accessToken,
-                    refreshToken = response.data.refreshToken
-                )
-                _isLoggedIn.value = true
-                // 로그인 성공 직후 유저 정보 캐싱
-                getMe(forceRefresh = true)
-                DataResult.Success(Unit)
-            } else {
-                Log.w(TAG, "loginWithGoogle: 실패 — message=${response.message}")
-                DataResult.Error(Exception(response.message ?: "로그인에 실패했습니다."))
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "loginWithGoogle: 예외 발생", e)
-            DataResult.Error(e)
-        }
+    override suspend fun logout() {
+        Log.d(TAG, "logout: 토큰 삭제")
+        tokenManager.clearTokens()
+        _currentUserInfo.value = null
+        _isLoggedIn.value = false
     }
 
     override suspend fun deleteAccount(): DataResult<Unit> {
@@ -131,13 +158,6 @@ class AuthRepositoryImpl @Inject constructor(
             Log.e(TAG, "deleteAccount: 예외 발생", e)
             DataResult.Error(e)
         }
-    }
-
-    override suspend fun logout() {
-        Log.d(TAG, "logout: 토큰 삭제")
-        tokenManager.clearTokens()
-        _currentUserInfo.value = null
-        _isLoggedIn.value = false
     }
 
     companion object {

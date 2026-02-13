@@ -19,6 +19,8 @@ class LoginViewModel @Inject constructor(
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
+    val currentUserInfo = authRepository.currentUserInfo
+
     init {
         checkLoginStatus()
     }
@@ -39,8 +41,12 @@ class LoginViewModel @Inject constructor(
 
             when (val result = authRepository.loginWithGoogle(idToken)) {
                 is DataResult.Success -> {
-                    // TODO: 테스트용 — 무조건 회원가입 플로우로 이동. 추후 getMe() 분기 복원 필요
-                    _authState.value = AuthState.NeedsSignUp
+                    val isNewUser = result.data
+                    _authState.value = if (isNewUser) {
+                        AuthState.NeedsSignUp
+                    } else {
+                        AuthState.LoggedIn(email = "")
+                    }
                 }
 
                 is DataResult.Error -> {
@@ -49,6 +55,13 @@ class LoginViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    // 약관 동의 후 보류 중인 토큰 저장
+    fun savePendingTokens() {
+        viewModelScope.launch {
+            authRepository.savePendingTokens()
         }
     }
 
@@ -72,14 +85,6 @@ class LoginViewModel @Inject constructor(
             }
             _isProfileSaving.value = false
         }
-    }
-
-    // 구글 계정에서 가져온 이름 (UserSettingFragment 기본값)
-    private val _googleDisplayName = MutableStateFlow("")
-    val googleDisplayName: StateFlow<String> = _googleDisplayName.asStateFlow()
-
-    fun setGoogleDisplayName(name: String) {
-        _googleDisplayName.value = name
     }
 
     // 약관 동의 상태
