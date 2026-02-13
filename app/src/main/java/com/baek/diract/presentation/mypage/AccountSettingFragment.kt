@@ -2,7 +2,6 @@ package com.baek.diract.presentation.mypage
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +16,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.baek.diract.R
 import com.baek.diract.databinding.FragmentAccountSettingBinding
+import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.LoadingOverlay
 import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.baek.diract.presentation.login.LoginActivity
@@ -89,7 +89,11 @@ class AccountSettingFragment : Fragment() {
                 }
                 launch {
                     viewModel.toastEvent.collect { event ->
-                        Toast.makeText(requireContext(), event.txtRes, Toast.LENGTH_SHORT).show()
+                        if (event.isErr) {
+                            CustomToast.showNegative(requireContext(), event.txtRes)
+                        } else {
+                            CustomToast.showPositive(requireContext(), event.txtRes)
+                        }
                     }
                 }
                 launch {
