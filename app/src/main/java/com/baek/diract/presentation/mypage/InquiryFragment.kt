@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -12,17 +13,27 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.baek.diract.R
 import com.baek.diract.databinding.FragmentInquiryBinding
+import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.MaxLengthInputFilter
+import com.baek.diract.presentation.common.dialog.BasicDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import kotlin.getValue
 
 @AndroidEntryPoint
 class InquiryFragment : Fragment() {
 
     private var _binding: FragmentInquiryBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: MyPageViewModel by hiltNavGraphViewModels(R.id.mypage_nav_graph)
 
     private var isError = false
 
@@ -37,15 +48,17 @@ class InquiryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupToolbar()
+        setupBackPressHandler()
         setupInput()
         setupConfirmButton()
+        observeViewModel()
         setupWindowInsets()
         setupTouchOutsideToDismissKeyboard()
     }
 
     private fun setupToolbar() {
         binding.toolbar.setNavigationOnClickListener {
-            findNavController().popBackStack()
+            handleBackPress()
         }
     }
 
@@ -96,7 +109,8 @@ class InquiryFragment : Fragment() {
 
     private fun updateInputBackground(hasFocus: Boolean) {
         if (isError) return
-        val bgRes = if (hasFocus) R.drawable.bg_input_focus else R.drawable.bg_input_multi_line_default
+        val bgRes =
+            if (hasFocus) R.drawable.bg_input_focus else R.drawable.bg_input_multi_line_default
         binding.inputContainer.setBackgroundResource(bgRes)
     }
 
@@ -107,8 +121,65 @@ class InquiryFragment : Fragment() {
             val content = binding.inputTxt.text?.toString().orEmpty()
             if (content.isBlank()) return@setOnClickListener
 
-            // TODO: 문의 접수 API 호출
+            viewModel.submitInquiry(content)
         }
+    }
+
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.isSubmittingInquiry.collect { isSubmitting ->
+                        binding.confirmBtn.visibility =
+                            if (isSubmitting) View.GONE else View.VISIBLE
+                        binding.loadingView.visibility =
+                            if (isSubmitting) View.VISIBLE else View.GONE
+                        binding.blockingView.visibility =
+                            if (isSubmitting) View.VISIBLE else View.GONE
+                    }
+                }
+                launch {
+                    viewModel.toastEvent.collect { event ->
+                        if (event.isErr) {
+                            CustomToast.showNegative(requireContext(), event.txtRes)
+                        } else {
+                            CustomToast.showPositive(requireContext(), event.txtRes)
+                        }
+                    }
+                }
+                launch {
+                    viewModel.navigateBack.collect {
+                        findNavController().navigateUp()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleBackPress() {
+        val hasInput = binding.inputTxt.text?.isNotEmpty() == true
+        if (hasInput) {
+            BasicDialog.destructive(
+                context = requireContext(),
+                title = getString(R.string.dialog_discard_title),
+                message = getString(R.string.dialog_discard_message),
+                positiveText = getString(R.string.dialog_exit),
+                onPositive = { findNavController().navigateUp() }
+            ).show()
+        } else {
+            findNavController().navigateUp()
+        }
+    }
+
+    private fun setupBackPressHandler() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    handleBackPress()
+                }
+            }
+        )
     }
 
     private fun setupWindowInsets() {

@@ -27,6 +27,7 @@ class MyPageViewModel @Inject constructor(
     val userInfo: StateFlow<User?> = authRepository.currentUserInfo
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    //로그인/탈퇴 로딩 상태
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -37,11 +38,7 @@ class MyPageViewModel @Inject constructor(
     private val _navigateToLogin = MutableSharedFlow<Unit>()
     val navigateToLogin: SharedFlow<Unit> = _navigateToLogin.asSharedFlow()
 
-    // 이름 변경 로딩 상태
-    private val _isUpdatingName = MutableStateFlow(false)
-    val isUpdatingName: StateFlow<Boolean> = _isUpdatingName.asStateFlow()
-
-    // 이름 변경 성공 시 뒤로가기 이벤트
+    // 변경 성공 시 뒤로가기 이벤트
     private val _navigateBack = MutableSharedFlow<Unit>()
     val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
 
@@ -58,6 +55,11 @@ class MyPageViewModel @Inject constructor(
     /*
         EditUserNameFragment 로직
      */
+
+    // 이름 변경 로딩 상태
+    private val _isUpdatingName = MutableStateFlow(false)
+    val isUpdatingName: StateFlow<Boolean> = _isUpdatingName.asStateFlow()
+
     fun updateMyName(name: String) {
         viewModelScope.launch {
             _isUpdatingName.value = true
@@ -72,6 +74,25 @@ class MyPageViewModel @Inject constructor(
                     _toastEvent.emit(ToastEvent(R.string.update_name_failed, isErr = true))
                 }
             }
+        }
+    }
+
+    /*
+        InquiryFragment 로직
+     */
+    private val _isSubmittingInquiry = MutableStateFlow(false)
+    val isSubmittingInquiry: StateFlow<Boolean> = _isSubmittingInquiry.asStateFlow()
+
+    fun submitInquiry(content: String) {
+        viewModelScope.launch {
+            _isSubmittingInquiry.value = true
+            // TODO: 문의 접수 API 호출
+            /*
+                TODO: 문의하기 api 호출
+                - 성공/실패 시 토스트 emit하기
+             */
+            _isSubmittingInquiry.value = false
+            _navigateBack.emit(Unit)
         }
     }
 
