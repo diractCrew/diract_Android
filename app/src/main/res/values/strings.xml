@@ -34,7 +34,13 @@
     <string name="about_diract">Diract를 만든 사람들</string>
 
     <string name="logout">로그아웃</string>
+    <string name="dialog_logout_content">정말 로그아웃하시겠어요?</string>
     <string name="delete_account">회원 탈퇴</string>
+    <string name="dialog_delete_account_title">회원을 탈퇴하시겠어요?</string>
+    <string name="dialog_delete_account_content">회원 정보가 삭제되고 되돌릴 수 없습니다.</string>
+    <string name="dialog_delete_account_btn">탈퇴</string>
+    <string name="delete_account_failed">회원 탈퇴에 실패했습니다. 다시 시도해 주세요.</string>
+
     <string name="set_my_name">나의 이름 설정</string>
     <string name="change_name">변경하기</string>
     <string name="inquiry_title">문의 및 제보 사항을 작성해 주세요.</string>

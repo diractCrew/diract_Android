@@ -1,60 +1,121 @@
 package com.baek.diract.presentation.mypage
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.baek.diract.R
+import com.baek.diract.databinding.FragmentAccountSettingBinding
+import com.baek.diract.presentation.common.LoadingOverlay
+import com.baek.diract.presentation.common.dialog.BasicDialog
+import com.baek.diract.presentation.login.LoginActivity
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import kotlin.getValue
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [AccountSettingFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+@AndroidEntryPoint
 class AccountSettingFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentAccountSettingBinding? = null
+    private val binding get() = _binding!!
+
+    private val viewModel: MyPageViewModel by hiltNavGraphViewModels(R.id.mypage_nav_graph)
+    private val loadingOverlay by lazy { LoadingOverlay(this) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_account_setting, container, false)
+    ): View {
+        _binding = FragmentAccountSettingBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AccountSettingFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AccountSettingFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeViewModel()
+        setupOnClickListener()
+        setupWindowInsets()
+    }
+
+    private fun setupOnClickListener() {
+        binding.toolbar.setNavigationOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        binding.logoutBtn.setOnClickListener {
+            BasicDialog.destructive(
+                context = requireContext(),
+                title = getString(R.string.logout),
+                message = getString(R.string.dialog_logout_content),
+                positiveText = getString(R.string.logout),
+                onPositive = { viewModel.logout() }
+            ).show()
+        }
+
+        binding.confirmBtn.setOnClickListener {
+            BasicDialog.destructive(
+                context = requireContext(),
+                title = getString(R.string.dialog_delete_account_title),
+                message = getString(R.string.dialog_delete_account_content),
+                positiveText = getString(R.string.dialog_delete_account_btn),
+                onPositive = { viewModel.deleteAccount() }
+            ).show()
+        }
+    }
+
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.userInfo.collect { user ->
+                        binding.emailTxt.text = user?.email ?: getString(R.string.unknown)
+                    }
+                }
+                launch {
+                    viewModel.isLoading.collect { isLoading ->
+                        loadingOverlay.setVisible(isLoading)
+                    }
+                }
+                launch {
+                    viewModel.toastEvent.collect { event ->
+                        Toast.makeText(requireContext(), event.txtRes, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                launch {
+                    viewModel.navigateToLogin.collect {
+                        val intent = Intent(requireContext(), LoginActivity::class.java)
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                    }
                 }
             }
+        }
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.actionContainer) { v, insets ->
+            val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            val vertPadding = resources.getDimensionPixelSize(R.dimen.action_container_vert_padding)
+            v.updatePadding(bottom = navBar.bottom + vertPadding)
+            insets
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
