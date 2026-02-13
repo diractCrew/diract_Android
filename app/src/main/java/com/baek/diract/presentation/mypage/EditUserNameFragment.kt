@@ -1,35 +1,38 @@
-package com.baek.diract.presentation.login
+package com.baek.diract.presentation.mypage
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.activity.OnBackPressedCallback
+import androidx.navigation.fragment.findNavController
 import com.baek.diract.R
-import com.baek.diract.databinding.FragmentUserSettingBinding
+import com.baek.diract.databinding.FragmentEditUserNameBinding
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.MaxLengthInputFilter
+import com.baek.diract.presentation.common.dialog.BasicDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlin.getValue
 
 @AndroidEntryPoint
-class UserSettingFragment : Fragment() {
+class EditUserNameFragment : Fragment() {
 
-    private var _binding: FragmentUserSettingBinding? = null
+    private var _binding: FragmentEditUserNameBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: LoginViewModel by activityViewModels()
+    private val viewModel: MyPageViewModel by hiltNavGraphViewModels(R.id.mypage_nav_graph)
 
     private var isError = false
 
@@ -37,29 +40,50 @@ class UserSettingFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentUserSettingBinding.inflate(inflater, container, false)
+        _binding = FragmentEditUserNameBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        observeGoogleDisplayName()
+        setupToolbar()
+        setupBackPressHandler()
         setupInput()
         setupConfirmButton()
-        observeProfileSaving()
+        observeViewModel()
         setupWindowInsets()
         setupTouchOutsideToDismissKeyboard()
     }
 
-    private fun observeGoogleDisplayName() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.googleDisplayName.collect { name ->
-                    if (name.isNotBlank() && binding.nameEditTxt.text.isNullOrEmpty()) {
-                        binding.nameEditTxt.setText(name)
-                    }
+    private fun setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
+            handleBackPress()
+        }
+    }
+
+    private fun setupBackPressHandler() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    handleBackPress()
                 }
             }
+        )
+    }
+
+    private fun handleBackPress() {
+        val hasInput = binding.nameEditTxt.text?.isNotEmpty() == true
+        if (hasInput) {
+            BasicDialog.destructive(
+                context = requireContext(),
+                title = getString(R.string.dialog_discard_title),
+                message = getString(R.string.dialog_discard_message),
+                positiveText = getString(R.string.dialog_exit),
+                onPositive = { findNavController().navigateUp() }
+            ).show()
+        } else {
+            findNavController().navigateUp()
         }
     }
 
@@ -72,8 +96,7 @@ class UserSettingFragment : Fragment() {
                 )
                 CustomToast.showNegative(
                     requireContext(),
-                    getString(R.string.input_dialog_error_max_length, MAX_LENGTH),
-                    Toast.LENGTH_SHORT
+                    getString(R.string.input_dialog_error_max_length, MAX_LENGTH)
                 )
             }
         )
@@ -99,18 +122,45 @@ class UserSettingFragment : Fragment() {
     }
 
     private fun setupConfirmButton() {
+        binding.confirmBtn.isEnabled = false
+
         binding.confirmBtn.setOnClickListener {
-            val name = binding.nameEditTxt.text.toString().trim()
+            val name = binding.nameEditTxt.text?.toString().orEmpty()
+            if (name.isBlank()) return@setOnClickListener
+
             viewModel.updateMyName(name)
         }
     }
 
-    private fun observeProfileSaving() {
+    private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.isProfileSaving.collect { isSaving ->
-                    binding.loadingView.visibility = if (isSaving) View.VISIBLE else View.GONE
-                    binding.confirmBtn.visibility = if (isSaving) View.GONE else View.VISIBLE
+                launch {
+                    viewModel.userInfo.collect { user ->
+                        user?.let { binding.nameEditTxt.setText(it.name) }
+                    }
+                }
+                launch {
+                    viewModel.isUpdatingName.collect { isUpdating ->
+                        binding.confirmBtn.visibility = if (isUpdating) View.GONE else View.VISIBLE
+                        binding.loadingView.visibility = if (isUpdating) View.VISIBLE else View.GONE
+                        binding.blockingView.visibility =
+                            if (isUpdating) View.VISIBLE else View.GONE
+                    }
+                }
+                launch {
+                    viewModel.toastEvent.collect { event ->
+                        if (event.isErr) {
+                            CustomToast.showNegative(requireContext(), event.txtRes)
+                        } else {
+                            CustomToast.showPositive(requireContext(), event.txtRes)
+                        }
+                    }
+                }
+                launch {
+                    viewModel.navigateBack.collect {
+                        findNavController().navigateUp()
+                    }
                 }
             }
         }

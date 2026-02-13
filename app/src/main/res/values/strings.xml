@@ -2,7 +2,8 @@
     <string name="app_name">DirAct</string>
     <string name="introduce_app">댄스팀을 위한 효과적인 피드백 앱</string>
     <string name="google_login">Google 계정으로 로그인</string>
-    <string name="google_login_failed">구글 로그인에 실패했습니다.</string>
+    <string name="login_failed_title">로그인 실패</string>
+    <string name="login_failed_content">로그인을 실패했습니다.\n다시 시도해 주세요.</string>
     <string name="close">닫기</string>
 
     <!--로그인 플로우-->
@@ -10,13 +11,41 @@
     <string name="agree_all">전체 동의</string>
     <string name="required">필수</string>
 
-    <string name="privacy_policy"><u>개인정보 처리 방침 동의</u></string>
+    <string name="agree_privacy_policy"><u>개인정보 처리 방침 동의</u></string>
     <string name="age_confirmation">저는 만 14세 이상입니다.</string>
-    <string name="terms_of_service"><u>서비스 이용약관 동의</u></string>
+    <string name="agree_terms_of_service"><u>서비스 이용약관 동의</u></string>
 
     <string name="greeting_title">만나서 반가워요!</string>
     <string name="name_edit_text_hint">이름을 입력하세요</string>
     <string name="name_confirmation">이름이 정확한가요?</string>
+
+    <!--마이페이지-->
+    <string name="id">ID</string>
+    <string name="unknown">UNKNOWN</string>
+    <string name="my_name">나의 이름</string>
+
+    <string name="privacy_policy">개인정보처리방침</string>
+    <string name="terms_of_service">서비스 이용약관</string>
+    <string name="notification">알림 수신</string>
+
+    <string name="account_setting">계정 설정</string>
+    <string name="app_version">앱 버전</string>
+    <string name="customer_support">문의 및 고객 지원</string>
+    <string name="about_diract">Diract를 만든 사람들</string>
+
+    <string name="logout">로그아웃</string>
+    <string name="dialog_logout_content">정말 로그아웃하시겠어요?</string>
+    <string name="delete_account">회원 탈퇴</string>
+    <string name="dialog_delete_account_title">회원을 탈퇴하시겠어요?</string>
+    <string name="dialog_delete_account_content">회원 정보가 삭제되고 되돌릴 수 없습니다.</string>
+    <string name="dialog_delete_account_btn">탈퇴</string>
+    <string name="delete_account_failed">회원 탈퇴에 실패했습니다. 다시 시도해 주세요.</string>
+    <string name="update_name_failed">문제가 발생했습니다.</string>
+
+    <string name="set_my_name">나의 이름 설정</string>
+    <string name="change_name">변경하기</string>
+    <string name="inquiry_title">문의 및 제보 사항을 작성해 주세요.</string>
+    <string name="submit_inquiry">접수하기</string>
 
     <!-- 바텀 네비게이션 바-->
     <string name="home">홈</string>
@@ -80,6 +109,10 @@
     <string name="dialog_cancel_writing_feedback_content">작성 중인 피드백은 저장되지 않습니다.</string>
     <string name="dialog_cancel_writing_comment_title">작성 중인 내용이 있습니다. 나가시겠어요?</string>
     <string name="dialog_cancel_writing_comment_content">작성 중인 내용은 저장되지 않습니다.</string>
+
+    <!-- 문의 화면 -->
+    <string name="inquiry_hint">작은 피드백이라도 큰 힘이 됩니다.</string>
+    <string name="inquiry_error_max_length">100자 미만으로 입력해 주세요.</string>
 
     <!-- 입력 다이얼로그 -->
     <string name="input_dialog_counter">%1$d/%2$d</string>

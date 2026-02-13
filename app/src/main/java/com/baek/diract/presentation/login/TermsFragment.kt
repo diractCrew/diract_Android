@@ -51,14 +51,14 @@ class TermsFragment : Fragment() {
 
         binding.privacyBtn.setOnClickListener {
             WebViewDialogFragment.newInstance(
-                title = getString(R.string.privacy_policy),
+                title = getString(R.string.agree_privacy_policy),
                 url = PRIVACY_POLICY_URL
             ).show(childFragmentManager, WebViewDialogFragment.TAG)
         }
 
         binding.serviceBtn.setOnClickListener {
             WebViewDialogFragment.newInstance(
-                title = getString(R.string.terms_of_service),
+                title = getString(R.string.agree_terms_of_service),
                 url = TERMS_OF_SERVICE_URL
             ).show(childFragmentManager, WebViewDialogFragment.TAG)
         }

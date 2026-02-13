@@ -94,7 +94,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="24dp"
                 android:layout_weight="1"
-                android:text="@string/privacy_policy"
+                android:text="@string/agree_privacy_policy"
                 android:textAppearance="@style/Body1.Medium"
                 android:textColor="@color/label_normal" />
 
@@ -133,7 +133,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="24dp"
                 android:layout_weight="1"
-                android:text="@string/terms_of_service"
+                android:text="@string/agree_terms_of_service"
                 android:textAppearance="@style/Body1.Medium"
                 android:textColor="@color/label_normal" />
 

@@ -6,8 +6,9 @@ import com.baek.diract.data.remote.api.AuthApi
 import com.baek.diract.data.remote.api.GoogleLoginRequest
 import com.baek.diract.data.remote.api.UpdateMeRequest
 import com.baek.diract.data.remote.api.UserApi
-import com.baek.diract.data.remote.dto.UserDto
+import com.baek.diract.data.remote.dto.toDomain
 import com.baek.diract.domain.common.DataResult
+import com.baek.diract.domain.model.User
 import com.baek.diract.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -28,8 +29,8 @@ class AuthRepositoryImpl @Inject constructor(
     private val _isLoggedIn = MutableStateFlow(false)
     override val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
-    private val _currentUserInfo = MutableStateFlow<UserDto?>(null)
-    override val currentUserInfo: StateFlow<UserDto?> = _currentUserInfo.asStateFlow()
+    private val _currentUserInfo = MutableStateFlow<User?>(null)
+    override val currentUserInfo: StateFlow<User?> = _currentUserInfo.asStateFlow()
 
     // 초기 로그인 상태를 TokenManager에서 확인
     suspend fun checkInitialLoginState() {
@@ -45,14 +46,22 @@ class AuthRepositoryImpl @Inject constructor(
         return has
     }
 
-    override suspend fun getMe(): DataResult<UserDto> {
-        Log.d(TAG, "getMe: 유저 정보 조회 시작")
+    override suspend fun getMe(forceRefresh: Boolean): DataResult<User> {
+        // 캐시가 있고, 강제 갱신이 아니면 캐시 반환
+        val cached = _currentUserInfo.value
+        if (cached != null && !forceRefresh) {
+            Log.d(TAG, "getMe: 캐시 반환 — $cached")
+            return DataResult.Success(cached)
+        }
+
+        Log.d(TAG, "getMe: 서버 조회 시작")
         return try {
             val response = userApi.getMe()
             if (response.success && response.data != null) {
-                Log.d(TAG, "getMe: 성공 — ${response.data}")
-                _currentUserInfo.value = response.data
-                DataResult.Success(response.data)
+                val user = response.data.toDomain()
+                Log.d(TAG, "getMe: 성공 — $user")
+                _currentUserInfo.value = user
+                DataResult.Success(user)
             } else {
                 Log.w(TAG, "getMe: 실패 — message=${response.message}")
                 DataResult.Error(Exception(response.message ?: "유저 정보를 가져올 수 없습니다."))
@@ -63,14 +72,15 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateMyName(name: String): DataResult<UserDto> {
+    override suspend fun updateMyName(name: String): DataResult<User> {
         Log.d(TAG, "updateMyName: 이름 설정 요청 — name=$name")
         return try {
             val response = userApi.updateMe(UpdateMeRequest(name))
             if (response.success && response.data != null) {
-                Log.d(TAG, "updateMyName: 성공 — ${response.data}")
-                _currentUserInfo.value = response.data
-                DataResult.Success(response.data)
+                val user = response.data.toDomain()
+                Log.d(TAG, "updateMyName: 성공 — $user")
+                _currentUserInfo.value = user
+                DataResult.Success(user)
             } else {
                 Log.w(TAG, "updateMyName: 실패 — message=${response.message}")
                 DataResult.Error(Exception(response.message ?: "이름 설정에 실패했습니다."))
@@ -92,6 +102,8 @@ class AuthRepositoryImpl @Inject constructor(
                     refreshToken = response.data.refreshToken
                 )
                 _isLoggedIn.value = true
+                // 로그인 성공 직후 유저 정보 캐싱
+                getMe(forceRefresh = true)
                 DataResult.Success(Unit)
             } else {
                 Log.w(TAG, "loginWithGoogle: 실패 — message=${response.message}")
@@ -99,6 +111,24 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "loginWithGoogle: 예외 발생", e)
+            DataResult.Error(e)
+        }
+    }
+
+    override suspend fun deleteAccount(): DataResult<Unit> {
+        Log.d(TAG, "deleteAccount: 회원 탈퇴 요청")
+        return try {
+            val response = userApi.deleteMe()
+            if (response.success) {
+                Log.d(TAG, "deleteAccount: 성공")
+                logout()
+                DataResult.Success(Unit)
+            } else {
+                Log.w(TAG, "deleteAccount: 실패 — message=${response.message}")
+                DataResult.Error(Exception(response.message ?: "회원 탈퇴에 실패했습니다."))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteAccount: 예외 발생", e)
             DataResult.Error(e)
         }
     }

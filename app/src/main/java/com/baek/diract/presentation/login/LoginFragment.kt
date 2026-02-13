@@ -5,21 +5,24 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.baek.diract.BuildConfig
+import com.baek.diract.R
 import com.baek.diract.databinding.FragmentLoginBinding
-import com.baek.diract.presentation.common.CustomToast
+import com.baek.diract.presentation.common.LoadingOverlay
+import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -32,6 +35,8 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: LoginViewModel by activityViewModels()
+
+    private val loadingOverlay by lazy { LoadingOverlay(this) }
 
     private val credentialManager by lazy { CredentialManager.create(requireContext()) }
 
@@ -55,33 +60,28 @@ class LoginFragment : Fragment() {
         }
     }
 
+    // 구글 로그인 요청
     private fun requestGoogleLogin() {
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(BuildConfig.WEB_CLIENT_ID)
+        binding.loginBtn.isEnabled = false
+
+        val signInOption = GetSignInWithGoogleOption.Builder(BuildConfig.WEB_CLIENT_ID)
             .setNonce(UUID.randomUUID().toString())
             .build()
 
         val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
+            .addCredentialOption(signInOption)
             .build()
-
-        Log.d(TAG, "Google 로그인 요청 시작")
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val result = credentialManager.getCredential(requireActivity(), request)
-                Log.d(TAG, "Credential 수신 성공")
+                Log.d(TAG, "SignInWithGoogle Credential 수신 성공")
                 handleSignInResult(result)
             } catch (e: GetCredentialCancellationException) {
                 Log.d(TAG, "사용자가 로그인을 취소함")
             } catch (e: Exception) {
-                Log.e(TAG, "Google 로그인 실패", e)
-                CustomToast.showNegative(
-                    requireContext(),
-                    e.message ?: "구글 로그인에 실패했습니다.",
-                    Toast.LENGTH_LONG
-                )
+                Log.e(TAG, "SignInWithGoogle 실패", e)
+                showFailDialog()
             }
         }
     }
@@ -92,6 +92,7 @@ class LoginFragment : Fragment() {
                 if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                     val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data)
                     Log.d(TAG, "Google ID Token 수신: ${googleIdToken.idToken.take(20)}...")
+
                     googleIdToken.displayName?.let { viewModel.setGoogleDisplayName(it) }
                     viewModel.loginWithGoogle(googleIdToken.idToken)
                 } else {
@@ -109,18 +110,17 @@ class LoginFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.authState.collect { state ->
+                    loadingOverlay.setVisible(state is AuthState.Loading)
                     when (state) {
                         is AuthState.Loading -> {
                             binding.loginBtn.isEnabled = false
                         }
+
                         is AuthState.Error -> {
                             binding.loginBtn.isEnabled = true
-                            CustomToast.showNegative(
-                                requireContext(),
-                                state.message,
-                                Toast.LENGTH_LONG
-                            )
+                            showFailDialog()
                         }
+
                         else -> {
                             binding.loginBtn.isEnabled = true
                         }
@@ -128,6 +128,14 @@ class LoginFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun showFailDialog() {
+        BasicDialog.confirm(
+            context = requireContext(),
+            title = getString(R.string.login_failed_title),
+            message = getString(R.string.login_failed_content)
+        ).show()
     }
 
     override fun onDestroyView() {
