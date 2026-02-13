@@ -50,7 +50,6 @@ class MyPageFragment : Fragment() {
     }
     private fun setupOnClickListener() {
 
-
         binding.nameBtn.setOnClickListener {
             val action = MyPageFragmentDirections.actionMyPageFragmentToEditUserNameFragment()
             findNavController().navigate(action)
@@ -88,30 +87,6 @@ class MyPageFragment : Fragment() {
         }
     }
 
-    /*
-        TODO: HomeFragment에서 navigation 설정 필요
-        1. nav_graph에서 수정
-        2. home fragment에서
-            val action = HomeFragmentDirections.actionHomeFragmentToVideoListFragment(tracksId,tracksTitle)
-            findNavController().navigate(action)
-     */
-    private fun navigationTemporaryEx() {
-        val tracksId = "AndroidTestTracks1"
-        val tracksTitle = "AndTracks"
-        binding.toVideoBtn.setOnClickListener {
-            val action = MyPageFragmentDirections.actionMyPageFragmentToVideoNavGraph(
-                tracksId,
-                tracksTitle
-            )
-            findNavController().navigate(action)
-        }
-    }
-
-    /*
-    TEST_EMAIL = "android1234@android.com"
-       TEST_PASSWORD = "android1234"
-     */
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -123,5 +98,4 @@ class MyPageFragment : Fragment() {
         private const val TERMS_OF_SERVICE_URL =
             "https://mammoth-eyelash-f4f.notion.site/29610840462c8038a85bf08362518b03"
     }
-
 }
