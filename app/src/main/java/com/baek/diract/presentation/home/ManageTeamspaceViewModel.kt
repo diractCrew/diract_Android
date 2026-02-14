@@ -30,14 +30,9 @@ class ManageTeamspaceViewModel @Inject constructor(
     private val _isLeader = MutableStateFlow(false)
     val isLeader: StateFlow<Boolean> = _isLeader.asStateFlow()
 
-    private var currentOwnerId: String = ""
-    private var myUserId: String = ""  // TODO: 실제 로그인 유저 id로 세팅
-    fun setMyUserId(id: String) { myUserId = id }
     private val _uiState = MutableStateFlow<UiState<Long>>(UiState.None)
     val uiState: StateFlow<UiState<Long>> = _uiState.asStateFlow()
-    private fun currentUserId(): String {
-        return authRepository.currentUserInfo.value?.userId.orEmpty()
-    }
+
     private val _toastMessage = MutableSharedFlow<ToastEvent>()
     val toastMessage: SharedFlow<ToastEvent> = _toastMessage.asSharedFlow()
 
@@ -47,11 +42,9 @@ class ManageTeamspaceViewModel @Inject constructor(
     private val _members = MutableStateFlow<List<TeamMemberUi>>(emptyList())
     val members: StateFlow<List<TeamMemberUi>> = _members.asStateFlow()
 
-    // ✅ 팀스페이스 목록(스위처용)
     private val _teamspaces = MutableStateFlow<List<TeamspaceSummary>>(emptyList())
     val teamspaces: StateFlow<List<TeamspaceSummary>> = _teamspaces.asStateFlow()
 
-    // ✅ 다이얼로그 상태들
     private val _createTeamspaceUiState = MutableStateFlow<UiState<Long>>(UiState.None)
     val createTeamspaceUiState: StateFlow<UiState<Long>> = _createTeamspaceUiState.asStateFlow()
 
@@ -61,46 +54,42 @@ class ManageTeamspaceViewModel @Inject constructor(
     fun resetCreateTeamspaceUiState() { _createTeamspaceUiState.value = UiState.None }
     fun resetRenameTeamspaceUiState() { _renameTeamspaceUiState.value = UiState.None }
 
-    // ✅ 현재 선택된 팀스페이스(UUID String)
     private var teamspaceId: String? = null
 
-    fun setMyUserId(user: UserDto) {
-        myUserId = user.userId
-    }
-    fun setTeamspaceId(id: String) {
-        teamspaceId = id
-    }
+    fun setTeamspaceId(id: String) { teamspaceId = id }
 
-    private fun requireTeamspaceId(): String {
-        val id = teamspaceId
-        if (id.isNullOrBlank()) {
-            throw IllegalStateException("TeamspaceId is not set. call setTeamspaceId() first.")
-        }
-        return id
-    }
+    private fun requireTeamspaceId(): String =
+        teamspaceId?.takeIf { it.isNotBlank() }
+            ?: throw IllegalStateException("TeamspaceId is not set. call setTeamspaceId() first.")
+
+    private fun currentUserId(): String =
+        authRepository.currentUserInfo.value?.userId.orEmpty()
 
     fun loadMembers() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
-            val id = requireTeamspaceId()   // String UUID
+            val id = requireTeamspaceId()
 
             // 1) 상세에서 ownerId 얻기
             when (val detailResult = teamspaceRepository.getTeamspaceDetail(id)) {
                 is DataResult.Success -> {
                     val ownerId = detailResult.data.ownerId
-                    currentOwnerId = ownerId
 
-                    // ✅ 내가 팀장인지 판별 (myUserId가 세팅되어 있어야 함)
-                    _isLeader.value = (myUserId.isNotBlank() && myUserId == ownerId)
+                    // ✅ 여기서 바로 내 id 가져와 비교 (myUserId 따로 유지할 필요 없음)
+                    val uid = currentUserId()
+                    _isLeader.value = (uid.isNotBlank() && uid == ownerId)
 
-                    // 2) 멤버 목록 얻기
+                    // 2) 멤버 목록
                     when (val membersResult = teamspaceRepository.getMembers(id)) {
                         is DataResult.Success -> {
                             _members.value = membersResult.data.map { it.toUi(ownerId) }
                             _uiState.value = UiState.Success(System.currentTimeMillis())
                         }
                         is DataResult.Error -> {
-                            _uiState.value = UiState.Error(membersResult.throwable.message, membersResult.throwable)
+                            _uiState.value = UiState.Error(
+                                membersResult.throwable.message,
+                                membersResult.throwable
+                            )
                         }
                     }
                 }
