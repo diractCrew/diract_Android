@@ -54,12 +54,16 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
     private fun applyRoleUi(isLeader: Boolean) {
         isLeaderUser = isLeader
 
-
-        // ✅ "팀 스페이스 삭제하기" 제거
+        // 상단 메뉴(더보기)는 팀장만
         binding.toolbar.menu.findItem(R.id.action_more)?.isVisible = isLeader
         binding.toolbar.menu.findItem(R.id.action_more)?.isEnabled = isLeader
 
-        binding.tvDeleteTeamspace.isVisible = isLeader
+        // ✅ 팀장은 나가기 버튼 숨김(원하면)
+        if (!isKickMode) {
+            binding.dividerDangerActions.visibility = View.VISIBLE
+            binding.tvLeaveTeamspace.visibility = View.VISIBLE   // 팀장이어도 '보이기'는 유지 (누르면 다이얼로그)
+            binding.tvDeleteTeamspace.isVisible = isLeader       // 삭제는 팀장만
+        }
     }
     private fun exitKickMode() {
         isKickMode = false
@@ -171,7 +175,8 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                     viewModel.isLeader.collect { isLeader ->
                         applyRoleUi(isLeader)
                         memberAdapter.setLeaderUser(isLeader)
-                        if (!isLeader) exitKickMode() // 팀원이면 강제 킥모드 종료(안전)
+                        if (!isLeader) exitKickMode()
+                        else if (!isKickMode) exitKickMode() // ✅ 팀장도 초기 UI를 exitKickMode 기준으로 한번 정렬
                     }
                 }
 
