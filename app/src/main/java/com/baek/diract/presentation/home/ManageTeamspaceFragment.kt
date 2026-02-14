@@ -411,7 +411,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                     selectedTeamspaceId = selected.id
                     selectedTeamspaceName = selected.name
                     binding.tvTeamspaceTitle.text = selected.name
-
+                    viewModel.saveLastTeamspaceId(selectedTeamspaceId)
                     viewModel.setTeamspaceId(selectedTeamspaceId)
                     viewModel.loadMembers()
                 },

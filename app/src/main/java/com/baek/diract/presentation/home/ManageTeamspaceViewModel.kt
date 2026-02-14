@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.baek.diract.R
+import com.baek.diract.data.local.UserPreferenceManager
 import com.baek.diract.data.remote.dto.UserDto
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.TeamMemberSummary
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class ManageTeamspaceViewModel @Inject constructor(
     private val teamspaceRepository: TeamspaceRepository,
     private val authRepository: AuthRepository,
+    private val userPreferenceManager: UserPreferenceManager,
 ) : ViewModel() {
     private val _isLeader = MutableStateFlow(false)
     val isLeader: StateFlow<Boolean> = _isLeader.asStateFlow()
@@ -56,6 +58,11 @@ class ManageTeamspaceViewModel @Inject constructor(
 
     private var teamspaceId: String? = null
 
+    fun saveLastTeamspaceId(id: String) {
+        viewModelScope.launch {
+            runCatching { userPreferenceManager.saveLastTeamspaceId(id) }
+        }
+    }
     fun setTeamspaceId(id: String) { teamspaceId = id }
 
     private fun requireTeamspaceId(): String =
