@@ -82,7 +82,7 @@ class ManageTeamspaceViewModel @Inject constructor(
                 is DataResult.Success -> {
                     val ownerId = detailResult.data.ownerId
 
-                    // ✅ 여기서 바로 내 id 가져와 비교 (myUserId 따로 유지할 필요 없음)
+                    // ✅ 여기서 바로 내 id 가져와 비교
                     val uid = currentUserId()
                     _isLeader.value = (uid.isNotBlank() && uid == ownerId)
 
@@ -101,11 +101,15 @@ class ManageTeamspaceViewModel @Inject constructor(
                     }
                 }
                 is DataResult.Error -> {
-                    _uiState.value = UiState.Error(detailResult.throwable.message, detailResult.throwable)
+                    _uiState.value = UiState.Error(
+                        detailResult.throwable.message,
+                        detailResult.throwable
+                    )
                 }
             }
         }
     }
+
 
 
     fun loadTeamspaces() {
