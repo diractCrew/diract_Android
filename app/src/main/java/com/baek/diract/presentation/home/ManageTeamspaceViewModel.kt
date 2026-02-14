@@ -1,151 +1,252 @@
 package com.baek.diract.presentation.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.baek.diract.R
+import com.baek.diract.data.remote.dto.UserDto
+import com.baek.diract.domain.common.DataResult
+import com.baek.diract.domain.model.TeamMemberSummary
+import com.baek.diract.domain.model.TeamspaceSummary
+import com.baek.diract.domain.repository.AuthRepository
 import com.baek.diract.domain.repository.TeamspaceRepository
+import com.baek.diract.presentation.common.ToastEvent
 import com.baek.diract.presentation.common.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * 팀스페이스 관리 화면 전용 VM
- * - 로딩/성공/에러 상태 (오버레이에 연결)
- * - 토스트/네비 같은 1회성 이벤트
- * - 멤버 내보내기, 팀스페이스 나가기, 삭제 같은 액션 실행
- */
 @HiltViewModel
 class ManageTeamspaceViewModel @Inject constructor(
-    // TODO: 여기 너희 레포/유스케이스 주입
     private val teamspaceRepository: TeamspaceRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
+    private val _isLeader = MutableStateFlow(false)
+    val isLeader: StateFlow<Boolean> = _isLeader.asStateFlow()
 
-    // ---- 화면 전용 실행 상태(오버레이) ----
-    private val _state = MutableStateFlow<UiState<ManageResult>>(UiState.None)
-    val state = _state.asStateFlow()
+    private var currentOwnerId: String = ""
+    private var myUserId: String = ""  // TODO: 실제 로그인 유저 id로 세팅
+    fun setMyUserId(id: String) { myUserId = id }
+    private val _uiState = MutableStateFlow<UiState<Long>>(UiState.None)
+    val uiState: StateFlow<UiState<Long>> = _uiState.asStateFlow()
+    private fun currentUserId(): String {
+        return authRepository.currentUserInfo.value?.userId.orEmpty()
+    }
+    private val _toastMessage = MutableSharedFlow<ToastEvent>()
+    val toastMessage: SharedFlow<ToastEvent> = _toastMessage.asSharedFlow()
 
-    // ---- 1회성 토스트(메시지 리소스 id) ----
-    private val _toast = MutableSharedFlow<Int>(extraBufferCapacity = 1)
-    val toast = _toast.asSharedFlow()
+    private val _navEvent = MutableSharedFlow<NavEvent>()
+    val navEvent: SharedFlow<NavEvent> = _navEvent.asSharedFlow()
 
-    // ---- 1회성 네비 이벤트(선택) ----
-    private val _nav = MutableSharedFlow<NavEvent>(extraBufferCapacity = 1)
-    val nav = _nav.asSharedFlow()
-
-    // ---- (선택) 화면 데이터: 멤버 목록 등 ----
     private val _members = MutableStateFlow<List<TeamMemberUi>>(emptyList())
-    val members = _members.asStateFlow()
-    private var currentTeamspaceId: Long? = null
+    val members: StateFlow<List<TeamMemberUi>> = _members.asStateFlow()
 
-    fun setTeamspaceId(teamspaceId: Long) {
-        currentTeamspaceId = teamspaceId
+    // ✅ 팀스페이스 목록(스위처용)
+    private val _teamspaces = MutableStateFlow<List<TeamspaceSummary>>(emptyList())
+    val teamspaces: StateFlow<List<TeamspaceSummary>> = _teamspaces.asStateFlow()
+
+    // ✅ 다이얼로그 상태들
+    private val _createTeamspaceUiState = MutableStateFlow<UiState<Long>>(UiState.None)
+    val createTeamspaceUiState: StateFlow<UiState<Long>> = _createTeamspaceUiState.asStateFlow()
+
+    private val _renameTeamspaceUiState = MutableStateFlow<UiState<Long>>(UiState.None)
+    val renameTeamspaceUiState: StateFlow<UiState<Long>> = _renameTeamspaceUiState.asStateFlow()
+
+    fun resetCreateTeamspaceUiState() { _createTeamspaceUiState.value = UiState.None }
+    fun resetRenameTeamspaceUiState() { _renameTeamspaceUiState.value = UiState.None }
+
+    // ✅ 현재 선택된 팀스페이스(UUID String)
+    private var teamspaceId: String? = null
+
+    fun setMyUserId(user: UserDto) {
+        myUserId = user.userId
+    }
+    fun setTeamspaceId(id: String) {
+        teamspaceId = id
+    }
+
+    private fun requireTeamspaceId(): String {
+        val id = teamspaceId
+        if (id.isNullOrBlank()) {
+            throw IllegalStateException("TeamspaceId is not set. call setTeamspaceId() first.")
+        }
+        return id
+    }
+
+    fun loadMembers() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            val id = requireTeamspaceId()   // String UUID
+
+            // 1) 상세에서 ownerId 얻기
+            when (val detailResult = teamspaceRepository.getTeamspaceDetail(id)) {
+                is DataResult.Success -> {
+                    val ownerId = detailResult.data.ownerId
+                    currentOwnerId = ownerId
+
+                    // ✅ 내가 팀장인지 판별 (myUserId가 세팅되어 있어야 함)
+                    _isLeader.value = (myUserId.isNotBlank() && myUserId == ownerId)
+
+                    // 2) 멤버 목록 얻기
+                    when (val membersResult = teamspaceRepository.getMembers(id)) {
+                        is DataResult.Success -> {
+                            _members.value = membersResult.data.map { it.toUi(ownerId) }
+                            _uiState.value = UiState.Success(System.currentTimeMillis())
+                        }
+                        is DataResult.Error -> {
+                            _uiState.value = UiState.Error(membersResult.throwable.message, membersResult.throwable)
+                        }
+                    }
+                }
+                is DataResult.Error -> {
+                    _uiState.value = UiState.Error(detailResult.throwable.message, detailResult.throwable)
+                }
+            }
+        }
+    }
+
+
+    fun loadTeamspaces() {
+        viewModelScope.launch {
+            when (val r = teamspaceRepository.getMyTeamspaces()) {
+                is DataResult.Success -> _teamspaces.value = r.data
+                is DataResult.Error -> _teamspaces.value = emptyList()
+            }
+        }
     }
 
     fun createTeamspace(name: String) {
+        if (name.isBlank()) return
+
         viewModelScope.launch {
-            _state.value = UiState.Loading
-            runCatching {
-                // TODO repo.createTeamspace(name)
-            }.onSuccess {
-                _state.value = UiState.Success(data = ManageResult.CreatedTeamspace)
-            }.onFailure { e ->
-                _state.value = UiState.Error(message = e.message, throwable = e)
-                _toast.tryEmit(R.string.error_create_teamspace)
+            _createTeamspaceUiState.value = UiState.Loading
+
+            when (val result = teamspaceRepository.createTeamspace(name)) {
+                is DataResult.Success -> {
+                    // ✅ 생성된 팀스페이스 id는 UUID String
+                    val newId = result.data.id
+                    setTeamspaceId(newId)
+
+                    // 목록/멤버 갱신
+                    loadTeamspaces()
+                    loadMembers()
+
+                    _createTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
+                }
+                is DataResult.Error -> {
+                    _createTeamspaceUiState.value = UiState.Error(
+                        result.throwable.message,
+                        result.throwable
+                    )
+                    _toastMessage.emit(ToastEvent(R.string.teamspace_create_failed, true))
+                }
             }
         }
     }
 
-    // ============ 로드/갱신 ============
-    fun loadMembers(teamspaceId: Long = requireTeamspaceId()) {
+    fun renameTeamspace(newName: String) {
+        if (newName.isBlank()) return
+
         viewModelScope.launch {
-            _state.value = UiState.Loading
-            runCatching {
-                // TODO repo.getMembers(teamspaceId) -> List<TeamMemberUi>
-                emptyList<TeamMemberUi>()
-            }.onSuccess { list ->
-                _members.value = list
-                _state.value = UiState.Success(data = ManageResult.Refreshed)
-            }.onFailure { e ->
-                _state.value = UiState.Error(message = e.message, throwable = e)
-                _toast.tryEmit(R.string.error_load_members) // 필요하면 추가
+            _renameTeamspaceUiState.value = UiState.Loading
+
+            val id = requireTeamspaceId()
+
+            when (val result = teamspaceRepository.renameTeamspace(id, newName)) {
+                is DataResult.Success -> {
+                    loadTeamspaces()
+                    _renameTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
+                }
+                is DataResult.Error -> {
+                    _renameTeamspaceUiState.value = UiState.Error(result.throwable.message, result.throwable)
+                    _toastMessage.emit(ToastEvent(R.string.teamspace_rename_failed, true))
+                }
             }
         }
     }
 
-    // ============ 액션들 ============
     fun kickMembers(memberIds: List<String>) {
+        if (memberIds.isEmpty()) return
+
         viewModelScope.launch {
-            _state.value = UiState.Loading
-            runCatching {
-                // TODO repo.kickMembers(teamspaceId, memberIds)
-            }.onSuccess {
-                _state.value = UiState.Success(data = ManageResult.Kicked(memberIds))
-                _members.value = _members.value.filterNot { it.id in memberIds }
-            }.onFailure { e ->
-                _state.value = UiState.Error(message = e.message, throwable = e)
-                _toast.tryEmit(R.string.error_kick_members) // 없으면 추가
+            _uiState.value = UiState.Loading
+            val id = requireTeamspaceId()
+
+            when (val result = teamspaceRepository.kickMembers(id, memberIds)) {
+                is DataResult.Success -> {
+                    _members.value = _members.value.filterNot { it.id in memberIds }
+                    _uiState.value = UiState.Success(System.currentTimeMillis())
+                }
+                is DataResult.Error -> {
+                    _uiState.value = UiState.Error(result.throwable.message, result.throwable)
+                }
             }
         }
     }
 
-    fun leaveTeamspace(teamspaceId: Long = requireTeamspaceId()) {
+    fun leaveTeamspace() {
         viewModelScope.launch {
-            _state.value = UiState.Loading
-            runCatching {
-                // TODO: teamspaceRepository.leaveTeamspace(teamspaceId)
-            }.onSuccess {
-                _state.value = UiState.Success(ManageResult.LeftTeamspace(teamspaceId))
-                // 성공 시 화면 닫기 같은 네비 이벤트
-                _nav.tryEmit(NavEvent.Close)
-            }.onFailure { e ->
-                _state.value = UiState.Error(message = e.message, throwable = e)
-                // _toast.tryEmit(R.string.leave_fail)
+            _uiState.value = UiState.Loading
+            val teamId = requireTeamspaceId()
+
+            val uid = currentUserId()
+            Log.e("LeaveFlow", "uid=[$uid], len=${uid.length}")
+
+            if (uid.isBlank()) {
+                _uiState.value = UiState.Error("userId is blank (currentUserInfo is null)", null)
+                _toastMessage.emit(ToastEvent(R.string.teamspace_leave_failed, true))
+                return@launch
+            }
+
+            when (val result = teamspaceRepository.leaveTeamspace(teamId, uid)) {
+                is DataResult.Success -> {
+                    _uiState.value = UiState.Success(System.currentTimeMillis())
+                    _navEvent.emit(NavEvent.Close)
+                }
+                is DataResult.Error -> {
+                    _uiState.value = UiState.Error(result.throwable.message, result.throwable)
+                    _toastMessage.emit(ToastEvent(R.string.teamspace_leave_failed, true))
+                }
+            }
+        }}
+
+    fun deleteTeamspace() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            val id = requireTeamspaceId()
+
+            when (val result = teamspaceRepository.deleteTeamspace(id)) {
+                is DataResult.Success -> {
+                    _uiState.value = UiState.Success(System.currentTimeMillis())
+                    _navEvent.emit(NavEvent.Close)
+                }
+                is DataResult.Error -> {
+                    _uiState.value = UiState.Error(result.throwable.message, result.throwable)
+                }
             }
         }
     }
 
-    fun deleteTeamspace(teamspaceId: Long = requireTeamspaceId()) {
+    fun transferLeader(newLeaderId: String) {
         viewModelScope.launch {
-            _state.value = UiState.Loading
-            runCatching {
-                // TODO: teamspaceRepository.deleteTeamspace(teamspaceId)
-            }.onSuccess {
-                _state.value = UiState.Success(ManageResult.DeletedTeamspace(teamspaceId))
-                _nav.tryEmit(NavEvent.Close)
-            }.onFailure { e ->
-                _state.value = UiState.Error(message = e.message, throwable = e)
-                // _toast.tryEmit(R.string.delete_fail)
-            }
+            _toastMessage.emit(ToastEvent(R.string.teamspace_give_owner_failed, true))
         }
     }
-
-    // ---- 유틸 ----
-    private fun requireTeamspaceId(): Long =
-        currentTeamspaceId ?: error("TeamspaceId is not set. call setTeamspaceId() first.")
 }
 
-/** 성공 시 어떤 액션이 완료됐는지 구분용 */
-sealed interface ManageResult {
-    data object Refreshed : ManageResult
-    data object CreatedTeamspace : ManageResult
-    data class LeftTeamspace(val teamspaceId: Long) : ManageResult
-    data class DeletedTeamspace(val teamspaceId: Long) : ManageResult
-    data class Kicked(val memberIds: List<String>) : ManageResult
-}
-
-/** 화면 이동 같은 1회성 이벤트 */
 sealed interface NavEvent {
     data object Close : NavEvent
 }
 
-/** 멤버 UI 모델(네 도메인 모델에 맞게 바꿔) */
-data class MemberUi(
-    val id: Long,
-    val name: String,
-    val role: String,
-)
+private fun TeamMemberSummary.toUi(ownerId: String): TeamMemberUi =
+    TeamMemberUi(
+        id = this.id,
+        name = this.name,
+        isLeader = (this.id == ownerId)
+    )

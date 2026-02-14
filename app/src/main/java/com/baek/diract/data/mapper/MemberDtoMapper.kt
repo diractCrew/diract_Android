@@ -1,7 +1,7 @@
 package com.baek.diract.data.mapper
 
-import com.baek.diract.data.remote.dto.MemberDto
+import com.baek.diract.data.remote.dto.TeamspaceMemberDto
 import com.baek.diract.domain.model.TeamMemberSummary
 
-fun MemberDto.toDomain(): TeamMemberSummary =
-    TeamMemberSummary(id = user_id, name = user_name)
+fun TeamspaceMemberDto.toTeamMemberSummary(): TeamMemberSummary =
+    TeamMemberSummary(id = userId, name = name /* + email/joinedAt 필요하면 추가 */)

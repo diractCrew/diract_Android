@@ -17,7 +17,7 @@ import com.baek.diract.R
 class TeamspaceSwitcherPopup(
     private val context: Context,
     private val items: List<TeamspaceUi>,
-    private val selectedId: Long?,
+    private val selectedId: String?,
     private val onSelect: (TeamspaceUi) -> Unit,
     private val onCreate: () -> Unit = {}
 ) {
@@ -27,7 +27,7 @@ class TeamspaceSwitcherPopup(
         val content = LayoutInflater.from(context)
             .inflate(R.layout.popup_teamspace_switcher, null, false)
 
-        // 1) 팀스페이스 목록(리스트만)
+        // 1) 팀스페이스 목록
         val rv = content.findViewById<RecyclerView>(R.id.rvTeamspaces)
         rv.layoutManager = LinearLayoutManager(context)
         rv.adapter = Adapter(items, selectedId) { selected ->
@@ -35,13 +35,12 @@ class TeamspaceSwitcherPopup(
             onSelect(selected)
         }
 
-        // 2) "새 팀 스페이스 만들기"는 XML include 1개만 사용
+        // 2) 새 팀스페이스 만들기
         content.findViewById<View>(R.id.createTeamspaceRow).setOnClickListener {
             dismiss()
             onCreate()
         }
 
-        // PopupWindow (폭 고정 232dp)
         val pw = PopupWindow(
             content,
             dp(anchor, 232),
@@ -85,7 +84,7 @@ class TeamspaceSwitcherPopup(
 
     private class Adapter(
         private val items: List<TeamspaceUi>,
-        private val selectedId: Long?,
+        private val selectedId: String?,             // ✅ Long -> String
         private val onSelect: (TeamspaceUi) -> Unit
     ) : RecyclerView.Adapter<Adapter.ItemVH>() {
 
@@ -103,14 +102,12 @@ class TeamspaceSwitcherPopup(
         }
 
         class ItemVH(v: View) : RecyclerView.ViewHolder(v) {
-            private val root = v as ConstraintLayout
             private val tv = v.findViewById<TextView>(R.id.tvName)
             private val iv = v.findViewById<ImageView>(R.id.ivCheck)
 
             fun bind(item: TeamspaceUi, selected: Boolean, onSelect: (TeamspaceUi) -> Unit) {
                 tv.text = item.name
 
-                // ✅ 체크 없을 땐 빈자리 없이 왼쪽으로 당기기
                 val lp = tv.layoutParams as ConstraintLayout.LayoutParams
                 if (selected) {
                     iv.visibility = View.VISIBLE
@@ -134,4 +131,5 @@ class TeamspaceSwitcherPopup(
     }
 }
 
-data class TeamspaceUi(val id: Long, val name: String)
+// ✅ Long -> String (UUID)
+data class TeamspaceUi(val id: String, val name: String)

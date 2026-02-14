@@ -84,6 +84,7 @@
     <string name="close_team_member_more">멤버 더보기 닫기</string>
     <string name="kick_from_team">팀에서 내보내기</string>
     <string name="network_error_teamspace">불러오기를 실패했습니다</string>
+    <string name="teamspace_create_failed">팀스페이스 생성에 실패했습니다.</string>
     <string name="teamspace_kick_members_title">선택한 팀원들을 내보내시겠어요?</string>
     <string name="teamspace_kick_members_desc">이후 다시 초대할 수 있습니다.</string>
     <string name="dialog_teamspace_leave_teamspace_title"> 팀 스페이스를 나가시겠어요?</string>
@@ -99,6 +100,8 @@
     <string name="error_create_teamspace">빈칸</string>
     <string name="error_load_members">빈칸</string>
     <string name="error_kick_members">빈칸</string>
+    <string name="teamspace_leave_success">성공</string>
+    <string name="teamspace_leave_failed">실패</string>
 
 
     <!-- 음앗 리스트 화면 -->
@@ -111,7 +114,7 @@
     <string name="song_list_name_max_warning">곡 이름은 20자 이하로 입력해주세요.</string>
     <string name="song_">곡 이름은 20자 이하로 입력해주세요.</string>
     <string name="dialog_song_cannot_recover">곡 안의 모든 내용이 사라집니다.</string>
-    <string name="dialog_song_delete_title">\%s\ 곡을 삭제하시겠어요?</string>
+    <string name="dialog_song_delete_title">%1$s 곡을 삭제하시겠어요?</string>
     <string name="song_add_prompt">추가할 곡의 이름을 입력하세요</string>
     <string name="song_add_title">곡 추가하기</string>
     <string name="song_name_hint">(예시) SEVENTEEN - 만세</string>

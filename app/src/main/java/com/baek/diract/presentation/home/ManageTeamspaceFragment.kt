@@ -1,16 +1,15 @@
 package com.baek.diract.presentation.home
 
-import android.R.attr.visibility
-import android.R.id.message
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -19,28 +18,27 @@ import com.baek.diract.R
 import com.baek.diract.databinding.FragmentManageTeamspaceBinding
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.LoadingOverlay
+import com.baek.diract.presentation.common.ToastEvent
 import com.baek.diract.presentation.common.UiState
 import com.baek.diract.presentation.common.dialog.BasicDialog
-
 import com.baek.diract.presentation.common.dialog.InputDialogFragment
 import com.baek.diract.presentation.common.option.OptionItem
 import com.baek.diract.presentation.common.option.OptionPopup
 import com.baek.diract.presentation.common.option.TeamspaceSwitcherPopup
 import com.baek.diract.presentation.common.option.TeamspaceUi
-import com.baek.diract.presentation.common.recyclerview.SpacingItemDecoration
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
 
-//    private var selectedTeamspaceId: Long = 3L // 임시(처음 선택값)
-    private val teamspaces = listOf(
-        TeamspaceUi(1, "Diract Crew"),
-        TeamspaceUi(2, "Developer Academy"),
-        TeamspaceUi(3, "CTR D"),
-    )
+    private var selectedTeamspaceId: String = ""   // ✅ UUID String
+    private var selectedTeamspaceName: String = "" // ✅ 표시용 이름
+    private var createTeamspaceDialog: InputDialogFragment? = null
+    private var renameTeamspaceDialog: InputDialogFragment? = null
+    private var pendingRenameName: String? = null
     private var isLeaderUser: Boolean = true // TODO: 실제 서버/도메인값으로 세팅
     private var _binding: FragmentManageTeamspaceBinding? = null
     private val viewModel: ManageTeamspaceViewModel by viewModels()
@@ -105,7 +103,9 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         memberAdapter.setKickMode(true)
     }
     private fun showCreateTeamspaceSheet() {
-        InputDialogFragment.newInstance(
+        viewModel.resetCreateTeamspaceUiState()
+
+        createTeamspaceDialog = InputDialogFragment.newInstance(
             title = getString(R.string.teamspace_create_title),
             description = getString(R.string.teamspace_create_prompt),
             hint = getString(R.string.teamspace_name_hint),
@@ -115,85 +115,132 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
             onConfirm = { name ->
                 viewModel.createTeamspace(name)
             }
-        }.show(parentFragmentManager, InputDialogFragment.TAG)
+        }
+        createTeamspaceDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
     }
+
     private fun renderMembers(list: List<TeamMemberUi>) {
         val sorted = list.sortedByDescending { it.isLeader }
         memberAdapter.submitList(sorted)
 
         val showEmpty = (sorted.size == 1 && sorted.first().isLeader)
-
         binding.emptyMember.isVisible = showEmpty
+
+
     }
+
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
     private fun showRenameTeamspaceDialog() {
+        viewModel.resetRenameTeamspaceUiState()
+
         val currentName = binding.tvTeamspaceTitle.text?.toString().orEmpty()
 
-        val dialog = InputDialogFragment.newInstance(
+        renameTeamspaceDialog = InputDialogFragment.newInstance(
             title = getString(R.string.teamspace_rename_title),
             description = getString(R.string.teamspace_create_prompt),
-            hint = null, // 현재 팀스페이스 이름이 들어가야함
+            hint = null,
             buttonText = getString(R.string.confirm),
             maxLength = 20,
             initialText = currentName
         ).apply {
             onConfirm = { newName ->
-                // ✅ 일단 화면만 동작시키기(추후 ViewModel로 rename API 연결)
-                binding.tvTeamspaceTitle.text = newName
-                dismiss()
+                pendingRenameName = newName
+                viewModel.renameTeamspace(newName)
+
             }
         }
 
-        dialog.show(parentFragmentManager, InputDialogFragment.TAG)
+        renameTeamspaceDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
     }
+
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                // 1) 로딩 오버레이
+                // 1) 로딩/스와이프 종료
                 launch {
-                    viewModel.state.collect { state ->
+                    viewModel.uiState.collect { state ->
                         loadingOverlay.setVisible(state is UiState.Loading)
-
-                        // 당겨서 새로고침 쓰면 여기서 종료 처리
                         if (state !is UiState.Loading) {
                             binding.swipeRefresh.isRefreshing = false
                         }
-
-                        // (선택) 성공/에러 후 추가 처리 필요하면 when으로
-                        when (state) {
-                            is UiState.Error -> {
-                                // 에러 UI 필요하면 여기서 처리 가능
-                                // state.message 사용 가능
-                            }
-                            else -> Unit
-                        }
+                    }
+                }
+                launch {
+                    viewModel.isLeader.collect { isLeader ->
+                        applyRoleUi(isLeader)
+                        memberAdapter.setLeaderUser(isLeader)
+                        if (!isLeader) exitKickMode() // 팀원이면 강제 킥모드 종료(안전)
                     }
                 }
 
                 // 2) 토스트(1회성)
                 launch {
-                    viewModel.toast.collect { msgRes ->
-                        CustomToast.showNegative(requireContext(), msgRes)
+                    viewModel.toastMessage.collect { event ->
+                        if (event.isErr) CustomToast.showNegative(requireContext(), event.txtRes)
+                        else CustomToast.showPositive(requireContext(), event.txtRes)
                     }
                 }
 
-                // 3) 네비(1회성)
+                // 3) 네비(1회성) - VM에 navEvent가 있을 때만
                 launch {
-                    viewModel.nav.collect { event ->
+                    viewModel.navEvent.collect { event ->
                         when (event) {
                             NavEvent.Close -> findNavController().navigateUp()
                         }
                     }
                 }
 
-                // 4) 멤버 목록 (VM에서 내려주면 여기 연결)
+                // 4) 멤버 목록 렌더
                 launch {
                     viewModel.members.collect { list ->
-                        renderMembers(list) // <- 너가 이미 만든 함수
+                        renderMembers(list)
                     }
                 }
+                launch {
+                    viewModel.createTeamspaceUiState.collect { state ->
+                        when (state) {
+                            is UiState.None -> createTeamspaceDialog?.showDefault()
+                            is UiState.Loading -> createTeamspaceDialog?.showLoading()
+                            is UiState.Success -> {
+                                createTeamspaceDialog?.showComplete()
+                                delay(800)
+                                createTeamspaceDialog?.dismiss()
+                                createTeamspaceDialog = null
+                                viewModel.resetCreateTeamspaceUiState()
+                            }
+                            is UiState.Error -> {
+                                createTeamspaceDialog?.showDefault()
+                                viewModel.resetCreateTeamspaceUiState()
+                            }
+                        }
+                    }
+                }
+
+                launch {
+                    viewModel.renameTeamspaceUiState.collect { state ->
+                        when (state) {
+                            is UiState.None -> renameTeamspaceDialog?.showDefault()
+                            is UiState.Loading -> renameTeamspaceDialog?.showLoading()
+                            is UiState.Success -> {
+                                pendingRenameName?.let { binding.tvTeamspaceTitle.text = it }
+                                pendingRenameName = null
+
+                                renameTeamspaceDialog?.showComplete()
+                                delay(800)
+                                renameTeamspaceDialog?.dismiss()
+                                renameTeamspaceDialog = null
+                                viewModel.resetRenameTeamspaceUiState()
+                            }
+                            is UiState.Error -> {
+                                renameTeamspaceDialog?.showDefault()
+                                viewModel.resetRenameTeamspaceUiState()
+                            }
+                        }
+                    }
+                }
+
             }
         }
     }
@@ -231,87 +278,83 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+
         _binding = FragmentManageTeamspaceBinding.bind(view)
+
+        // ✅ Home에서 넘어온 teamspaceId/name 받기 (도메인 모델: id, name)
+        selectedTeamspaceId = arguments?.getString("teamspaceId").orEmpty()
+        selectedTeamspaceName = arguments?.getString("teamspaceName").orEmpty()
+
+        // ✅ 제목에 반영 (연동)
+        if (selectedTeamspaceName.isNotBlank()) {
+            binding.tvTeamspaceTitle.text = selectedTeamspaceName
+        }
+
+        // RecyclerView
         binding.rvMembers.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = memberAdapter
         }
-        observeState()
-        viewModel.setTeamspaceId(selectedTeamspaceId)
 
+        // 상태 수집
+        observeState()
+
+        // ✅ 팀스페이스 id 세팅 후 멤버 로드
+        if (selectedTeamspaceId.isNotBlank()) {
+            viewModel.setTeamspaceId(selectedTeamspaceId)
+            viewModel.loadMembers()
+        }
+        viewModel.loadTeamspaces()
+
+        // divider
         if (!dividerAdded) {
             val divider = MaterialDividerItemDecoration(requireContext(), RecyclerView.VERTICAL).apply {
                 setDividerColor(ContextCompat.getColor(requireContext(), R.color.stroke_strong))
                 setDividerThickness(dp(1))
-
-                // ✅ 피그마처럼 좌우 여백 주기 (값은 너 리스트 좌우 padding과 맞춰)
                 setDividerInsetStart(dp(24))
                 setDividerInsetEnd(dp(24))
-
                 isLastItemDecorated = false
             }
             binding.rvMembers.addItemDecoration(divider)
             dividerAdded = true
         }
 
-
-        // ✅ 상단바 메뉴 클릭 처리 (여기에)
+        // toolbar menu
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_more -> {
                     val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
-
                     OptionPopup.builder(requireContext())
                         .addOptions(
-                            OptionItem.renameTeamspace(),  // "팀 스페이스 이름 수정"
-                            OptionItem.kickMember()        // "팀원 내보내기"(빨강)
+                            OptionItem.renameTeamspace(),
+                            OptionItem.kickMember()
                         )
                         .setOnOptionSelectedListener { option ->
                             when (option.id) {
-                                OptionItem.ID_RENAME_TEAMSPACE -> {
-                                    showRenameTeamspaceDialog()
-                                }
-                                OptionItem.ID_KICK_MEMBER -> {    enterKickMode()
-                                }
+                                OptionItem.ID_RENAME_TEAMSPACE -> showRenameTeamspaceDialog()
+                                OptionItem.ID_KICK_MEMBER -> enterKickMode()
                             }
                         }
                         .show(anchor)
-
                     true
                 }
                 else -> false
             }
         }
+
         binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigateUp()   // 또는 popBackStack()
+            findNavController().navigateUp()
         }
-        // 1) RecyclerView 세팅
 
-
-        // 2) 당겨서 새로고침 테스트(동작만)
+        // swipe refresh
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadMembers()
+            if (selectedTeamspaceId.isNotBlank()) viewModel.loadMembers()
+            else binding.swipeRefresh.isRefreshing = false
         }
 
-        // 3) 더미 10개 넣기
-        val fake = listOf(
-            TeamMemberUi("1", "카단", isLeader = true),
-            TeamMemberUi("2", "줄리엔", isLeader = false),
-            TeamMemberUi("3", "리비", isLeader = false),
-            TeamMemberUi("4", "제이콥", isLeader = false),
-            TeamMemberUi("5", "파이디온", isLeader = false),
-            TeamMemberUi("6", "벨코", isLeader = false),
-            TeamMemberUi("7", "멤버7", isLeader = false),
-            TeamMemberUi("8", "멤버8", isLeader = false),
-            TeamMemberUi("9", "멤버9", isLeader = false),
-            TeamMemberUi("10", "멤버10", isLeader = false),
-        )
-        val myMemberId = "2" // TODO: 실제 내 id
-        val isLeader = fake.firstOrNull { it.id == myMemberId }?.isLeader == true
-        applyRoleUi(isLeader)
-        memberAdapter.setLeaderUser(isLeader)
-        binding.tvLeaveTeamspace.setOnClickListener {
 
+        binding.tvLeaveTeamspace.setOnClickListener {
             // ✅ 팀장인 경우: '나갈 수 없음'만 띄우고 끝
             if (isLeaderUser) {
                 showLeaderCannotLeaveDialog()
@@ -334,13 +377,13 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                 positiveText = getString(R.string.dialog_teamspace_leave_teamspace),
                 onNegative = {},
                 onPositive = {
+                    viewModel.setTeamspaceId(selectedTeamspaceId)
                     viewModel.leaveTeamspace()
                 }
             ).show()
         }
         binding.tvDeleteTeamspace.setOnClickListener {
 
-            // 리더만 삭제 가능 (팀원이면 원래 뷰도 숨김 처리 중이지만 안전하게 한 번 더)
             if (!isLeaderUser) return@setOnClickListener
 
             val teamName = binding.tvTeamspaceTitle.text?.toString().orEmpty()
@@ -349,22 +392,28 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                 viewModel.deleteTeamspace()
             }
         }
-// 팀장 맨 위 고정해서 넣기
-        memberAdapter.submitList(fake.sortedByDescending { it.isLeader })
+
         binding.teamspaceTitleArea.setOnClickListener {
+            val items = viewModel.teamspaces.value.map { ts ->
+                TeamspaceUi(id = ts.id, name = ts.name)
+            }
+
             TeamspaceSwitcherPopup(
                 context = requireContext(),
-                items = teamspaces,
+                items = items,
                 selectedId = selectedTeamspaceId,
                 onSelect = { selected ->
                     selectedTeamspaceId = selected.id
+                    selectedTeamspaceName = selected.name
                     binding.tvTeamspaceTitle.text = selected.name
+
                     viewModel.setTeamspaceId(selectedTeamspaceId)
                     viewModel.loadMembers()
                 },
                 onCreate = { showCreateTeamspaceSheet() }
             ).show(binding.teamspaceTitleArea)
         }
+
         exitKickMode()
         binding.cancelBtn.setOnClickListener { exitKickMode() }
 

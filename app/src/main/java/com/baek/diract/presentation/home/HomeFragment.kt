@@ -1,5 +1,11 @@
 package com.baek.diract.presentation.home
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.baek.diract.presentation.common.UiState
 import android.os.Bundle
 import com.baek.diract.presentation.common.option.OptionPopup
 import com.baek.diract.presentation.common.option.OptionItem
@@ -25,7 +31,18 @@ import java.time.LocalDate
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
+    private val prefs by lazy {
+        requireContext().getSharedPreferences("home_onboarding", android.content.Context.MODE_PRIVATE)
+    }
 
+    private val KEY_TEAMSPACE_EMPTY_TIP_SHOWN = "teamspace_empty_tip_shown"
+
+    private fun hasShownTeamspaceEmptyTip(): Boolean =
+        prefs.getBoolean(KEY_TEAMSPACE_EMPTY_TIP_SHOWN, false)
+
+    private fun markTeamspaceEmptyTipShown() {
+        prefs.edit().putBoolean(KEY_TEAMSPACE_EMPTY_TIP_SHOWN, true).apply()
+    }
     // =========================
     // ViewBinding
     // =========================
@@ -33,7 +50,7 @@ class HomeFragment : Fragment() {
     // onDestroyView에서 null 처리해서 메모리 누수 방지
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-
+    private val loadingOverlay by lazy { com.baek.diract.presentation.common.LoadingOverlay(this) }
     // =========================
     // 테스트/더미 데이터
     // =========================
@@ -42,7 +59,9 @@ class HomeFragment : Fragment() {
         SongListSummary("song_1", "첫 번째 곡", 1),
         SongListSummary("song_2", "두 번째 곡", 2)
     )
-
+    private var createTeamspaceDialog: InputDialogFragment? = null
+    private var createProjectDialog: InputDialogFragment? = null
+    private var createSongDialog: InputDialogFragment? = null
     // ✅ 현재 어떤 편집 모드인지 추적
     private enum class EditMode { NONE, PROJECT, SONG }
     private var currentEditMode = EditMode.NONE
@@ -190,6 +209,44 @@ class HomeFragment : Fragment() {
         setTopBarEditMode(false)
         showProjectEditDone(false)
     }
+    private fun render(model: HomeUiModel) = with(binding) {
+        loadingOverlay.setVisible(model.isLoading)
+
+        if (model.isLoading) {
+            CreateTeamspaceFirstLayout.visibility = View.GONE
+            CreateProjectFirstLayout.visibility = View.GONE
+            homeProjectToolbar.visibility = View.GONE
+            rvProjects.visibility = View.GONE
+            emptyProject.visibility = View.GONE
+            tipScrim.visibility = View.GONE
+            cardProjectTip.visibility = View.GONE
+            cardManageTeamspaceTip.visibility = View.GONE
+            teamspaceTipScrim.visibility = View.GONE
+            cardTeamspaceTip.visibility = View.GONE
+            return@with
+        }
+
+        renderHasTeamspace(model.hasTeamspace)
+        if (model.hasTeamspace) renderProjects(model.projects)
+
+        val isEmptyProjectsScreen = model.hasTeamspace && model.projects.isEmpty()
+        val curStep = viewModel.projectTipStep.value ?: 2
+
+        if (isEmptyProjectsScreen) {
+            if (!viewModel.isEmptyProjectTipDone()) {
+                if (curStep == 2) viewModel.setProjectTipStep(0) // 시작
+            } else {
+                if (curStep != 2) viewModel.setProjectTipStep(2) // 이미 봤으면 꺼둠
+            }
+        } else {
+            if (curStep != 2) viewModel.setProjectTipStep(2) // 다른 화면이면 꺼둠
+        }
+
+        renderTip(viewModel.projectTipStep.value ?: 2)
+    }
+
+
+
     // =========================
     // 6) 프로젝트 이름 유효성 검사
     // =========================
@@ -219,104 +276,103 @@ class HomeFragment : Fragment() {
     // =========================
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        loadingOverlay.setVisible(true)
+        // ✅ 0) 첫 프레임 깜빡임 방지: 분기 레이아웃/툴팁 전부 숨기고 시작
+        // (XML에서 기본 GONE을 권장하지만, 여기서도 한 번 더 안전하게 막음)
+        binding.CreateTeamspaceFirstLayout.visibility = View.GONE
+        binding.CreateProjectFirstLayout.visibility = View.GONE
+        binding.homeProjectToolbar.visibility = View.GONE
+        binding.rvProjects.visibility = View.GONE
+        binding.emptyProject.visibility = View.GONE
+        binding.tipScrim.visibility = View.GONE
+        binding.cardProjectTip.visibility = View.GONE
+        binding.cardManageTeamspaceTip.visibility = View.GONE
+        binding.teamspaceTipScrim.visibility = View.GONE
+        binding.cardTeamspaceTip.visibility = View.GONE
 
-        // 1) 프로젝트 리스트 RecyclerView/Adapter 세팅
+
+
+        // ✅ 1) Recycler 세팅
         setupProjectRecycler()
 
-        // 2) 프로젝트 더미 데이터 구성 (UI 테스트용)
-        val fakeProjects = listOf(
-            ProjectSummary(
-                id = "1",
-                name = "테스트 프로젝트 1",
-                createdAt = LocalDate.of(2026, 1, 22),
-                creatorId = "tester",
-                teamspaceId = "teamspace_1",
-            ),
-            ProjectSummary(
-                id = "2",
-                name = "테스트 프로젝트 2",
-                createdAt = LocalDate.of(2026, 1, 22),
-                creatorId = "tester",
-                teamspaceId = "teamspace_1",
-            )
-        )
+        // ✅ 2) 툴팁 step observe (먼저)
+        viewModel.projectTipStep.observe(viewLifecycleOwner) { step ->
+            renderTip(step)
+        }
 
+        // ✅ 3) 홈 상태 수집 (먼저)
+        collectHomeUiState()
 
-        // 5) 팀스페이스 유무 UI 테스트 (true = 팀스페이스 있음)
-        renderHasTeamspace(true)
-        // 3) 화면 렌더링(테스트)
-        renderProjects(emptyList())
+        // ✅ 4) 다이얼로그 상태 수집 (한 번만)
+        observeHomeDialogs()
 
-        // 4) 특정 프로젝트(1번)에 곡 리스트 더미 주입(테스트)
-        projectAdapter.setSongLists("1", testSongLists)
+        // ✅ 5) 최초 로드
+        viewModel.loadHome()
 
-// ✅ 바깥(스크림) 탭하면 닫기
+        // ====== 클릭 리스너들 ======
         binding.teamspaceTipScrim.setOnClickListener {
+            viewModel.markNoTeamspaceTipDone()
             showTeamspaceTipOverlay(false)
         }
+        binding.cardTeamspaceTip.setOnClickListener { }
 
-// ✅ 카드 안쪽 탭은 닫히지 않게(클릭 소비)
-        binding.cardTeamspaceTip.setOnClickListener {
-            // 아무 것도 안 해도 됨 (소비용)
-        }
-
-
-// 바깥 터치 = 닫기(= 다음 단계로)
         binding.tipScrim.setOnClickListener {
-            val step = viewModel.homeTipStep.value ?: 2
+            val step = viewModel.projectTipStep.value ?: 2
             advanceTipStep(step)
         }
 
-        // 카드 클릭은 소비만(닫히지 않게)
         binding.cardProjectTip.setOnClickListener { }
         binding.cardManageTeamspaceTip.setOnClickListener { }
 
-        // step 관찰
-        viewModel.homeTipStep.observe(viewLifecycleOwner) { step ->
-            renderTip(step)
-        }
-        // 6) 프로젝트 유무 UI 테스트
-
-
-        // 7) 상단 체크버튼(완료) 클릭 -> 이름 변경 완료 처리
         binding.confirmBtn.setOnClickListener {
-            // 프로젝트 편집 중이면 기존 로직
             if (editingProjectId != null) {
                 onClickEditDone()
                 return@setOnClickListener
             }
-
-            // 곡 리스트 편집 중이면: 저장+종료
             val ok = projectAdapter.commitActiveSongEditAndExit()
-            if (ok) {
-                setTopBarEditMode(false)
-            }
+            if (ok) setTopBarEditMode(false)
         }
 
+        binding.ivEmptyProject.setOnClickListener { showCreateProjectSheet() }
+        binding.btnAddProject.setOnClickListener { showCreateProjectSheet() }
+        binding.CreateTeamspaceBar.setOnClickListener { showCreateTeamspaceSheet() }
 
-        // 9) 프로젝트 empty 화면 클릭하면 프로젝트 생성 바텀시트 띄움
-        binding.ivEmptyProject.setOnClickListener {
-            showCreateProjectSheet()
-        }
-
-        // 10) +추가 버튼 클릭 -> 프로젝트 생성 바텀시트
-        binding.btnAddProject.setOnClickListener {
-            showCreateProjectSheet()
-        }
-
-        // 11) 상단 "팀 스페이스를 생성하세요" 영역 클릭 -> 팀스페이스 생성 바텀시트
-        binding.CreateTeamspaceBar.setOnClickListener {
-            showCreateTeamspaceSheet()
-        }
-
-        // 12) 팀스페이스 관리 화면으로 이동
         binding.manageTeamspace.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_manageTeamspaceFragment)
-        }
+            val teamspace = (viewModel.homeUiState.value as? UiState.Success)?.data?.selectedTeamspace
+            if (teamspace == null) return@setOnClickListener
 
-        // TODO: 실제론 viewModel flow/livedata 수집해서 submitList 해야 함
+            val bundle = Bundle().apply {
+                putString("teamspaceId", teamspace.id)
+                putString("teamspaceName", teamspace.name)
+            }
+            findNavController().navigate(R.id.action_homeFragment_to_manageTeamspaceFragment, bundle)
+        }
     }
 
+
+    private fun collectHomeUiState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.homeUiState.collect { state ->
+                    when (state) {
+                        is UiState.Loading -> render(HomeUiModel(isLoading = true))
+                        is UiState.Success -> render(state.data)
+                        is UiState.Error -> render(HomeUiModel(errorMessage = state.message))
+                        else -> Unit
+                    }
+                }
+            }
+        }
+    }
+
+
+    private fun collectCreateStates() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.createTeamspaceUiState.collect { /* 토스트/다이얼로그 닫기 */ }
+            }
+        }
+    }
     // =========================
     // 곡 리스트 PopupWindow 표시
     // =========================
@@ -366,15 +422,106 @@ class HomeFragment : Fragment() {
 
 
     private fun renderTip(step: Int) = with(binding) {
-        tipScrim.visibility = if (step in 0..1) View.VISIBLE else View.GONE
+        val show = step == 0 || step == 1
+
+        tipScrim.visibility = if (show) View.VISIBLE else View.GONE
         cardProjectTip.visibility = if (step == 0) View.VISIBLE else View.GONE
         cardManageTeamspaceTip.visibility = if (step == 1) View.VISIBLE else View.GONE
+
+        if (show) {
+            tipScrim.bringToFront()
+            cardProjectTip.bringToFront()
+            cardManageTeamspaceTip.bringToFront()
+        }
     }
 
+
     private fun advanceTipStep(current: Int) {
-        val next = (current + 1).coerceAtMost(2)
-        viewModel.setHomeTipStep(next)   // 저장
-        renderTip(next)
+        val next = when (current) {
+            0 -> 1
+            1 -> 2
+            else -> 2
+        }
+
+        viewModel.setProjectTipStep(next)
+
+        if (next == 2) {
+            viewModel.markEmptyProjectTipDone()
+        }
+    }
+
+    private fun observeHomeDialogs() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                // 팀스페이스 생성 다이얼로그 상태
+                launch {
+                    viewModel.createTeamspaceUiState.collect { state ->
+                        val dialog = createTeamspaceDialog ?: return@collect
+                        when (state) {
+                            is UiState.Loading -> dialog.showLoading()
+                            is UiState.Success -> {
+                                dialog.showComplete()
+                                delay(800)
+                                dialog.dismiss()
+                                createTeamspaceDialog = null
+                                viewModel.resetCreateTeamspaceUiState()
+                            }
+                            is UiState.Error -> {
+                                dialog.showDefault()
+                                viewModel.resetCreateTeamspaceUiState()
+                            }
+                            else -> Unit // ✅ None 포함
+                        }
+                    }
+                }
+
+// 프로젝트 생성 다이얼로그 상태
+                launch {
+                    viewModel.createProjectUiState.collect { state ->
+                        val dialog = createProjectDialog ?: return@collect
+                        when (state) {
+                            is UiState.Loading -> dialog.showLoading()
+                            is UiState.Success -> {
+                                dialog.showComplete()
+                                delay(800)
+                                dialog.dismiss()
+                                createProjectDialog = null
+                                viewModel.resetCreateProjectUiState()
+                            }
+                            is UiState.Error -> {
+                                dialog.showDefault()
+                                viewModel.resetCreateProjectUiState()
+                            }
+                            else -> Unit
+                        }
+                    }
+                }
+
+// 곡 추가 다이얼로그 상태
+                launch {
+                    viewModel.createSongUiState.collect { state ->
+                        val dialog = createSongDialog ?: return@collect
+                        when (state) {
+                            is UiState.Loading -> dialog.showLoading()
+                            is UiState.Success -> {
+                                dialog.showComplete()
+                                delay(800)
+                                dialog.dismiss()
+                                createSongDialog = null
+                                viewModel.resetCreateSongUiState()
+                            }
+                            is UiState.Error -> {
+                                dialog.showDefault()
+                                viewModel.resetCreateSongUiState()
+                            }
+                            else -> Unit
+                        }
+                    }
+                }
+
+            }
+        }
     }
 
     // =========================
@@ -480,7 +627,10 @@ class HomeFragment : Fragment() {
     private fun renderHasTeamspace(hasTeamspace: Boolean) {
         binding.CreateTeamspaceFirstLayout.visibility = if (hasTeamspace) View.GONE else View.VISIBLE
         binding.CreateProjectFirstLayout.visibility = if (hasTeamspace) View.VISIBLE else View.GONE
-        showTeamspaceTipOverlay(!hasTeamspace)
+
+        // ✅ 팀스페이스가 없더라도, 이미 한 번 봤으면 다시 안 띄움
+        val shouldShowTip = !hasTeamspace && !hasShownTeamspaceEmptyTip()
+        showTeamspaceTipOverlay(shouldShowTip)
     }
 
 
@@ -501,7 +651,6 @@ class HomeFragment : Fragment() {
         binding.homeProjectToolbar.visibility = if (isEmpty) View.GONE else View.VISIBLE
         binding.rvProjects.visibility = if (isEmpty) View.GONE else View.VISIBLE
         binding.emptyProject.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        binding.cardProjectTip.visibility = if (isEmpty) View.VISIBLE else View.GONE
 
         if (!isEmpty) projectAdapter.submitList(projects)
     }
@@ -510,20 +659,23 @@ class HomeFragment : Fragment() {
     // 팀스페이스 생성 바텀시트(입력 다이얼로그)
     // =========================
     private fun showCreateTeamspaceSheet() {
-        InputDialogFragment.newInstance(
+        viewModel.resetCreateTeamspaceUiState()
+        createTeamspaceDialog = InputDialogFragment.newInstance(
             title = getString(R.string.teamspace_create_title),
             description = getString(R.string.teamspace_create_prompt),
             hint = getString(R.string.teamspace_name_hint),
             buttonText = getString(R.string.teamspace_create_cta),
             maxLength = 20
         ).apply {
-            onConfirm = { name ->
-                viewModel.createTeamspace(name)
-            }
-        }.show(parentFragmentManager, InputDialogFragment.TAG)
+            onConfirm = { name -> viewModel.createTeamspace(name) }
+
+        }
+
+        createTeamspaceDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
     }
     private fun showAddSongListSheet(project: ProjectSummary) {
-        InputDialogFragment.newInstance(
+        viewModel.resetCreateSongUiState()
+        createSongDialog = InputDialogFragment.newInstance(
             title = getString(R.string.song_add_title),              // 예: "곡 추가하기"
             description = getString(R.string.song_add_prompt),       // 예: "추가할 곡의 이름을 입력하세요"
             hint = getString(R.string.song_name_hint),               // 예: "(예시) SEVENTEEN - ..."
@@ -532,15 +684,17 @@ class HomeFragment : Fragment() {
         ).apply {
             onConfirm = { name ->
                 viewModel.createSong(name)
-
             }
-        }.show(parentFragmentManager, InputDialogFragment.TAG)
+        }
+
+        createSongDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
     }
     // =========================
     // 프로젝트 생성 바텀시트(입력 다이얼로그)
     // =========================
     private fun showCreateProjectSheet() {
-        InputDialogFragment.newInstance(
+        viewModel.resetCreateProjectUiState()
+        createProjectDialog = InputDialogFragment.newInstance(
             title = getString(R.string.project_create_title),
             description = getString(R.string.project_create_prompt),
             hint = getString(R.string.project_name_hint),
@@ -550,7 +704,9 @@ class HomeFragment : Fragment() {
             onConfirm = { name ->
                 viewModel.createProject(name)
             }
-        }.show(parentFragmentManager, InputDialogFragment.TAG)
+        }
+
+        createProjectDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
     }
 
     // =========================
@@ -616,6 +772,9 @@ class HomeFragment : Fragment() {
     // =========================
     override fun onDestroyView() {
         super.onDestroyView()
+        createTeamspaceDialog = null
+        createProjectDialog = null
+        createSongDialog = null
         _binding = null
     }
 }

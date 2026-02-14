@@ -12,7 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
-        android:visibility="gone">
+        android:visibility="visible">
+
         <View
             android:id="@+id/teamspaceTipScrim"
             android:layout_width="0dp"
@@ -20,10 +21,10 @@
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
         <!-- 상단: 타이틀 -->
         <LinearLayout
             android:id="@+id/CreateTeamspaceBar"
@@ -60,11 +61,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="13dp"
+            android:background="@color/background_normal"
             android:clickable="true"
+            android:elevation="4dp"
             android:focusable="true"
             android:visibility="gone"
-            android:background="@color/background_normal"
-            android:elevation="4dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/CreateTeamspaceBar">
 
@@ -138,7 +139,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <View
             android:id="@+id/tipScrim"
@@ -148,10 +149,10 @@
             android:focusable="true"
             android:visibility="gone"
 
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- 상단: 타이틀 -->
         <FrameLayout
@@ -166,8 +167,8 @@
                 android:id="@+id/homeEditProjectBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="12dp"
                 android:orientation="horizontal"
+                android:paddingBottom="12dp"
                 android:visibility="invisible">
 
                 <TextView

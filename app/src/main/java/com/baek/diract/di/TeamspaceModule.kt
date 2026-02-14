@@ -1,12 +1,14 @@
 package com.baek.diract.di
 
-import com.baek.diract.data.datasource.remote.TeamspaceRemoteDataSource
+import com.baek.diract.data.remote.api.TeamspaceApi
 import com.baek.diract.data.repository.TeamspaceRepositoryImpl
 import com.baek.diract.domain.repository.TeamspaceRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
 import javax.inject.Singleton
 
 @Module
@@ -19,11 +21,11 @@ abstract class TeamspaceModule {
         impl: TeamspaceRepositoryImpl
     ): TeamspaceRepository
 
-
-
-    // @Binds
-    // @Singleton
-    // abstract fun bindTeamspaceRemoteDataSource(
-    //     impl: TeamspaceRemoteDataSourceImpl
-    // ): TeamspaceRemoteDataSource
+    companion object {
+        @Provides
+        @Singleton
+        fun provideTeamspaceApi(retrofit: Retrofit): TeamspaceApi {
+            return retrofit.create(TeamspaceApi::class.java)
+        }
+    }
 }

@@ -1,6 +1,6 @@
 package com.baek.diract.data.datasource.remote
 
-import com.baek.diract.data.remote.dto.MemberDto
+import com.baek.diract.data.remote.dto.TeamspaceMemberDto
 import com.baek.diract.data.remote.dto.TeamspaceDto
 
 interface TeamspaceRemoteDataSource {
@@ -9,7 +9,7 @@ interface TeamspaceRemoteDataSource {
     suspend fun renameTeamspace(teamspaceId: String, newName: String)
     suspend fun deleteTeamspace(teamspaceId: String)
 
-    suspend fun getMembers(teamspaceId: String): List<MemberDto>
+    suspend fun getMembers(teamspaceId: String): List<TeamspaceMemberDto>
 
     suspend fun transferLeader(teamspaceId: String, newLeaderId: String)
     suspend fun leaveTeamspace(teamspaceId: String)

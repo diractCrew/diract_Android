@@ -6,13 +6,16 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-fun TeamspaceDto.toDomain(): TeamspaceSummary = TeamspaceSummary(
-    id = teamspace_id,
-    name = teamspace_name,
-    ownerId = owner_id,
-    createdAt = created_at?.let {
-        Instant.ofEpochSecond(it.seconds)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-    } ?: LocalDate.now()
-)
+fun TeamspaceDto.toTeamspaceSummary(): TeamspaceSummary =
+    TeamspaceSummary(
+        id = teamspaceId,
+        name = teamspaceName,
+        ownerId = ownerId,
+        createdAt = createdAt?.let { iso ->
+            runCatching {
+                Instant.parse(iso)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }.getOrElse { LocalDate.now() }
+        } ?: LocalDate.now()
+    )
