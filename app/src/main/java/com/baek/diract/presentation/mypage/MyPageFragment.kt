@@ -1,6 +1,8 @@
 package com.baek.diract.presentation.mypage
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,7 +70,10 @@ class MyPageFragment : Fragment() {
             ).show(childFragmentManager, WebViewDialogFragment.TAG)
         }
         binding.notificationBtn.setOnClickListener {
-
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+            }
+            startActivity(intent)
         }
 
         binding.accountSettingBtn.setOnClickListener {
