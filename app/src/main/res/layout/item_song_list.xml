@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- ✅ 보기모드 카드 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardViewMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:visibility="visible"
+        app:cardBackgroundColor="@color/fill_normal"
+        app:cardElevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeWidth="0dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp">
+
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_music"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/Body1.Medium"
+                android:textColor="@color/label_strong"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tvCount"
+                app:layout_constraintStart_toEndOf="@id/ivIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/Headline2.Medium"
+                android:textColor="@color/label_assistive"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/ivArrow"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/ivArrow"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_arrow_forward_20dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- ✅ 편집모드(피그마) 카드 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardEditSongMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        app:cardBackgroundColor="@color/fill_normal"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeWidth="0dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp">
+
+            <!-- 헤더 아이콘 -->
+            <ImageView
+                android:id="@+id/ivEditSongHeaderIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_library_music"
+                app:layout_constraintBottom_toBottomOf="@id/tvEditSongHeader"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- 헤더 텍스트 -->
+            <TextView
+                android:id="@+id/tvEditSongHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="@string/song_list_name_header"
+                android:textAppearance="@style/Headline2.Medium"
+                android:textColor="@color/label_strong"
+                app:layout_constraintEnd_toStartOf="@id/ivEditSongClear"
+                app:layout_constraintStart_toEndOf="@id/ivEditSongHeaderIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- 디바이더 -->
+            <View
+                android:id="@+id/vEditSongDivider"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:background="@color/stroke_strong"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvEditSongHeader" />
+
+            <!-- ✅ '싹 지우기' X : 헤더 줄 오른쪽 끝 -->
+            <ImageView
+                android:id="@+id/ivEditSongClear"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_cancel"
+                app:layout_constraintBottom_toBottomOf="@id/etEditSongTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/etEditSongTitle" />
+
+
+            <!-- 입력 -->
+            <EditText
+                android:id="@+id/etEditSongTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@null"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/label_strong"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toStartOf="@id/tvEditCounter"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/vEditSongDivider" />
+
+            <!-- 카운터: 입력과 baseline 정렬 + 살짝 아래로 -->
+            <TextView
+                android:id="@+id/tvEditCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="0/20"
+                android:textColor="@color/label_assistive"
+                android:translationY="3dp"
+                app:layout_constraintBaseline_toBaselineOf="@id/etEditSongTitle"
+                app:layout_constraintEnd_toStartOf="@id/ivEditSongClear" />
+
+            <!-- 언더라인: 입력 시작 ~ 카운터 끝 -->
+            <View
+                android:id="@+id/vEditUnderline"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/secondary_normal"
+                app:layout_constraintEnd_toEndOf="@id/tvEditCounter"
+                app:layout_constraintStart_toStartOf="@id/etEditSongTitle"
+                app:layout_constraintTop_toBottomOf="@id/etEditSongTitle" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

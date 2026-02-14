@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/projectItemRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp">
+
+    <!-- ✅ 1) 상단: 프로젝트 한 줄 카드 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardProjectItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:strokeColor="@android:color/transparent"
+        android:background="@color/fill_normal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:cardCornerRadius="14dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp">
+
+            <!-- ✅ 보기 모드 텍스트 -->
+            <TextView
+                android:id="@+id/tvProjectName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="프로젝트"
+                android:textAppearance="@style/Body1.Medium"
+                android:textColor="@color/label_strong"
+                app:layout_constraintEnd_toStartOf="@id/ivOpenSongs"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- 오른쪽 화살표(펼침/접힘) -->
+            <ImageView
+                android:id="@+id/ivOpenSongs"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_arrow_forward_20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- ✅ 편집 모드 입력 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardProjectEditMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:visibility="visible"
+                app:cardBackgroundColor="@color/fill_normal"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:strokeWidth="0dp">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+
+                    <!-- ✅ '싹 지우기' X : 헤더 줄 오른쪽 끝 -->
+                    <ImageView
+                        android:id="@+id/ivProjectEditClear"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_cancel"
+                        app:layout_constraintBottom_toBottomOf="@id/etProjectName"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/etProjectName" />
+
+
+                    <!-- 입력 -->
+                    <EditText
+                        android:id="@+id/etProjectName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:imeOptions="actionDone"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:textColor="@color/label_strong"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tvProjectEditCounter"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <!-- 카운터: 입력과 baseline 정렬 + 살짝 아래로 -->
+                    <TextView
+                        android:id="@+id/tvProjectEditCounter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="0/20"
+                        android:textColor="@color/label_assistive"
+                        app:layout_constraintBaseline_toBaselineOf="@id/etProjectName"
+                        app:layout_constraintEnd_toStartOf="@id/ivProjectEditClear" />
+
+                    <!-- 언더라인: 입력 시작 ~ 카운터 끝 -->
+                    <View
+                        android:id="@+id/vEditUnderline"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:background="@color/secondary_normal"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/ivProjectEditClear" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- ✅ 2) 하단: 펼침 패널(피그마의 큰 박스) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardExpanded"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:strokeColor="@android:color/transparent"
+        android:visibility="visible"
+        app:cardBackgroundColor="@color/fill_normal"
+        app:cardCornerRadius="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardProjectItem">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="9dp"
+            android:paddingHorizontal="16dp"
+            >
+
+            <!-- 곡 추가하기 버튼 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddSong"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:enabled="true"
+                android:text="@string/project_add_song"
+                android:textSize="16sp"
+                android:textAppearance="@style/Headline2.Medium"
+                android:visibility="visible"
+                app:cornerRadius="7dp"
+                app:icon="@drawable/ic_music_add"
+                app:iconGravity="textStart"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+            <!-- 3) 상태: 로딩 -->
+
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/pbSongLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+
+
+            <!-- 4) 상태: 곡 없음 -->
+            <TextView
+                android:id="@+id/tvSongEmpty"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:text="@string/project_empty_add_song_message"
+                android:textAppearance="@style/Headline2.Medium"
+                android:textColor="@color/label_assistive"
+                android:textSize="16sp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+
+            <!-- 5) 상태: 실패 -->
+            <TextView
+                android:id="@+id/tvSongError"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="@string/error_load_songs"
+                android:textColor="@color/label_assistive"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+
+            <!-- 6) 상태: 곡 리스트 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSongs"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:overScrollMode="never"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

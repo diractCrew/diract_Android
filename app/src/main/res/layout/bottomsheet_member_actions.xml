@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="20dp">
+
+    <!-- handle -->
+    <View
+        android:id="@+id/viewHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:background="@color/fill_assistive"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- title -->
+    <TextView
+        android:id="@+id/tvMemberName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text=""
+        android:textSize="24sp"
+        android:textAppearance="@style/Title2.Medium"
+        android:textColor="@color/label_strong"
+        app:layout_constraintTop_toBottomOf="@id/viewHandle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ivClose"/>
+
+    <!-- close -->
+    <ImageView
+        android:id="@+id/ivClose"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_close"
+        android:contentDescription="@string/close_team_member_more"
+        app:layout_constraintTop_toTopOf="@id/tvMemberName"
+        app:layout_constraintBottom_toBottomOf="@id/tvMemberName"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- button container (버튼 오른쪽에 로딩/체크를 겹쳐서 배치) -->
+    <FrameLayout
+        android:id="@+id/leaderBtnContainer"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="44dp"
+        app:layout_constraintTop_toBottomOf="@id/tvMemberName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGiveLeader"
+            style="@style/Widget.Diract.BottomSheet.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/teamspace_action_give_owner"
+            android:textColor="@color/label_strong"
+            android:textSize="16sp"
+            />
+
+        <!-- loading spinner (기본 GONE) -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/pbLoading"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="16dp"
+            android:visibility="gone"
+            app:indicatorSize="18dp"
+            app:trackThickness="2dp"
+            />
+
+        <!-- success check (기본 GONE) -->
+        <ImageView
+            android:id="@+id/ivSuccess"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="16dp"
+            android:visibility="gone"
+            android:src="@drawable/ic_check"
+            android:contentDescription="@null"/>
+
+    </FrameLayout>
+
+    <!-- kick text -->
+    <TextView
+        android:id="@+id/tvKick"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:text="@string/kick_from_team"
+        android:textSize="14sp"
+        android:textColor="@color/member_kick_text_selector"
+        app:layout_constraintTop_toBottomOf="@id/leaderBtnContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/tvKick"
+        tools:layout_editor_absoluteX="20dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>

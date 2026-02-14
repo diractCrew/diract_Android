@@ -54,6 +54,107 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <!-- 팀 스페이스 생성 홈 화면 -->
+    <string name="home_teamspace_create">팀 스페이스를 생성하세요</string>
+    <string name="home_teamspace_create_title">팀 스페이스를 만들어보세요</string>
+    <string name="home_teamspace_create_message">팀만의 공간을 만들고 영상으로 피드백을 시작해보세요.</string>
+    <string name="home_teamspace_empty">팀 스페이스를 만들어주세요.</string>
+    <string name="create_teamspace">팀 스페이스 만들기</string>
+
+    <!-- 프로젝트 생성 홈 화면 -->
+    <string name="home_teamspace_current_name">현재 팀스페이스 이름</string>
+    <string name="home_empty_add_project_title">프로젝트를 추가해보세요.</string>
+    <string name="home_tooltip_manage_teamspace_title">팀 스페이스를 관리해보세요</string>
+    <string name="home_tooltip_manage_teamspace_message">팀원을 초대하거나 팀 스페이스 이름을 변경할 수 있습니다.</string>
+    <string name="home_empty_add_project_card_title">프로젝트를 추가해보세요</string>
+    <string name="home_empty_add_project_card_message">곡과 영상을 담을 수 있는 공간입니다.</string>
+    <string name="teamspace_manage">팀스페이스 관리</string>
+    <string name="create_project">프로젝트 만들기</string>
+    <string name="project_section_title">프로젝트</string>
+    <string name="project_add">추가</string>
+    <string name="home_project_title">프로젝트</string>
+    <string name="project_action_rename">이름 수정</string>
+    <string name="project_action_delete">삭제</string>
+    <string name="project_list_title">프로젝트 목록</string>
+
+
+    <!-- 팀스페이스 생성 화면 -->
+
+    <string name="teamspace_create_title">팀 스페이스 만들기</string>
+    <string name="teamspace_create_prompt">팀 스페이스 이름을 입력하세요.</string>
+    <string name="teamspace_name_hint">팀 이름</string>
+    <string name="teamspace_create_cta">팀 스페이스 만들기</string>
+
+    <!-- 새 프로젝트 생성 화면 -->
+    <string name="project_create_title">새 프로젝트 만들기</string>
+    <string name="project_create_prompt">프로젝트 이름을 입력하세요.</string>
+    <string name="project_name_hint">(예시) 대동제</string>
+    <string name="project_create_cta">새 프로젝트 만들기</string>
+
+    <!-- 팀스페이스 관리 화면 -->
+    <string name="teamspace_current_name">현재 팀스페이스 이름</string>
+    <string name="teamspace_members">팀원</string>
+    <string name="teamspace_empty_members">팀원을 초대해보세요.</string>
+    <string name="teamspace_invite_members_hint">팀원을 초대하세요.</string>
+    <string name="teamspace_action_leave">팀 스페이스 나가기</string>
+    <string name="teamspace_action_delete">팀 스페이스 삭제하기</string>
+    <string name="teamspace_action_give_owner">팀장 권한 주기</string>
+    <string name="teamspace_action_kick">팀원 내보내기</string>
+    <string name="teamspace_action_kick_btn">내보내기</string>
+    <string name="teamspace_rename_title">팀 스페이스 이름 수정</string>
+    <string name="teamspace_rename_failed">팀 스페이스 이름 수정을 실패했습니다.</string>
+    <string name="teamspace_give_owner_failed">팀장 권한 주기를 실패했습니다.</string>
+    <string name="teamspace_load_failed">불러오기를 실패했습니다.</string>
+    <string name="teamspace_invite">팀에 멤버 초대하기</string>
+    <string name="teamspace_invite_title">팀 스페이스에 팀원을\n 초대해 보세요.</string>
+    <string name="teamspace_invite_message">팀원 태그를 통해 피드백을 주고받을 수 있습니다.</string>
+    <string name="teamspace_invite_later">다음에 하기</string>
+    <string name="more">더보기</string>
+    <string name="done">완료</string>
+    <string name="create_new_teamspace">새 팀 스페이스 만들기</string>
+    <string name="team_member_more">멤버 더보기</string>
+    <string name="close_team_member_more">멤버 더보기 닫기</string>
+    <string name="kick_from_team">팀에서 내보내기</string>
+    <string name="network_error_teamspace">불러오기를 실패했습니다</string>
+    <string name="teamspace_create_failed">팀스페이스 생성에 실패했습니다.</string>
+    <string name="teamspace_kick_members_title">선택한 팀원들을 내보내시겠어요?</string>
+    <string name="teamspace_kick_members_desc">이후 다시 초대할 수 있습니다.</string>
+    <string name="dialog_teamspace_leave_teamspace_title"> 팀 스페이스를 나가시겠어요?</string>
+    <string name="dialog_teamspace_leave_teamspace_message">다시 초대받아 참여할 수 있습니다.</string>
+    <string name="dialog_teamspace_leave_teamspace">나가기</string>
+    <string name="dialog_teamspace_kick_title">%1$s 팀원을 내보내시겠어요?</string>
+    <string name="dialog_teamspace_kick_message">이후 다시 초대할 수 있습니다.</string>
+    <string name="dialog_teamspace_kick_action">내보내기</string>
+    <string name="dialog_teamspace_delete_title">%1$s 팀 스페이스를 삭제하시겠어요?</string>
+    <string name="dialog_teamspace_delete_message">팀 스페이스와 멤버 목록이 모두 초기화되며 되돌릴 수 없습니다.</string>
+    <string name="dialog_teamspace_leader_cannot_leave_title">팀 스페이스를 나갈 수 없습니다.</string>
+    <string name="dialog_teamspace_leader_cannot_leave_message">팀 스페이스에서 나가려면 팀장 권한을 다른 팀원에게 양도해야합니다.</string>
+    <string name="error_create_teamspace">빈칸</string>
+    <string name="error_load_members">빈칸</string>
+    <string name="error_kick_members">빈칸</string>
+    <string name="teamspace_leave_success">성공</string>
+    <string name="teamspace_leave_failed">실패</string>
+
+
+    <!-- 음앗 리스트 화면 -->
+    <string name="project_add_song">곡 추가하기</string>
+    <string name="project_empty_add_song_message">곡이 없습니다. 추가해보세요</string>
+    <string name="project_action_playlist_name">플레이리스트 이름</string>
+    <string name="error_load_songs">곡을 불러올 수 없습니다.</string>
+    <string name="song_load_failed">곡</string>
+    <string name="song_list_name_header">곡 리스트 이름</string>
+    <string name="song_list_name_max_warning">곡 이름은 20자 이하로 입력해주세요.</string>
+    <string name="song_">곡 이름은 20자 이하로 입력해주세요.</string>
+    <string name="dialog_song_cannot_recover">곡 안의 모든 내용이 사라집니다.</string>
+    <string name="dialog_song_delete_title">%1$s 곡을 삭제하시겠어요?</string>
+    <string name="song_add_prompt">추가할 곡의 이름을 입력하세요</string>
+    <string name="song_add_title">곡 추가하기</string>
+    <string name="song_name_hint">(예시) SEVENTEEN - 만세</string>
+    <string name="song_add_cta">곡 추가하기</string>
+
+
+
+
     <!-- 영상 리스트 화면 -->
     <string name="add_video">영상 추가</string>
     <string name="add_video_message">동영상을 추가해보세요</string>
@@ -97,7 +198,7 @@
     <string name="dialog_cancel">취소</string>
     <string name="dialog_delete">삭제</string>
     <string name="dialog_exit">나가기</string>
-    <string name="dialog_discard_title">변경사항이 저장되지 않았습니다. 나가시겠어요?</string>
+    <string name="dialog_discard_title">변경사항이 저장되지 않았습니다. 종료하시겠어요?</string>
     <string name="dialog_discard_message">저장하지 않은 변경사항은 사라집니다.</string>
     <string name="dialog_discard">취소하기</string>
     <string name="dialog_delete_part_title">%1$s을/를 삭제하시겠어요?</string>

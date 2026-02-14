@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".presentation.home.ManageTeamspaceFragment">
+
+    <!-- 상단 툴바 -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:menu="@menu/menu_manage_teamspace_toolbar"
+        app:title=""
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:titleCentered="false">
+
+        <!-- 가운데 팀스페이스 선택 버튼 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/teamspaceTitleArea"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:minHeight="48dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingVertical="6dp">
+
+            <TextView
+                android:id="@+id/tvTeamspaceTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text=""
+                android:textSize="16sp"
+                android:textColor="@color/label_strong"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/ivChevron"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constrainedWidth="true"
+                app:layout_constraintWidth_default="wrap"
+                app:layout_constraintHorizontal_chainStyle="packed"/>
+
+            <ImageView
+                android:id="@+id/ivChevron"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_expand_circle_down"
+                app:layout_constraintStart_toEndOf="@id/tvTeamspaceTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <!-- 팀에 멤버 초대하기 버튼 -->
+    <LinearLayout
+        android:id="@+id/actionTeamspaceInviteBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/teamspaceInviteBtn"
+            style="@style/Widget.Diract.ActionButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/teamspace_invite" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/actionTeamspaceInviteBtn">
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/teamspace_members"
+            android:textAppearance="@style/Headline2.Semibold"
+            android:textColor="@color/label_assistive" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/cancelBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:textAppearance="@style/Headline2.Semibold"
+            android:textColor="@color/label_strong"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/actionKickMembers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/teamspace_action_kick_btn"
+            android:textAppearance="@style/Headline2.Semibold"
+            android:textColor="@color/fill_assistive"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomActionArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="60dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- 구분선  -->
+        <View
+            android:id="@+id/dividerDangerActions"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:background="@color/stroke_normal" />
+
+        <TextView
+            android:id="@+id/tvLeaveTeamspace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:paddingTop="18dp"
+            android:paddingBottom="10dp"
+            android:text="@string/teamspace_action_leave"
+            android:textColor="@color/accent_red_normal"
+            android:textAppearance="@style/Headline2.Medium" />
+
+        <TextView
+            android:id="@+id/tvDeleteTeamspace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="0dp"
+            android:visibility="visible"
+            android:text="@string/teamspace_action_delete"
+            android:textColor="@color/accent_red_strong"
+            android:textAppearance="@style/Headline2.Medium" />
+    </LinearLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomActionArea"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMembers"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="24dp" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <LinearLayout
+        android:id="@+id/emptyMember"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.564">
+
+
+        <ImageView
+            android:id="@+id/ivEmptyMember"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:clickable="true"
+            android:contentDescription="@string/create_teamspace"
+            android:focusable="true"
+            android:src="@drawable/ic_group" />
+
+        <TextView
+            android:id="@+id/tvEmptyMember"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/teamspace_invite_members_hint"
+            android:textAppearance="@style/Headline2.Medium"
+            android:textColor="@color/label_assistive"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- 네트워크 오류시 표시  -->
+    <LinearLayout
+        android:id="@+id/networkErrorTeamspace"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.564">
+
+
+        <ImageView
+            android:id="@+id/ivNetworkErrorTeamspace"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:clickable="true"
+            android:contentDescription="@string/create_teamspace"
+            android:focusable="true"
+            android:src="@drawable/ic_warning" />
+
+        <TextView
+            android:id="@+id/tvNetworkErrorTeamspace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/network_error_teamspace"
+            android:textAppearance="@style/Body1.Medium"
+            android:textColor="@color/label_normal"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/btnReplayTeamspace"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_replay_20dp" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

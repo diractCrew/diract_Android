@@ -221,5 +221,6 @@ class OptionPopup private constructor(
                 .addOption(OptionItem.report())
                 .setOnOptionSelectedListener(onOptionSelected)
         }
+
     }
 }

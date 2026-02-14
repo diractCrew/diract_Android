@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardSongSection"
+    android:layout_width="337dp"
+    android:layout_height="wrap_content"
+    app:cardUseCompatPadding="false"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    android:backgroundTint="@color/fill_subtle">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="16dp">
+
+        <!-- 1) 상단 드롭다운(프로젝트/곡 선택) -->
+
+
+
+        <!-- 2) 곡 추가하기 버튼 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddSong"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:enabled="true"
+            android:text="@string/project_add_song"
+            android:textSize="16sp"
+            android:visibility="visible"
+            app:cornerRadius="7dp"
+            app:icon="@drawable/ic_music_add"
+            app:iconGravity="textStart"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <!-- 3) 상태: 로딩 -->
+
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/pbSongLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+
+
+        <!-- 4) 상태: 곡 없음 -->
+        <TextView
+            android:id="@+id/tvSongEmpty"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/project_empty_add_song_message"
+            android:textAppearance="@style/Headline2.Medium"
+            android:textColor="@color/label_assistive"
+            android:textSize="16sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+
+        <!-- 5) 상태: 실패 -->
+        <TextView
+            android:id="@+id/tvSongError"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/error_load_songs"
+            android:textColor="@color/label_assistive"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+
+        <!-- 6) 상태: 곡 리스트 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSongs"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:overScrollMode="never"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toBottomOf="@id/btnAddSong"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="12dp" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
