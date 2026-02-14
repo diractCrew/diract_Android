@@ -174,6 +174,10 @@
     <string name="speed_value">%1$.2f X</string>
 
 
+    <!-- 알림 채널 -->
+    <string name="notification_channel_name">Diract 알림</string>
+    <string name="notification_channel_description">피드백, 댓글 알림</string>
+
     <!-- 알림 화면 -->
     <string name="inbox_empty">받은 알림이 없습니다</string>
     <string name="fail_to_load_notification">알림 불러오기를 실패했습니다.</string>
