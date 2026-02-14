@@ -5,8 +5,10 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.baek.diract.data.local.UserPreferenceManager
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.ProjectSummary
+import com.baek.diract.domain.model.TeamspaceSummary
 import com.baek.diract.domain.repository.TeamspaceRepository
 import com.baek.diract.presentation.common.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,8 +26,11 @@ class HomeViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val app: Application,
     private val teamspaceRepository: TeamspaceRepository,
+    private val userPreferenceManager: UserPreferenceManager,
 ) : ViewModel() {
 
+    private val _teamspaces = MutableStateFlow<List<TeamspaceSummary>>(emptyList())
+    val teamspaces = _teamspaces.asStateFlow()
     // ✅ 홈 화면 전체 상태
     private val _homeUiState = MutableStateFlow<UiState<HomeUiModel>>(UiState.Loading)
     val homeUiState: StateFlow<UiState<HomeUiModel>> = _homeUiState.asStateFlow()
@@ -37,6 +43,8 @@ class HomeViewModel @Inject constructor(
         const val KEY_NO_TEAMSPACE_TIP_DONE = "no_teamspace_done"    // boolean
     }
 
+    private val _currentTeamspaceName = MutableStateFlow("")
+    val currentTeamspaceName: StateFlow<String> = _currentTeamspaceName.asStateFlow()
     /**
      * ✅ "팀스페이스는 있는데 프로젝트 없음" 화면에서만 쓰는 2-step 툴팁
      * 0 -> 1 -> 2(종료)
@@ -44,6 +52,29 @@ class HomeViewModel @Inject constructor(
      */
     val projectTipStep = MutableLiveData(prefs.getInt(KEY_PROJECT_TIP_STEP, 2))
 
+    fun loadCurrentTeamspaceName(teamspaceId: String) {
+        if (teamspaceId.isBlank()) return
+
+        viewModelScope.launch {
+            when (val r = teamspaceRepository.getTeamspaceDetail(teamspaceId)) {
+                is DataResult.Success -> {
+                    _currentTeamspaceName.value = r.data.teamspaceName
+                }
+                is DataResult.Error -> {
+                    // 실패 시 유지하거나 기본값
+                }
+            }
+        }
+    }
+    fun selectTeamspace(teamspaceId: String) {
+        if (teamspaceId.isBlank()) return
+        viewModelScope.launch {
+            // 1) lastTeamspaceId 저장
+            runCatching { userPreferenceManager.saveLastTeamspaceId(teamspaceId) }
+            // 2) 홈 다시 로드 (loadHome()가 lastTeamspaceId 기준으로 selected를 다시 잡음)
+            loadHome()
+        }
+    }
     fun setProjectTipStep(step: Int) {
         prefs.edit().putInt(KEY_PROJECT_TIP_STEP, step).apply()
         projectTipStep.value = step
@@ -86,14 +117,52 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _homeUiState.value = UiState.Loading
 
+            // ✅ 1) lastTeamspaceId 읽기 (UserPreferenceManager에 맞게 구현)
+            val lastId: String? = userPreferenceManager.lastTeamspaceId.first()   // <- 여기 수정 가능
+
+            // ✅ 2) 서버에서 내 팀스페이스 목록 가져오기 (항상 1번만 호출)
             when (val result = teamspaceRepository.getMyTeamspaces()) {
                 is DataResult.Success -> {
                     val teamspaces = result.data
-                    val selected = teamspaces.firstOrNull()
+                    _teamspaces.value = teamspaces
 
-                    val projects: List<ProjectSummary> = emptyList()
                     val role = Role.MEMBER
+                    val projects: List<ProjectSummary> = emptyList()
 
+                    // 1) 팀스페이스가 아예 없으면: clear + empty 상태
+                    if (teamspaces.isEmpty()) {
+                        runCatching { userPreferenceManager.clearLastTeamspace() }
+
+                        _currentTeamspaceName.value = ""
+                        _homeUiState.value = UiState.Success(
+                            HomeUiModel(
+                                isLoading = false,
+                                selectedTeamspace = null,
+                                role = role,
+                                projects = projects,
+                                errorMessage = null
+                            )
+                        )
+                        return@launch
+                    }
+
+                    // 2) lastId가 있으면 그걸로 찾아보고, 없으면 first
+                    val selected = lastId
+                        ?.let { id -> teamspaces.firstOrNull { it.id == id } }
+                        ?: teamspaces.first()
+
+                    // 3) lastId가 있었는데 목록에 없던 케이스(삭제/권한변경 등)면 clear 한 번
+                    if (!lastId.isNullOrBlank() && selected.id != lastId) {
+                        runCatching { userPreferenceManager.clearLastTeamspace() }
+                    }
+
+                    // 4) 확정된 선택값을 저장
+                    runCatching { userPreferenceManager.saveLastTeamspaceId(selected.id) }
+
+                    // 5) 상단 타이틀 반영
+                    _currentTeamspaceName.value = selected.name
+
+                    // 6) 홈 상태 반영
                     _homeUiState.value = UiState.Success(
                         HomeUiModel(
                             isLoading = false,
@@ -104,12 +173,13 @@ class HomeViewModel @Inject constructor(
                         )
                     )
                 }
-
-                is DataResult.Error -> {
+                is DataResult.Error -> {  // ✅ 이게 없어서 exhaustive 에러 터진거
+                    _currentTeamspaceName.value = ""
                     _homeUiState.value = UiState.Success(
                         HomeUiModel(
                             isLoading = false,
                             selectedTeamspace = null,
+                            role = Role.MEMBER,
                             projects = emptyList(),
                             errorMessage = result.throwable.message ?: "팀스페이스 조회 실패"
                         )

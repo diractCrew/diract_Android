@@ -22,11 +22,15 @@ import com.baek.diract.R
 import com.baek.diract.databinding.FragmentHomeBinding
 import com.baek.diract.domain.model.ProjectSummary
 import com.baek.diract.domain.model.SongListSummary
+import com.baek.diract.domain.model.TeamspaceSummary
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.baek.diract.presentation.common.dialog.InputDialogFragment
 import com.baek.diract.presentation.common.recyclerview.SpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDate
 
 @AndroidEntryPoint
@@ -39,6 +43,9 @@ class HomeFragment : Fragment() {
 
     private fun hasShownTeamspaceEmptyTip(): Boolean =
         prefs.getBoolean(KEY_TEAMSPACE_EMPTY_TIP_SHOWN, false)
+
+    private val _teamspaces = MutableStateFlow<List<TeamspaceSummary>>(emptyList())
+    val teamspaces: StateFlow<List<TeamspaceSummary>> = _teamspaces.asStateFlow()
 
     private fun markTeamspaceEmptyTipShown() {
         prefs.edit().putBoolean(KEY_TEAMSPACE_EMPTY_TIP_SHOWN, true).apply()
@@ -109,7 +116,10 @@ class HomeFragment : Fragment() {
             homeEditProjectBar.visibility = View.VISIBLE  // (체크 버튼 있는 편집 상단바) 표시
         } else {
             // 평상시 모드: 타이틀을 원래 팀 이름(리소스)으로 복구
-            tvCreateProjectTitle.text = getString(R.string.home_teamspace_current_name)
+            tvCreateProjectTitle.text =
+                viewModel.currentTeamspaceName.value.ifBlank {
+                    getString(R.string.home_teamspace_current_name)
+                }
 
             // 평상시에는 원래 상단바 보여주고 편집 상단바는 숨김
             homeCreateProjectBar.visibility = View.VISIBLE
@@ -303,6 +313,9 @@ class HomeFragment : Fragment() {
         // ✅ 3) 홈 상태 수집 (먼저)
         collectHomeUiState()
 
+        // ✅ 3-1) 현재 팀스페이스 이름 수집(상단 타이틀)
+        collectTeamspaceTitle()
+
         // ✅ 4) 다이얼로그 상태 수집 (한 번만)
         observeHomeDialogs()
 
@@ -347,8 +360,26 @@ class HomeFragment : Fragment() {
             }
             findNavController().navigate(R.id.action_homeFragment_to_manageTeamspaceFragment, bundle)
         }
-    }
 
+    }
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadHome()
+    }
+    private fun collectTeamspaceTitle() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.currentTeamspaceName.collect { name ->
+                    // 편집 모드 아닐 때만 팀명 반영
+                    if (currentEditMode == EditMode.NONE) {
+                        binding.tvCreateProjectTitle.text =
+                            if (name.isNotBlank()) name
+                            else getString(R.string.home_teamspace_current_name)
+                    }
+                }
+            }
+        }
+    }
 
     private fun collectHomeUiState() {
         viewLifecycleOwner.lifecycleScope.launch {
