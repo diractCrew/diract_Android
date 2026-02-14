@@ -181,4 +181,11 @@
     <!-- 알림 화면 -->
     <string name="inbox_empty">받은 알림이 없습니다</string>
     <string name="fail_to_load_notification">알림 불러오기를 실패했습니다.</string>
+
+    <!-- 신고하기 -->
+    <string name="report_title">신고하기</string>
+    <string name="report_reason_prompt">신고 사유를 작성해주세요</string>
+    <string name="report_reason_hint">신고 사유를 입력해 주세요.</string>
+    <string name="report_success">신고가 접수되었습니다.\n조치사항은 로그인 계정으로 안내드리겠습니다.</string>
+    <string name="report_failed">문제가 발생했습니다.</string>
 </resources>
