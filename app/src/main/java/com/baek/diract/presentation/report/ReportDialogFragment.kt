@@ -9,7 +9,9 @@ package com.baek.diract.presentation.report
  * ).show(childFragmentManager, ReportDialogFragment.TAG)
  */
 
+import android.app.Dialog
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -29,8 +31,8 @@ import com.baek.diract.databinding.FragmentReportDialogBinding
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.MaxLengthInputFilter
 import com.baek.diract.presentation.common.UiState
+import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.google.android.material.R
-import kotlinx.coroutines.delay
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -46,6 +48,34 @@ class ReportDialogFragment : BottomSheetDialogFragment() {
     private val viewModel: ReportViewModel by viewModels()
 
     private var isError = false
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
+        dialog.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                handleBackPress()
+                true
+            } else {
+                false
+            }
+        }
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
+
+        dialog.setOnShowListener {
+            val bottomSheet = dialog.findViewById<FrameLayout>(R.id.design_bottom_sheet)
+            bottomSheet?.let { sheet ->
+                sheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                BottomSheetBehavior.from(sheet).apply {
+                    state = BottomSheetBehavior.STATE_EXPANDED
+                    skipCollapsed = true
+                    isDraggable = false
+                }
+            }
+        }
+
+        return dialog
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,26 +95,23 @@ class ReportDialogFragment : BottomSheetDialogFragment() {
         setupTouchOutsideToDismissKeyboard()
     }
 
-    override fun onStart() {
-        super.onStart()
-
-        val bottomSheet = (dialog as? BottomSheetDialog)
-            ?.findViewById<FrameLayout>(R.id.design_bottom_sheet)
-            ?: return
-
-        bottomSheet.layoutParams = bottomSheet.layoutParams.apply {
-            height = ViewGroup.LayoutParams.MATCH_PARENT
-        }
-
-        BottomSheetBehavior.from(bottomSheet).apply {
-            state = BottomSheetBehavior.STATE_EXPANDED
-            skipCollapsed = true
-            isDraggable = false
-        }
+    private fun setupToolbar() {
+        binding.closeBtn.setOnClickListener { handleBackPress() }
     }
 
-    private fun setupToolbar() {
-        binding.closeBtn.setOnClickListener { dismiss() }
+    private fun handleBackPress() {
+        val hasInput = !binding.inputTxt.text.isNullOrEmpty()
+        if (hasInput) {
+            BasicDialog.destructive(
+                context = requireContext(),
+                title = getString(com.baek.diract.R.string.report_discard_title),
+                message = getString(com.baek.diract.R.string.report_discard_message),
+                positiveText = getString(com.baek.diract.R.string.dialog_exit),
+                onPositive = { dismiss() }
+            ).show()
+        } else {
+            dismiss()
+        }
     }
 
     private fun setupInput() {
