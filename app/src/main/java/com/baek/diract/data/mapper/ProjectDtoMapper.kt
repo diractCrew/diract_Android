@@ -8,13 +8,15 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 fun ProjectDto.toSummaryDomain(): ProjectSummary = ProjectSummary(
-    id = project_id,
-    name = project_name,
-    teamspaceId = teamspace_id,
-    creatorId = creator_id,
-    createdAt = created_at?.let {
-        Instant.ofEpochSecond(it.seconds)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
+    id = projectId,
+    name = projectName,
+    teamspaceId = teamspaceId.orEmpty(),
+    creatorId = creatorId.orEmpty(),
+    createdAt = createdAt?.let { iso ->
+        runCatching {
+            Instant.parse(iso)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        }.getOrNull()
     } ?: LocalDate.now()
 )

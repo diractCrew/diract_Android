@@ -9,6 +9,7 @@ import com.baek.diract.data.local.UserPreferenceManager
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.ProjectSummary
 import com.baek.diract.domain.model.TeamspaceSummary
+import com.baek.diract.domain.repository.ProjectRepository
 import com.baek.diract.domain.repository.TeamspaceRepository
 import com.baek.diract.presentation.common.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val app: Application,
+    private val projectRepository: ProjectRepository,
     private val teamspaceRepository: TeamspaceRepository,
     private val userPreferenceManager: UserPreferenceManager,
 ) : ViewModel() {
@@ -117,63 +119,58 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _homeUiState.value = UiState.Loading
 
-            // ✅ 1) lastTeamspaceId 읽기 (UserPreferenceManager에 맞게 구현)
-            val lastId: String? = userPreferenceManager.lastTeamspaceId.first()   // <- 여기 수정 가능
+            val lastId: String? = userPreferenceManager.lastTeamspaceId.first()
 
-            // ✅ 2) 서버에서 내 팀스페이스 목록 가져오기 (항상 1번만 호출)
             when (val result = teamspaceRepository.getMyTeamspaces()) {
                 is DataResult.Success -> {
                     val teamspaces = result.data
                     _teamspaces.value = teamspaces
 
-                    val role = Role.MEMBER
-                    val projects: List<ProjectSummary> = emptyList()
-
-                    // 1) 팀스페이스가 아예 없으면: clear + empty 상태
                     if (teamspaces.isEmpty()) {
                         runCatching { userPreferenceManager.clearLastTeamspace() }
-
                         _currentTeamspaceName.value = ""
                         _homeUiState.value = UiState.Success(
                             HomeUiModel(
                                 isLoading = false,
                                 selectedTeamspace = null,
-                                role = role,
-                                projects = projects,
+                                role = Role.MEMBER,
+                                projects = emptyList(),
                                 errorMessage = null
                             )
                         )
                         return@launch
                     }
 
-                    // 2) lastId가 있으면 그걸로 찾아보고, 없으면 first
                     val selected = lastId
                         ?.let { id -> teamspaces.firstOrNull { it.id == id } }
                         ?: teamspaces.first()
 
-                    // 3) lastId가 있었는데 목록에 없던 케이스(삭제/권한변경 등)면 clear 한 번
                     if (!lastId.isNullOrBlank() && selected.id != lastId) {
                         runCatching { userPreferenceManager.clearLastTeamspace() }
                     }
-
-                    // 4) 확정된 선택값을 저장
                     runCatching { userPreferenceManager.saveLastTeamspaceId(selected.id) }
-
-                    // 5) 상단 타이틀 반영
                     _currentTeamspaceName.value = selected.name
 
-                    // 6) 홈 상태 반영
+                    // ✅ 여기서 프로젝트 로드
+                    val projects: List<ProjectSummary> = when (
+                        val p = projectRepository.getTeamspaceProjects(selected.id)
+                    ) {
+                        is DataResult.Success -> p.data
+                        is DataResult.Error -> emptyList() // 실패해도 홈은 그리되, 필요하면 errorMessage로 올려도 됨
+                    }
+
                     _homeUiState.value = UiState.Success(
                         HomeUiModel(
                             isLoading = false,
                             selectedTeamspace = selected,
-                            role = role,
+                            role = Role.MEMBER, // TODO: role 있으면 여기서 계산
                             projects = projects,
                             errorMessage = null
                         )
                     )
                 }
-                is DataResult.Error -> {  // ✅ 이게 없어서 exhaustive 에러 터진거
+
+                is DataResult.Error -> {
                     _currentTeamspaceName.value = ""
                     _homeUiState.value = UiState.Success(
                         HomeUiModel(
@@ -211,11 +208,68 @@ class HomeViewModel @Inject constructor(
     fun createProject(name: String) {
         viewModelScope.launch {
             _createProjectUiState.value = UiState.Loading
-            delay(700)
-            _createProjectUiState.value = UiState.Success(System.currentTimeMillis())
+
+            val teamspaceId = (homeUiState.value as? UiState.Success)
+                ?.data?.selectedTeamspace?.id.orEmpty()
+
+            if (teamspaceId.isBlank()) {
+                _createProjectUiState.value = UiState.Error("팀스페이스가 선택되지 않았습니다", null)
+                return@launch
+            }
+
+            when (val r = projectRepository.createProject(teamspaceId, name)) {
+                is DataResult.Success -> {
+                    _createProjectUiState.value = UiState.Success(System.currentTimeMillis())
+                    loadHome()
+                }
+                is DataResult.Error -> {
+                    _createProjectUiState.value = UiState.Error(
+                        message = r.throwable.message,
+                        throwable = r.throwable
+                    )
+                }
+            }
         }
     }
 
+    fun renameProject(projectId: String, newName: String) {
+        viewModelScope.launch {
+            // 필요하면 별도 UiState 만들고(renameProjectUiState), 지금은 홈 로딩으로 처리해도 됨
+            _homeUiState.value = UiState.Loading
+
+            when (val r = projectRepository.editProjectName(projectId, newName)) {
+                is DataResult.Success -> loadHome()
+                is DataResult.Error -> {
+                    // 로딩 깨고 에러 메시지 반영
+                    val cur = (homeUiState.value as? UiState.Success)?.data
+                    _homeUiState.value = UiState.Success(
+                        (cur ?: HomeUiModel()).copy(
+                            isLoading = false,
+                            errorMessage = r.throwable.message ?: "프로젝트 이름 수정 실패"
+                        )
+                    )
+                }
+            }
+        }
+    }
+    fun deleteProject(projectId: String) {
+        viewModelScope.launch {
+            _homeUiState.value = UiState.Loading
+
+            when (val r = projectRepository.deleteProject(projectId)) {
+                is DataResult.Success -> loadHome()
+                is DataResult.Error -> {
+                    val cur = (homeUiState.value as? UiState.Success)?.data
+                    _homeUiState.value = UiState.Success(
+                        (cur ?: HomeUiModel()).copy(
+                            isLoading = false,
+                            errorMessage = r.throwable.message ?: "프로젝트 삭제 실패"
+                        )
+                    )
+                }
+            }
+        }
+    }
     fun createSong(name: String) {
         viewModelScope.launch {
             _createSongUiState.value = UiState.Loading
@@ -224,6 +278,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun renameProject(projectId: String, newName: String) { /* TODO */ }
-    fun deleteProject(projectId: String) { /* TODO */ }
+
+
 }
