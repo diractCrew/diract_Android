@@ -1,7 +1,6 @@
 package com.baek.diract.presentation.home
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
@@ -18,7 +17,6 @@ import com.baek.diract.R
 import com.baek.diract.databinding.FragmentManageTeamspaceBinding
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.LoadingOverlay
-import com.baek.diract.presentation.common.ToastEvent
 import com.baek.diract.presentation.common.UiState
 import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.baek.diract.presentation.common.dialog.InputDialogFragment
@@ -28,7 +26,6 @@ import com.baek.diract.presentation.common.option.TeamspaceSwitcherPopup
 import com.baek.diract.presentation.common.option.TeamspaceUi
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -44,7 +41,6 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
     private val viewModel: ManageTeamspaceViewModel by viewModels()
     private val loadingOverlay by lazy { LoadingOverlay(this) }
     private val binding get() = _binding!!
-    private var switcherPopup: TeamspaceSwitcherPopup? = null
     private var isKickMode: Boolean = false
     private fun updateKickActionEnabled(enabled: Boolean) {
         binding.actionKickMembers.isEnabled = enabled
