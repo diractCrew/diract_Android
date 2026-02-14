@@ -3,8 +3,8 @@ package com.baek.diract.data.repository
 import android.util.Log
 import com.baek.diract.data.local.TokenManager
 import com.baek.diract.data.remote.api.AuthApi
-import com.baek.diract.data.remote.api.GoogleLoginRequest
 import com.baek.diract.data.remote.api.EditMeRequest
+import com.baek.diract.data.remote.api.GoogleLoginRequest
 import com.baek.diract.data.remote.api.UserApi
 import com.baek.diract.data.remote.dto.toDomain
 import com.baek.diract.domain.common.DataResult
@@ -12,33 +12,37 @@ import com.baek.diract.domain.model.User
 import com.baek.diract.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-import kotlin.text.take
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val userApi: UserApi,
     private val tokenManager: TokenManager,
+    private val firebaseMessaging: FirebaseMessaging,
     // Firebase 의존 — 추후 삭제 예정 (다른 ViewModel에서 getCurrentUser 사용 중)
     private val firebaseAuth: FirebaseAuth
 ) : AuthRepository {
 
+    // 로그인 상태
     private val _isLoggedIn = MutableStateFlow(false)
     override val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
     private val _currentUserInfo = MutableStateFlow<User?>(null)
     override val currentUserInfo: StateFlow<User?> = _currentUserInfo.asStateFlow()
 
+    override fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
+
+    // 인증
+
     // 신규 유저의 토큰을 약관 동의 전까지 메모리에 보관
     private var pendingAccessToken: String? = null
     private var pendingRefreshToken: String? = null
-
-    // Firebase 의존 — 추후 삭제 예정 (다른 ViewModel에서 사용 중)
-    override fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
 
     override suspend fun hasToken(): Boolean {
         val has = tokenManager.accessToken.first() != null
@@ -66,6 +70,7 @@ class AuthRepositoryImpl @Inject constructor(
                     )
                     _isLoggedIn.value = true
                     getMe(forceRefresh = true)
+                    registerFcmToken()
                 }
 
                 DataResult.Success(isNewUser)
@@ -79,6 +84,8 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // 회원가입
+
     override suspend fun savePendingTokens() {
         val accessToken = pendingAccessToken ?: return
         val refreshToken = pendingRefreshToken ?: return
@@ -88,6 +95,7 @@ class AuthRepositoryImpl @Inject constructor(
         pendingAccessToken = null
         pendingRefreshToken = null
         getMe(forceRefresh = true)
+        registerFcmToken()
     }
 
     override suspend fun agreeTerms(): DataResult<User> {
@@ -111,8 +119,28 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateMyName(name: String): DataResult<User> {
+        Log.d(TAG, "updateMyName: 이름 설정 요청 — name=$name")
+        return try {
+            val response = userApi.editMe(EditMeRequest(name = name))
+            if (response.success && response.data != null) {
+                val user = response.data.toDomain()
+                Log.d(TAG, "updateMyName: 성공 — ${user.name}: ${user.userId.take(8)}..")
+                _currentUserInfo.value = user
+                DataResult.Success(user)
+            } else {
+                Log.w(TAG, "updateMyName: 실패 — message=${response.message}")
+                DataResult.Error(Exception(response.message ?: "이름 설정에 실패했습니다."))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "updateMyName: 예외 발생", e)
+            DataResult.Error(e)
+        }
+    }
+
+    // 유저 정보
+
     override suspend fun getMe(forceRefresh: Boolean): DataResult<User> {
-        // 캐시가 있고, 강제 갱신이 아니면 캐시 반환
         val cached = _currentUserInfo.value
         if (cached != null && !forceRefresh) {
             Log.d(TAG, "getMe: 캐시 반환 — ${cached.name}: ${cached.userId.take(8)}..")
@@ -137,24 +165,28 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateMyName(name: String): DataResult<User> {
-        Log.d(TAG, "updateMyName: 이름 설정 요청 — name=$name")
+    override suspend fun registerFcmToken(): DataResult<User> {
+        Log.d(TAG, "registerFcmToken: FCM 토큰 발급 및 서버 등록")
         return try {
-            val response = userApi.editMe(EditMeRequest(name))
+            val token = firebaseMessaging.token.await()
+            Log.d(TAG, "registerFcmToken: 토큰 발급 성공 — ${token.take(20)}...")
+            val response = userApi.editMe(EditMeRequest(fcmToken = token))
             if (response.success && response.data != null) {
                 val user = response.data.toDomain()
-                Log.d(TAG, "updateMyName: 성공 — ${user.name}: ${user.userId.take(8)}..")
+                Log.d(TAG, "registerFcmToken: 서버 등록 성공")
                 _currentUserInfo.value = user
                 DataResult.Success(user)
             } else {
-                Log.w(TAG, "updateMyName: 실패 — message=${response.message}")
-                DataResult.Error(Exception(response.message ?: "이름 설정에 실패했습니다."))
+                Log.w(TAG, "registerFcmToken: 서버 등록 실패 — message=${response.message}")
+                DataResult.Error(Exception(response.message ?: "FCM 토큰 등록에 실패했습니다."))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "updateMyName: 예외 발생", e)
+            Log.e(TAG, "registerFcmToken: 예외 발생", e)
             DataResult.Error(e)
         }
     }
+
+    // 로그아웃 / 탈퇴
 
     override suspend fun logout() {
         Log.d(TAG, "logout: 토큰 삭제")
