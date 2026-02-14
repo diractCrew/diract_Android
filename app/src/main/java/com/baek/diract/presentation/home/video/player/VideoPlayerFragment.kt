@@ -45,6 +45,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.core.graphics.drawable.toDrawable
+import com.baek.diract.presentation.report.ReportDialogFragment
+import com.baek.diract.presentation.report.ReportType
 
 @AndroidEntryPoint
 class VideoPlayerFragment : Fragment() {
@@ -250,7 +252,7 @@ class VideoPlayerFragment : Fragment() {
                 title = getString(R.string.dialog_cancel_writing_comment_title),
                 message = getString(R.string.dialog_cancel_writing_comment_content),
                 positiveText = getString(R.string.dialog_exit),
-                onPositive = { feedbackViewModel.closeReply()}
+                onPositive = { feedbackViewModel.closeReply() }
             ).show()
         } else {
             feedbackViewModel.closeReply()
@@ -420,7 +422,11 @@ class VideoPlayerFragment : Fragment() {
             }
 
             OptionItem.ID_REPORT -> {
-                feedbackViewModel.reportFeedback(feedback.feedbackId)
+                ReportDialogFragment.newInstance(
+                    contentType = ReportType.FEEDBACK,
+                    targetId = feedback.feedbackId,
+                    reportedId = feedback.author.userId ?: ""
+                ).show(childFragmentManager, ReportDialogFragment.TAG)
             }
         }
     }
@@ -662,8 +668,15 @@ class VideoPlayerFragment : Fragment() {
                 renderReplyCommentHeader()
                 showKeyboard(binding.replyView.commentSheet.commentEditTxt)
             }
+
             OptionItem.ID_DELETE -> feedbackViewModel.deleteReply(reply.replyId)
-            OptionItem.ID_REPORT -> feedbackViewModel.reportReply(reply.replyId)
+            OptionItem.ID_REPORT -> {
+                ReportDialogFragment.newInstance(
+                    contentType = ReportType.REPLY,
+                    targetId = reply.replyId,
+                    reportedId = reply.author.userId ?: ""
+                ).show(childFragmentManager, ReportDialogFragment.TAG)
+            }
         }
     }
 
@@ -1516,7 +1529,8 @@ class VideoPlayerFragment : Fragment() {
             SpeedBottomSheetFragment.REQUEST_KEY,
             viewLifecycleOwner
         ) { _, bundle ->
-            val speed = bundle.getFloat(SpeedBottomSheetFragment.RESULT_SPEED, viewModel.playbackSpeed)
+            val speed =
+                bundle.getFloat(SpeedBottomSheetFragment.RESULT_SPEED, viewModel.playbackSpeed)
             viewModel.setPlaybackSpeed(speed)
             player?.setPlaybackSpeed(speed)
         }

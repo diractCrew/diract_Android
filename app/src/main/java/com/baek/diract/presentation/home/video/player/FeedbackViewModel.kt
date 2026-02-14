@@ -123,7 +123,7 @@ class FeedbackViewModel @Inject constructor(
 
     // 구간 선택 완료
     fun completeRangeSelection(currentTimeMs: Long) {
-        if(_rangeStartTime > currentTimeMs){
+        if (_rangeStartTime > currentTimeMs) {
             viewModelScope.launch {
                 _toastMessage.emit(ToastEvent(R.string.toast_set_time_after_start, true))
             }
@@ -436,18 +436,6 @@ class FeedbackViewModel @Inject constructor(
         }
     }
 
-    fun reportFeedback(feedbackId: String) {
-        viewModelScope.launch {
-            when (feedbackRepository.reportFeedback(feedbackId)) {
-                is DataResult.Success -> {
-                }
-
-                is DataResult.Error -> {
-                }
-            }
-        }
-    }
-
     fun isMyFeedback(feedback: FeedbackItem): Boolean {
         return feedback.author.userId == uid
     }
@@ -484,6 +472,7 @@ class FeedbackViewModel @Inject constructor(
                     _replyState.value = UiState.Success(System.currentTimeMillis())
                     _replyItems.value = result.data.map { it.toReplyItem() }
                 }
+
                 is DataResult.Error -> {
                     _replyState.value = UiState.Error(result.throwable.message, result.throwable)
                 }
@@ -530,6 +519,7 @@ class FeedbackViewModel @Inject constructor(
                     loadReplies(target.feedbackId)
                     loadFeedbacks()
                 }
+
                 is DataResult.Error -> {
                     _replyItems.value = _replyItems.value.map { item ->
                         if (item.replyId == tempId) {
@@ -573,15 +563,7 @@ class FeedbackViewModel @Inject constructor(
                     loadReplies(target.feedbackId)
                     loadFeedbacks()
                 }
-                is DataResult.Error -> {}
-            }
-        }
-    }
 
-    fun reportReply(replyId: String) {
-        viewModelScope.launch {
-            when (feedbackRepository.reportReply(replyId)) {
-                is DataResult.Success -> {}
                 is DataResult.Error -> {}
             }
         }
