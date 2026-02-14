@@ -13,10 +13,15 @@ interface UserApi {
     suspend fun getMe(): ApiResponse<UserDto>
 
     @PATCH("api/users/me")
-    suspend fun updateMe(@Body request: UpdateMeRequest): ApiResponse<UserDto>
+    suspend fun editMe(@Body request: EditMeRequest): ApiResponse<UserDto>
 
     @DELETE("api/users/me")
     suspend fun deleteMe(): ApiResponse<Unit>
 }
 
-data class UpdateMeRequest(val name: String)
+data class EditMeRequest(
+    val name: String? = null,
+    val fcmToken: String? = null,
+    val termsAgreed: Boolean? = null,
+    val privacyAgreed: Boolean? = null,
+)

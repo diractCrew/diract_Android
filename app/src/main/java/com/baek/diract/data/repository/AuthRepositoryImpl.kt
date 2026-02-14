@@ -4,7 +4,7 @@ import android.util.Log
 import com.baek.diract.data.local.TokenManager
 import com.baek.diract.data.remote.api.AuthApi
 import com.baek.diract.data.remote.api.GoogleLoginRequest
-import com.baek.diract.data.remote.api.UpdateMeRequest
+import com.baek.diract.data.remote.api.EditMeRequest
 import com.baek.diract.data.remote.api.UserApi
 import com.baek.diract.data.remote.dto.toDomain
 import com.baek.diract.domain.common.DataResult
@@ -90,6 +90,27 @@ class AuthRepositoryImpl @Inject constructor(
         getMe(forceRefresh = true)
     }
 
+    override suspend fun agreeTerms(): DataResult<User> {
+        Log.d(TAG, "agreeTerms: 약관 동의 전송")
+        return try {
+            val response = userApi.editMe(
+                EditMeRequest(termsAgreed = true, privacyAgreed = true)
+            )
+            if (response.success && response.data != null) {
+                val user = response.data.toDomain()
+                Log.d(TAG, "agreeTerms: 성공 — ${user.name}: ${user.userId.take(8)}..")
+                _currentUserInfo.value = user
+                DataResult.Success(user)
+            } else {
+                Log.w(TAG, "agreeTerms: 실패 — message=${response.message}")
+                DataResult.Error(Exception(response.message ?: "약관 동의에 실패했습니다."))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "agreeTerms: 예외 발생", e)
+            DataResult.Error(e)
+        }
+    }
+
     override suspend fun getMe(forceRefresh: Boolean): DataResult<User> {
         // 캐시가 있고, 강제 갱신이 아니면 캐시 반환
         val cached = _currentUserInfo.value
@@ -119,7 +140,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun updateMyName(name: String): DataResult<User> {
         Log.d(TAG, "updateMyName: 이름 설정 요청 — name=$name")
         return try {
-            val response = userApi.updateMe(UpdateMeRequest(name))
+            val response = userApi.editMe(EditMeRequest(name))
             if (response.success && response.data != null) {
                 val user = response.data.toDomain()
                 Log.d(TAG, "updateMyName: 성공 — ${user.name}: ${user.userId.take(8)}..")

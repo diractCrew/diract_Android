@@ -22,8 +22,11 @@ interface AuthRepository {
     // Google ID Token으로 서버 로그인 (서버가 자체 JWT 발급, isNewUser 반환)
     suspend fun loginWithGoogle(idToken: String): DataResult<Boolean>
 
-    // 신규 유저 약관 동의 후 보류 중인 토큰 저장
+    // 신규 유저 약관 동의 후 보류 중인 토큰 저장 및 약관 동의 전송
     suspend fun savePendingTokens()
+
+    // 약관 동의 정보 서버 전송
+    suspend fun agreeTerms(): DataResult<User>
 
     // 내 정보 조회 (캐시 우선, forceRefresh로 서버 갱신)
     suspend fun getMe(forceRefresh: Boolean = false): DataResult<User>
