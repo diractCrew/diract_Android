@@ -77,6 +77,9 @@
     <string name="teamspace_give_owner_failed">팀장 권한 주기를 실패했습니다.</string>
     <string name="teamspace_load_failed">불러오기를 실패했습니다.</string>
     <string name="teamspace_invite">팀에 멤버 초대하기</string>
+    <string name="teamspace_invite_title">팀 스페이스에 팀원을\n 초대해 보세요.</string>
+    <string name="teamspace_invite_message">팀원 태그를 통해 피드백을 주고받을 수 있습니다.</string>
+    <string name="teamspace_invite_later">다음에 하기</string>
     <string name="more">더보기</string>
     <string name="done">완료</string>
     <string name="create_new_teamspace">새 팀 스페이스 만들기</string>
