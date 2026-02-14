@@ -67,7 +67,7 @@ class TermsFragment : Fragment() {
         }
 
         binding.confirmBtn.setOnClickListener {
-            viewModel.savePendingTokens()
+            viewModel.completeSignUp()
             val action = TermsFragmentDirections.actionTermsFragmentToUserSettingFragment()
             findNavController().navigate(action)
         }

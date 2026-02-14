@@ -77,6 +77,7 @@ class LoginFragment : Fragment() {
                 handleSignInResult(result)
             } catch (e: GetCredentialCancellationException) {
                 Log.d(TAG, "사용자가 로그인을 취소함")
+                binding.loginBtn.isEnabled = true
             } catch (e: Exception) {
                 Log.e(TAG, "SignInWithGoogle 실패", e)
                 showFailDialog()

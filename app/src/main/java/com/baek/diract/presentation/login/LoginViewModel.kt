@@ -60,10 +60,11 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    // 약관 동의 후 보류 중인 토큰 저장
-    fun savePendingTokens() {
+    // 회원가입 완료 (토큰 저장 + 약관 동의 전송)
+    fun completeSignUp() {
         viewModelScope.launch {
             authRepository.savePendingTokens()
+            authRepository.agreeTerms()
         }
     }
 

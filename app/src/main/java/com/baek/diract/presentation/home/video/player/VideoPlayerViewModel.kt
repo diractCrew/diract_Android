@@ -25,8 +25,8 @@ class VideoPlayerViewModel @Inject constructor(
     val videoId: String = checkNotNull(savedStateHandle[KEY_VIDEO_ID]) {
         "videoId값 없이 플레이어에 접근이 불가능합니다."
     }
-    val videoTitle: String = savedStateHandle[KEY_VIDEO_TITLE] ?: ""
-    val tracksTitle: String = savedStateHandle[KEY_TRACKS_TITLE] ?: ""
+    val videoTitle: String? = savedStateHandle[KEY_VIDEO_TITLE]
+    val tracksTitle: String? = savedStateHandle[KEY_TRACKS_TITLE]
 
     // 비디오 UI 상태
     private val _videoState = MutableStateFlow<VideoPlayerState>(VideoPlayerState.Initial)

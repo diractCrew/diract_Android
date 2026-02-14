@@ -274,4 +274,21 @@
     <string name="reply_to_format">%s에게 답글 남기는중</string>
     <string name="speed_value">%1$.2f X</string>
 
+
+    <!-- 알림 채널 -->
+    <string name="notification_channel_name">Diract 알림</string>
+    <string name="notification_channel_description">피드백, 댓글 알림</string>
+
+    <!-- 알림 화면 -->
+    <string name="inbox_empty">받은 알림이 없습니다</string>
+    <string name="fail_to_load_notification">알림 불러오기를 실패했습니다.</string>
+
+    <!-- 신고하기 -->
+    <string name="report_title">신고하기</string>
+    <string name="report_reason_prompt">신고 사유를 작성해주세요</string>
+    <string name="report_reason_hint">신고 사유를 입력해 주세요.</string>
+    <string name="report_success">신고가 접수되었습니다.\n조치사항은 로그인 계정으로 안내드리겠습니다.</string>
+    <string name="report_failed">문제가 발생했습니다.</string>
+    <string name="report_discard_title">신고가 저장되지 않았습니다.\n종료하시겠어요?</string>
+    <string name="report_discard_message">신고사유는 저장되지 않습니다.</string>
 </resources>

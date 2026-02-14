@@ -30,6 +30,8 @@ import com.baek.diract.presentation.common.dialog.InputDialogFragment
 import com.baek.diract.presentation.common.option.OptionItem
 import com.baek.diract.presentation.common.option.OptionPopup
 import com.baek.diract.presentation.home.video.move_video.MoveVideoFragment
+import com.baek.diract.presentation.report.ReportDialogFragment
+import com.baek.diract.presentation.report.ReportType
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -339,8 +341,11 @@ class VideoListFragment : Fragment() {
             }
 
             OptionItem.ID_REPORT -> {
-                // TODO: 신고 처리
-                Toast.makeText(requireContext(), "신고: ${video.title}", Toast.LENGTH_SHORT).show()
+                ReportDialogFragment.newInstance(
+                    contentType = ReportType.VIDEO,
+                    targetId = video.id,
+                    reportedId = video.uploaderId
+                ).show(childFragmentManager, ReportDialogFragment.TAG)
             }
         }
     }

@@ -34,4 +34,29 @@
         android:label="fragment_inbox"
         tools:layout="@layout/fragment_inbox" />
     <include app:graph="@navigation/mypage_nav_graph" />
+
+    <!-- 푸시 알림 딥링크용 글로벌 액션 -->
+    <action
+        android:id="@+id/action_global_to_videoPlayerFragment"
+        app:destination="@id/videoPlayerFragment" />
+
+    <fragment
+        android:id="@+id/videoPlayerFragment"
+        android:name="com.baek.diract.presentation.home.video.player.VideoPlayerFragment"
+        android:label="fragment_video_player"
+        tools:layout="@layout/fragment_video_player">
+        <argument
+            android:name="videoId"
+            app:argType="string" />
+        <argument
+            android:name="videoTitle"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="tracksTitle"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
 </navigation>

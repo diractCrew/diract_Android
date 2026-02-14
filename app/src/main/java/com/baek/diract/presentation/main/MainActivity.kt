@@ -1,12 +1,20 @@
 package com.baek.diract.presentation.main
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.baek.diract.R
@@ -16,6 +24,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ -> }
 
     //바텀 네비게이션바 필요한 뷰
     private val bottomDestinations = setOf(
@@ -71,5 +82,59 @@ class MainActivity : AppCompatActivity() {
 
         //초기 인셋 적용
         ViewCompat.requestApplyInsets(binding.navHostFragment)
+
+        requestNotificationPermission()
+        handleDeeplink(intent, navController)
+    }
+
+    // 앱이 이미 실행 중일 때 알림 클릭으로 새 Intent가 들어오는 경우
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        val navHost =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        handleDeeplink(intent, navHost.navController)
+    }
+
+    private fun handleDeeplink(intent: Intent, navController: NavController) {
+        val deeplinkStr = intent.getStringExtra("deeplink") ?: return
+        val uri = Uri.parse(deeplinkStr)
+
+        // dancemachine://video/view?videoId=...&videoTitle=...
+        if (uri.host == "video" && uri.path == "/view") {
+            val videoId = uri.getQueryParameter("videoId") ?: return
+            val videoTitle = uri.getQueryParameter("videoTitle") ?: ""
+
+            val bundle = Bundle().apply {
+                putString("videoId", videoId)
+                putString("videoTitle", videoTitle)
+                putString("tracksTitle", null)
+            }
+            navController.navigate(R.id.action_global_to_videoPlayerFragment, bundle)
+        }
+
+        // 딥링크 처리 후 Intent에서 제거 (중복 처리 방지)
+        intent.removeExtra("deeplink")
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val isGranted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (isGranted) return
+
+        // 이미 한 번 요청했으면 다시 요청하지 않음
+        val prefs = getPreferences(MODE_PRIVATE)
+        val alreadyRequested = prefs.getBoolean(KEY_NOTIFICATION_REQUESTED, false)
+        if (alreadyRequested) return
+
+        prefs.edit().putBoolean(KEY_NOTIFICATION_REQUESTED, true).apply()
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    companion object {
+        private const val KEY_NOTIFICATION_REQUESTED = "notification_permission_requested"
     }
 }
