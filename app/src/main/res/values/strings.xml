@@ -173,4 +173,8 @@
     <string name="reply_to_format">%s에게 답글 남기는중</string>
     <string name="speed_value">%1$.2f X</string>
 
+
+    <!-- 알림 화면 -->
+    <string name="inbox_empty">받은 알림이 없습니다</string>
+    <string name="fail_to_load_notification">알림 불러오기를 실패했습니다.</string>
 </resources>
