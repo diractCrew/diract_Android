@@ -122,6 +122,14 @@
     <string name="song_add_title">곡 추가하기</string>
     <string name="song_name_hint">(예시) SEVENTEEN - 만세</string>
     <string name="song_add_cta">곡 추가하기</string>
+    <string name="toast_song_delete_success">곡이 삭제되었습니다.</string>
+    <string name="toast_song_delete_fail">곡 삭제를 실패했습니다.</string>
+    <string name="toast_project_delete_success">프로젝트 삭제되었습니다.</string>
+    <string name="toast_project_delete_fail">프로젝트 삭제를 실패했습니다.</string>
+    <string name="toast_project_rename_success">프로젝트 이름을 수정했습니다.</string>
+    <string name="toast_project_rename_fail">프로젝트 이름 수정을 실패했습니다.</string>
+    <string name="toast_project_create_fail">프로젝트 만들기를 실패했습니다.</string>
+    <string name="retry">재시도 ↻</string>
 
 
 

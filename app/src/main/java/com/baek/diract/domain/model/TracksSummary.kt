@@ -1,8 +1,6 @@
-package com.baek.diract.data.remote.dto
+package com.baek.diract.domain.model
 
-import com.google.firebase.Timestamp
-
-data class TracksDto(
+data class TracksSummary(
     val tracksId: String,
     val trackName: String,
     val projectId: String,
