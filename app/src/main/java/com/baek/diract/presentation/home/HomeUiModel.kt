@@ -8,6 +8,7 @@ data class HomeUiModel(
     val selectedTeamspace: TeamspaceSummary? = null, // ✅ TeamspaceUi 제거
     val role: Role = Role.MEMBER,
     val projects: List<ProjectSummary> = emptyList(),
+    val tracksCountByProjectId: Map<String, Int> = emptyMap(),
     val errorMessage: String? = null
 ) {
     val hasTeamspace: Boolean get() = selectedTeamspace != null

@@ -8,26 +8,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.PopupMenu
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.baek.diract.R
 import com.baek.diract.databinding.ItemSongListBinding
-import com.baek.diract.domain.model.SongListSummary
+import com.baek.diract.domain.model.TracksSummary
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.MaxLengthInputFilter
 import com.baek.diract.presentation.common.option.OptionItem
 import com.baek.diract.presentation.common.option.OptionPopup
 
-class SongListAdapter(
-    private val onClick: (SongListSummary) -> Unit,
-    private val onDelete: (SongListSummary) -> Unit,
-    private val onRename: (SongListSummary, String) -> Unit,
+class TracksAdapter(
+    private val onClick: (TracksSummary) -> Unit,
+    private val onDelete: (TracksSummary) -> Unit,
+    private val onRename: (TracksSummary, String) -> Unit,
     private val onEditStateChanged: (isEditing: Boolean) -> Unit,
-) : ListAdapter<SongListSummary, SongListAdapter.VH>(DIFF) {
+) : ListAdapter<TracksSummary, TracksAdapter.VH>(DIFF) {
 
     private var editingId: String? = null
     private var editingDraft: String = ""
@@ -58,20 +56,21 @@ class SongListAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.bind(getItem(position))
     }
+
     fun commitEditAndExit(): Boolean {
         val id = editingId ?: return false
 
         val newName = editingDraft.trim()
         if (newName.isNotEmpty()) {
-            // 현재 리스트에서 편집 중 아이템 찾아서 onRename 호출
-            val item = currentList.firstOrNull { it.id == id }
+            // ✅ TracksSummary 기준: trackId로 찾기
+            val item = currentList.firstOrNull { it.tracksId == id }
             if (item != null) onRename(item, newName)
         }
 
-        // 편집 종료 + 상단바 복구 콜백(onEditStateChanged(false))도 여기서 같이 나감
         clearEditMode()
         return true
     }
+
     inner class VH(
         private val binding: ItemSongListBinding
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -79,16 +78,17 @@ class SongListAdapter(
         private var watcher: TextWatcher? = null
         private var ignoreChange = false
 
-        fun bind(item: SongListSummary) = with(binding) {
-            val isEditing = (item.id == editingId)
+        fun bind(item: TracksSummary) = with(binding) {
+            val isEditing = (item.tracksId == editingId)
 
             // ✅ 2카드 토글(새 XML 기준)
             cardViewMode.visibility = if (isEditing) View.GONE else View.VISIBLE
             cardEditSongMode.visibility = if (isEditing) View.VISIBLE else View.GONE
 
             // ---------- 보기 모드 ----------
-            tvTitle.text = item.title
-            tvCount.text = item.projectCount.toString()
+            tvTitle.text = item.trackName
+
+            tvCount.visibility = View.GONE
 
             // 리스너 초기화(재활용 대응)
             cardViewMode.setOnClickListener(null)
@@ -103,7 +103,7 @@ class SongListAdapter(
                     OptionPopup
                         .basicOptions(view.context) { option: OptionItem ->
                             when (option.id) {
-                                OptionItem.ID_EDIT_NAME -> setEditMode(item.id, item.title)
+                                OptionItem.ID_EDIT_NAME -> setEditMode(item.tracksId, item.trackName)
                                 OptionItem.ID_DELETE -> onDelete(item)
                             }
                         }
@@ -185,6 +185,7 @@ class SongListAdapter(
         }
     }
 
+    // (현재 코드에서 사용처 없다면 지워도 됨. 그대로 보존)
     private class LengthFilterWithToast(
         private val max: Int,
         private val onOverflow: () -> Unit
@@ -206,11 +207,11 @@ class SongListAdapter(
     }
 
     companion object {
-        private val DIFF = object : DiffUtil.ItemCallback<SongListSummary>() {
-            override fun areItemsTheSame(oldItem: SongListSummary, newItem: SongListSummary) =
-                oldItem.id == newItem.id
+        private val DIFF = object : DiffUtil.ItemCallback<TracksSummary>() {
+            override fun areItemsTheSame(oldItem: TracksSummary, newItem: TracksSummary) =
+                oldItem.tracksId == newItem.tracksId
 
-            override fun areContentsTheSame(oldItem: SongListSummary, newItem: SongListSummary) =
+            override fun areContentsTheSame(oldItem: TracksSummary, newItem: TracksSummary) =
                 oldItem == newItem
         }
     }

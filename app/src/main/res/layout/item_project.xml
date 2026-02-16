@@ -12,9 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:strokeColor="@android:color/transparent"
-        android:background="@color/fill_normal"
         app:layout_constraintTop_toTopOf="parent"
-        app:cardCornerRadius="14dp">
+        app:cardCornerRadius="14dp"
+        app:cardPreventCornerOverlap="true"
+        app:cardUseCompatPadding="false">
 
         <androidx.constraintlayout.widget.ConstraintLayout
 
@@ -130,30 +131,29 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        app:strokeColor="@android:color/transparent"
         android:visibility="visible"
         app:cardBackgroundColor="@color/fill_normal"
         app:cardCornerRadius="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardProjectItem">
+        app:layout_constraintTop_toBottomOf="@id/cardProjectItem"
+        app:strokeColor="@android:color/transparent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="9dp"
             android:paddingHorizontal="16dp"
-            >
+            android:paddingVertical="9dp">
 
-            <!-- 곡 추가하기 버튼 -->
+            <!-- 1) 곡 추가하기 버튼 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddSong"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:enabled="true"
                 android:text="@string/project_add_song"
-                android:textSize="16sp"
                 android:textAppearance="@style/Headline2.Medium"
+                android:textSize="16sp"
                 android:visibility="visible"
                 app:cornerRadius="7dp"
                 app:icon="@drawable/ic_music_add"
@@ -161,21 +161,66 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-            <!-- 3) 상태: 로딩 -->
 
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/pbSongLoading"
-                android:layout_width="wrap_content"
+            <!-- ========================= -->
+            <!-- 2) 상태: 로딩 (통일) -->
+            <!-- ========================= -->
+            <LinearLayout
+                android:id="@+id/viewTracksLoading"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="18dp"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+                app:layout_constraintTop_toBottomOf="@id/btnAddSong">
 
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/pbSongLoading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
+            <!-- ========================= -->
+            <!-- 3) 상태: 실패 + 재시도 -->
+            <!-- ========================= -->
+            <LinearLayout
+                android:id="@+id/viewTracksError"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingVertical="18dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnAddSong">
+
+                <TextView
+                    android:id="@+id/tvSongError"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/error_load_songs"
+                    android:textColor="@color/label_assistive"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/retry"
+                    android:textColor="@color/accent_red_normal"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- ========================= -->
             <!-- 4) 상태: 곡 없음 -->
+            <!-- ========================= -->
             <TextView
                 android:id="@+id/tvSongEmpty"
                 android:layout_width="0dp"
@@ -187,38 +232,27 @@
                 android:textAppearance="@style/Headline2.Medium"
                 android:textColor="@color/label_assistive"
                 android:textSize="16sp"
-                android:visibility="visible"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
-
-            <!-- 5) 상태: 실패 -->
-            <TextView
-                android:id="@+id/tvSongError"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:text="@string/error_load_songs"
-                android:textColor="@color/label_assistive"
-                android:textSize="14sp"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
 
-            <!-- 6) 상태: 곡 리스트 -->
+            <!-- ========================= -->
+            <!-- 5) 상태: 곡 리스트 -->
+            <!-- ========================= -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvSongs"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:overScrollMode="never"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btnAddSong" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
