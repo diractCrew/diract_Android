@@ -6,5 +6,5 @@ data class SectionDto(
     val tracksId: String,
     val createdAt: String,
     val updatedAt: String,
-    val tracks: List<TrackDto>
+    val tracks: List<TrackSummaryDto>
 )
