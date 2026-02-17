@@ -25,7 +25,6 @@ interface VideoRepository {
         thumbnailUri: Uri,
         title: String,
         duration: Double,
-        uploaderId: String,
         onProgress: ((Int) -> Unit)? = null
     ): DataResult<Unit>
 

@@ -25,6 +25,10 @@ import javax.inject.Singleton
 @Retention(AnnotationRetention.BINARY)
 annotation class AuthRetrofit
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class UploadClient
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -144,6 +148,22 @@ object NetworkModule {
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    // 비디오 업로드 전용 OkHttpClient (JWT 없음, 타임아웃 연장)
+    @Provides
+    @Singleton
+    @UploadClient
+    fun provideUploadClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.HEADERS
+        }
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .build()
     }
 
