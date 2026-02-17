@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.baek.diract.data.local.UserPreferenceManager
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.ProjectSummary
 import com.baek.diract.domain.model.TeamspaceSummary
@@ -27,12 +26,12 @@ class HomeViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val app: Application,
     private val projectRepository: ProjectRepository,
-    private val teamspaceRepository: TeamspaceRepository,
-    private val userPreferenceManager: UserPreferenceManager,
+    private val teamspaceRepository: TeamspaceRepository
 ) : ViewModel() {
 
     private val _teamspaces = MutableStateFlow<List<TeamspaceSummary>>(emptyList())
     val teamspaces = _teamspaces.asStateFlow()
+
     // ✅ 홈 화면 전체 상태
     private val _homeUiState = MutableStateFlow<UiState<HomeUiModel>>(UiState.Loading)
     val homeUiState: StateFlow<UiState<HomeUiModel>> = _homeUiState.asStateFlow()
@@ -47,6 +46,7 @@ class HomeViewModel @Inject constructor(
 
     private val _currentTeamspaceName = MutableStateFlow("")
     val currentTeamspaceName: StateFlow<String> = _currentTeamspaceName.asStateFlow()
+
     /**
      * ✅ "팀스페이스는 있는데 프로젝트 없음" 화면에서만 쓰는 2-step 툴팁
      * 0 -> 1 -> 2(종료)
@@ -62,21 +62,24 @@ class HomeViewModel @Inject constructor(
                 is DataResult.Success -> {
                     _currentTeamspaceName.value = r.data.teamspaceName
                 }
+
                 is DataResult.Error -> {
                     // 실패 시 유지하거나 기본값
                 }
             }
         }
     }
+
     fun selectTeamspace(teamspaceId: String) {
         if (teamspaceId.isBlank()) return
         viewModelScope.launch {
             // 1) lastTeamspaceId 저장
-            runCatching { userPreferenceManager.saveLastTeamspaceId(teamspaceId) }
+            teamspaceRepository.saveLastTeamspaceId(teamspaceId)
             // 2) 홈 다시 로드 (loadHome()가 lastTeamspaceId 기준으로 selected를 다시 잡음)
             loadHome()
         }
     }
+
     fun setProjectTipStep(step: Int) {
         prefs.edit().putInt(KEY_PROJECT_TIP_STEP, step).apply()
         projectTipStep.value = step
@@ -111,15 +114,23 @@ class HomeViewModel @Inject constructor(
     private val _createSongUiState = MutableStateFlow<UiState<Long>>(UiState.None)
     val createSongUiState: StateFlow<UiState<Long>> = _createSongUiState.asStateFlow()
 
-    fun resetCreateTeamspaceUiState() { _createTeamspaceUiState.value = UiState.None }
-    fun resetCreateProjectUiState() { _createProjectUiState.value = UiState.None }
-    fun resetCreateSongUiState() { _createSongUiState.value = UiState.None }
+    fun resetCreateTeamspaceUiState() {
+        _createTeamspaceUiState.value = UiState.None
+    }
+
+    fun resetCreateProjectUiState() {
+        _createProjectUiState.value = UiState.None
+    }
+
+    fun resetCreateSongUiState() {
+        _createSongUiState.value = UiState.None
+    }
 
     fun loadHome() {
         viewModelScope.launch {
             _homeUiState.value = UiState.Loading
 
-            val lastId: String? = userPreferenceManager.lastTeamspaceId.first()
+            val lastId: String? = teamspaceRepository.lastTeamspaceId.first()
 
             when (val result = teamspaceRepository.getMyTeamspaces()) {
                 is DataResult.Success -> {
@@ -127,7 +138,7 @@ class HomeViewModel @Inject constructor(
                     _teamspaces.value = teamspaces
 
                     if (teamspaces.isEmpty()) {
-                        runCatching { userPreferenceManager.clearLastTeamspace() }
+                        teamspaceRepository.clearLastTeamspaceId()
                         _currentTeamspaceName.value = ""
                         _homeUiState.value = UiState.Success(
                             HomeUiModel(
@@ -145,10 +156,7 @@ class HomeViewModel @Inject constructor(
                         ?.let { id -> teamspaces.firstOrNull { it.id == id } }
                         ?: teamspaces.first()
 
-                    if (!lastId.isNullOrBlank() && selected.id != lastId) {
-                        runCatching { userPreferenceManager.clearLastTeamspace() }
-                    }
-                    runCatching { userPreferenceManager.saveLastTeamspaceId(selected.id) }
+                    teamspaceRepository.saveLastTeamspaceId(selected.id)
                     _currentTeamspaceName.value = selected.name
 
                     // ✅ 여기서 프로젝트 로드
@@ -195,6 +203,7 @@ class HomeViewModel @Inject constructor(
                     _createTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
                     loadHome()
                 }
+
                 is DataResult.Error -> {
                     _createTeamspaceUiState.value = UiState.Error(
                         message = result.throwable.message,
@@ -222,6 +231,7 @@ class HomeViewModel @Inject constructor(
                     _createProjectUiState.value = UiState.Success(System.currentTimeMillis())
                     loadHome()
                 }
+
                 is DataResult.Error -> {
                     _createProjectUiState.value = UiState.Error(
                         message = r.throwable.message,
@@ -252,6 +262,7 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
     fun deleteProject(projectId: String) {
         viewModelScope.launch {
             _homeUiState.value = UiState.Loading
@@ -270,6 +281,7 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
     fun createSong(name: String) {
         viewModelScope.launch {
             _createSongUiState.value = UiState.Loading
@@ -277,7 +289,6 @@ class HomeViewModel @Inject constructor(
             _createSongUiState.value = UiState.Success(System.currentTimeMillis())
         }
     }
-
 
 
 }
