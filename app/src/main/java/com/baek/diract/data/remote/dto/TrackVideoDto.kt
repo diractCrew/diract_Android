@@ -1,5 +1,8 @@
 package com.baek.diract.data.remote.dto
 
+import com.baek.diract.domain.model.VideoSummary
+import java.time.OffsetDateTime
+
 data class TrackVideoDto(
     val trackId: String,
     val videoId: String,
@@ -9,4 +12,15 @@ data class TrackVideoDto(
     val videoDuration: Double,
     val createdAt: String,
     val updatedAt: String
+)
+
+fun TrackVideoDto.toVideoSummary(): VideoSummary = VideoSummary(
+    videoId = videoId,
+    title = videoTitle,
+    duration = videoDuration,
+    thumbnailUrl = thumbnailUrl,
+    createdAt = OffsetDateTime.parse(createdAt).toLocalDate(),
+    trackId = trackId,
+    sectionId = sectionId,
+    uploaderId = ""
 )

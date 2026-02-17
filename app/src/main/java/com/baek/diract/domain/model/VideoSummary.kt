@@ -3,7 +3,7 @@ package com.baek.diract.domain.model
 import java.time.LocalDate
 
 data class VideoSummary(
-    val id: String,
+    val videoId: String,
     val title: String,
     val duration: Double, //초단위
     val thumbnailUrl: String,

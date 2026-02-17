@@ -23,7 +23,7 @@ interface SectionApi {
     @GET("api/tracks/{tracksId}/sections")
     suspend fun getSectionList(
         @Path("tracksId") tracksId: String
-    ): ApiResponse<SectionDto>
+    ): ApiResponse<List<SectionDto>>
 
     //섹션(Section) 수정 API
     @PATCH("api/tracks/{tracksId}/sections/{sectionId}")

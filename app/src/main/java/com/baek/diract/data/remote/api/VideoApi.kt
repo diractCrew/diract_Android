@@ -26,7 +26,8 @@ interface VideoApi {
     //비디오 수정 API
     @PATCH("api/videos/{videoId}")
     suspend fun editVideo(
-        @Path("videoId") videoId: String
+        @Path("videoId") videoId: String,
+        @Body request: EditVideoRequest
     ): ApiResponse<VideoDto>
 
     //비디오 삭제 API
@@ -43,3 +44,9 @@ data class CreateVideoRequest(
     val videoDuration: Int
 )
 
+data class EditVideoRequest(
+    val videoTitle: String,
+    val videoUrl: String,
+    val thumbnailUrl: String,
+    val videoDuration: Int
+)

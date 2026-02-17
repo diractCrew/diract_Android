@@ -18,7 +18,7 @@ data class VideoDto(
     val updated_at: Timestamp? = null
 ) {
     fun toSummaryDomain(track_id: String, section_id: String): VideoSummary = VideoSummary(
-        id = video_id,
+        videoId = video_id,
         title = video_title,
         duration = video_duration,
         thumbnailUrl = thumbnail_url,
