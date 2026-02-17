@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.baek.diract.data.local.UserPreferenceManager
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.ProjectSummary
 import com.baek.diract.domain.model.TeamspaceSummary
@@ -106,7 +105,7 @@ class HomeViewModel @Inject constructor(
                 _homeUiState.value = UiState.Loading
             }
 
-            val lastId: String? = userPreferenceManager.lastTeamspaceId.first()
+            val lastId: String? = teamspaceRepository.lastTeamspaceId.first()
 
             when (val result = teamspaceRepository.getMyTeamspaces()) {
                 is DataResult.Success -> {
@@ -114,7 +113,7 @@ class HomeViewModel @Inject constructor(
                     _teamspaces.value = teamspaces
 
                     if (teamspaces.isEmpty()) {
-                        runCatching { userPreferenceManager.clearLastTeamspace() }
+                        teamspaceRepository.clearLastTeamspaceId()
                         _currentTeamspaceName.value = ""
                         _homeUiState.value = UiState.Success(
                             HomeUiModel(
@@ -213,6 +212,7 @@ class HomeViewModel @Inject constructor(
                     _createTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
                     loadHome()
                 }
+
                 is DataResult.Error -> {
                     _createTeamspaceUiState.value = UiState.Error(
                         message = result.throwable.message,
@@ -240,6 +240,7 @@ class HomeViewModel @Inject constructor(
                     _createProjectUiState.value = UiState.Success(System.currentTimeMillis())
                     loadHome()
                 }
+
                 is DataResult.Error -> {
                     _createProjectUiState.value = UiState.Error(
                         message = r.throwable.message,

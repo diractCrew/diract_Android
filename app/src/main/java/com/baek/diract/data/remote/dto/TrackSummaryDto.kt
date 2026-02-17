@@ -1,10 +1,8 @@
 package com.baek.diract.data.remote.dto
 
-data class TrackDto(
+data class TrackSummaryDto(
     val trackId: String,
     val trackName: String,
-    val tracksId: String,
-    val sectionId: String,
     val createdAt: String,
     val updatedAt: String
 )

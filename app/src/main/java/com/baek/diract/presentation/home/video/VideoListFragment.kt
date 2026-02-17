@@ -98,7 +98,7 @@ class VideoListFragment : Fragment() {
             maxLength = 20
         ).apply {
             onConfirm = { newName ->
-                viewModel.editVideoName(video.id, newName)
+                viewModel.editVideoName(video.videoId, newName)
             }
         }
         editNameDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
@@ -281,7 +281,7 @@ class VideoListFragment : Fragment() {
     // 비디오 아이템 클릭 (완료된 비디오만 클릭 가능)
     private fun onVideoItemClick(video: VideoSummary) {
         val action = VideoListFragmentDirections.actionVideoListFragmentToVideoPlayerFragment(
-            videoId = video.id,
+            videoId = video.videoId,
             videoTitle = video.title,
             tracksTitle = viewModel.tracksTitle
         )
@@ -343,7 +343,7 @@ class VideoListFragment : Fragment() {
             OptionItem.ID_REPORT -> {
                 ReportDialogFragment.newInstance(
                     contentType = ReportType.VIDEO,
-                    targetId = video.id,
+                    targetId = video.videoId,
                     reportedId = video.uploaderId
                 ).show(childFragmentManager, ReportDialogFragment.TAG)
             }

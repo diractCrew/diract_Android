@@ -1,6 +1,5 @@
 package com.baek.diract.presentation.home.video
 
-import android.net.Uri
 import com.baek.diract.domain.model.VideoSummary
 
 /*
@@ -12,7 +11,7 @@ sealed class VideoCardItem {
 
     // 서버에서 가져온 완료된 비디오
     data class Completed(val data: VideoSummary) : VideoCardItem() {
-        override val id: String get() = data.id
+        override val id: String get() = data.videoId
         override val sectionId = data.sectionId
     }
 

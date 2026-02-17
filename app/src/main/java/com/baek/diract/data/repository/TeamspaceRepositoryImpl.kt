@@ -1,5 +1,6 @@
 package com.baek.diract.data.repository
 
+import com.baek.diract.data.local.UserPreferenceManager
 import com.baek.diract.data.mapper.toDomain
 import com.baek.diract.data.mapper.toTeamMemberSummary
 import com.baek.diract.data.mapper.toTeamspaceSummary
@@ -12,11 +13,23 @@ import com.baek.diract.domain.model.TeamMemberSummary
 import com.baek.diract.domain.model.TeamspaceDetail
 import com.baek.diract.domain.repository.TeamspaceRepository
 import com.baek.diract.domain.model.TeamspaceSummary
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class TeamspaceRepositoryImpl @Inject constructor(
-    private val teamspaceApi: TeamspaceApi
+    private val teamspaceApi: TeamspaceApi,
+    private val userPreferenceManager: UserPreferenceManager
 ) : TeamspaceRepository {
+
+    override val lastTeamspaceId: Flow<String?> = userPreferenceManager.lastTeamspaceId
+
+    override suspend fun saveLastTeamspaceId(teamspaceId: String) {
+        userPreferenceManager.saveLastTeamspaceId(teamspaceId)
+    }
+
+    override suspend fun clearLastTeamspaceId() {
+        userPreferenceManager.clearLastTeamspace()
+    }
 
     override suspend fun getMyTeamspaces(): DataResult<List<TeamspaceSummary>> {
         return try {
