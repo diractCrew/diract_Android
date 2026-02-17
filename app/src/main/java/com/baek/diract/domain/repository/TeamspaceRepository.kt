@@ -4,8 +4,18 @@ import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.TeamMemberSummary
 import com.baek.diract.domain.model.TeamspaceDetail
 import com.baek.diract.domain.model.TeamspaceSummary
+import kotlinx.coroutines.flow.Flow
 
 interface TeamspaceRepository {
+
+    /** 마지막으로 선택한 팀스페이스 ID */
+    val lastTeamspaceId: Flow<String?>
+
+    /** 마지막 팀스페이스 ID 저장 */
+    suspend fun saveLastTeamspaceId(teamspaceId: String)
+
+    /** 마지막 팀스페이스 ID 초기화 */
+    suspend fun clearLastTeamspaceId()
 
     /** 홈 분기: 내가 속한 팀스페이스 목록(없으면 empty) */
     suspend fun getMyTeamspaces(): DataResult<List<TeamspaceSummary>>
