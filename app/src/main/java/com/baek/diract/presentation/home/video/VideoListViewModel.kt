@@ -492,7 +492,7 @@ class VideoListViewModel @Inject constructor(
     fun deleteVideo(video: VideoSummary) {
         val sectionId = getSelectedSectionId() ?: return
         viewModelScope.launch {
-            when (videoRepository.deleteVideo(tracksId, sectionId, video.trackId, video.id)) {
+            when (videoRepository.deleteVideo(tracksId, sectionId, video.trackId, video.videoId)) {
 
                 is DataResult.Success -> {
                     _toastMessage.emit(ToastEvent(R.string.toast_delete_video, false))

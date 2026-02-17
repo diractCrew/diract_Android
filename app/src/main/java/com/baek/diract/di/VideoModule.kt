@@ -1,7 +1,5 @@
 package com.baek.diract.di
 
-import com.baek.diract.data.datasource.remote.VideoRemoteDataSource
-import com.baek.diract.data.datasource.remote.VideoRemoteDataSourceImpl
 import com.baek.diract.data.remote.api.VideoApi
 import com.baek.diract.data.repository.GalleryRepositoryImpl
 import com.baek.diract.data.repository.VideoRepositoryImpl
@@ -24,12 +22,6 @@ abstract class VideoModule {
     abstract fun bindVideoRepository(
         impl: VideoRepositoryImpl
     ): VideoRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindVideoRemoteDataSource(
-        impl: VideoRemoteDataSourceImpl
-    ): VideoRemoteDataSource
 
     @Binds
     @Singleton
