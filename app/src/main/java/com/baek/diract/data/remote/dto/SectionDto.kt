@@ -4,14 +4,14 @@ import com.baek.diract.domain.model.Section
 
 data class SectionDto(
     val sectionId: String,
-    val sectionName: String,
-    val tracksId: String,
+    val sectionTitle: String,
+    val tracks: List<TrackSummaryDto>,
+    val trackCount: Int,
     val createdAt: String,
-    val updatedAt: String,
-    val tracks: List<TrackSummaryDto>
+    val updatedAt: String
 )
 
 fun SectionDto.toDomain(): Section = Section(
     id = sectionId,
-    title = sectionName
+    title = sectionTitle
 )

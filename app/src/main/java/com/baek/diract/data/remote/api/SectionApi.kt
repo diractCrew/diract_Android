@@ -1,7 +1,6 @@
 package com.baek.diract.data.remote.api
 
 import com.baek.diract.data.remote.dto.ApiResponse
-import com.baek.diract.data.remote.dto.SectionCreateDto
 import com.baek.diract.data.remote.dto.SectionDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -17,7 +16,7 @@ interface SectionApi {
     suspend fun createSection(
         @Path("tracksId") tracksId: String,
         @Body request: CreateSectionRequest
-    ): ApiResponse<SectionCreateDto>
+    ): ApiResponse<SectionDto>
 
     //섹션(Section) 목록 조회 API
     @GET("api/tracks/{tracksId}/sections")
@@ -31,7 +30,7 @@ interface SectionApi {
         @Path("tracksId") tracksId: String,
         @Path("sectionId") sectionId: String,
         @Body request: EditSectionRequest
-    ): ApiResponse<SectionCreateDto>
+    ): ApiResponse<SectionDto>
 
     //섹션(Section) 삭제 API
     @DELETE("api/tracks/{tracksId}/sections/{sectionId}")
@@ -42,9 +41,9 @@ interface SectionApi {
 }
 
 data class CreateSectionRequest(
-    val sectionName: String
+    val sectionTitle: String
 )
 
 data class EditSectionRequest(
-    val sectionName: String
+    val sectionTitle: String
 )
