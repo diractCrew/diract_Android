@@ -28,7 +28,6 @@ class HomeViewModel @Inject constructor(
     private val app: Application,
     private val projectRepository: ProjectRepository,
     private val teamspaceRepository: TeamspaceRepository,
-    private val userPreferenceManager: UserPreferenceManager,
     private val tracksRepository: TracksRepository,
 ) : ViewModel() {
 
@@ -131,7 +130,7 @@ class HomeViewModel @Inject constructor(
                     val selected = lastId?.let { id -> teamspaces.firstOrNull { it.id == id } }
                         ?: teamspaces.first()
 
-                    runCatching { userPreferenceManager.saveLastTeamspaceId(selected.id) }
+                    teamspaceRepository.saveLastTeamspaceId(selected.id)
                     _currentTeamspaceName.value = selected.name
 
                     val projects: List<ProjectSummary> =
@@ -195,7 +194,7 @@ class HomeViewModel @Inject constructor(
     fun selectTeamspace(teamspaceId: String) {
         if (teamspaceId.isBlank()) return
         viewModelScope.launch {
-            runCatching { userPreferenceManager.saveLastTeamspaceId(teamspaceId) }
+            teamspaceRepository.saveLastTeamspaceId(teamspaceId)
             loadHome()
         }
     }
