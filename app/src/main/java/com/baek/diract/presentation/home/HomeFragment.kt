@@ -42,7 +42,10 @@ import kotlin.math.max
 class HomeFragment : Fragment() {
 
     private val prefs by lazy {
-        requireContext().getSharedPreferences("home_onboarding", android.content.Context.MODE_PRIVATE)
+        requireContext().getSharedPreferences(
+            "home_onboarding",
+            android.content.Context.MODE_PRIVATE
+        )
     }
     private val KEY_TEAMSPACE_EMPTY_TIP_SHOWN = "teamspace_empty_tip_shown"
 
@@ -69,6 +72,7 @@ class HomeFragment : Fragment() {
     private var lastTracksTargetProjectId: String? = null
 
     private enum class EditMode { NONE, PROJECT, TRACKS }
+
     private var currentEditMode = EditMode.NONE
 
     private val viewModel: HomeViewModel by viewModels()
@@ -256,14 +260,18 @@ class HomeFragment : Fragment() {
         binding.CreateTeamspaceBar.setOnClickListener { showCreateTeamspaceSheet() }
 
         binding.manageTeamspace.setOnClickListener {
-            val teamspace = (viewModel.homeUiState.value as? UiState.Success)?.data?.selectedTeamspace
+            val teamspace =
+                (viewModel.homeUiState.value as? UiState.Success)?.data?.selectedTeamspace
             if (teamspace == null) return@setOnClickListener
 
             val bundle = Bundle().apply {
                 putString("teamspaceId", teamspace.id)
                 putString("teamspaceName", teamspace.name)
             }
-            findNavController().navigate(R.id.action_homeFragment_to_manageTeamspaceFragment, bundle)
+            findNavController().navigate(
+                R.id.action_homeFragment_to_manageTeamspaceFragment,
+                bundle
+            )
         }
     }
 
@@ -309,44 +317,63 @@ class HomeFragment : Fragment() {
             }
         }
     }
+
     private fun collectRenameProject() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.renameProjectUiState.collect { state ->
                     when (state) {
                         is UiState.Success -> {
-                            CustomToast.showPositive(requireContext(), getString(R.string.toast_project_rename_success))
+                            CustomToast.showPositive(
+                                requireContext(),
+                                getString(R.string.toast_project_rename_success)
+                            )
                             viewModel.resetRenameProjectUiState()
                         }
+
                         is UiState.Error -> {
-                            CustomToast.showNegative(requireContext(), getString(R.string.toast_project_rename_fail))
+                            CustomToast.showNegative(
+                                requireContext(),
+                                getString(R.string.toast_project_rename_fail)
+                            )
                             viewModel.resetRenameProjectUiState()
                         }
+
                         else -> Unit
                     }
                 }
             }
         }
     }
+
     private fun collectDeleteProject() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.deleteProjectUiState.collect { state ->
                     when (state) {
                         is UiState.Success -> {
-                            CustomToast.showPositive(requireContext(), getString(R.string.toast_project_delete_success))
+                            CustomToast.showPositive(
+                                requireContext(),
+                                getString(R.string.toast_project_delete_success)
+                            )
                             viewModel.resetDeleteProjectUiState()
                         }
+
                         is UiState.Error -> {
-                            CustomToast.showNegative(requireContext(), getString(R.string.toast_project_delete_fail))
+                            CustomToast.showNegative(
+                                requireContext(),
+                                getString(R.string.toast_project_delete_fail)
+                            )
                             viewModel.resetDeleteProjectUiState()
                         }
+
                         else -> Unit
                     }
                 }
             }
         }
     }
+
     private fun collectHomeUiState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -404,6 +431,7 @@ class HomeFragment : Fragment() {
                                 createTeamspaceDialog = null
                                 viewModel.resetCreateTeamspaceUiState()
                             }
+
                             is UiState.Error -> {
                                 dialog.showDefault()
                                 CustomToast.showNegative(
@@ -412,6 +440,7 @@ class HomeFragment : Fragment() {
                                 )
                                 viewModel.resetCreateTeamspaceUiState()
                             }
+
                             else -> Unit
                         }
                     }
@@ -430,10 +459,12 @@ class HomeFragment : Fragment() {
                                 createProjectDialog = null
                                 viewModel.resetCreateProjectUiState()
                             }
+
                             is UiState.Error -> {
                                 dialog.showDefault()
                                 viewModel.resetCreateProjectUiState()
                             }
+
                             else -> Unit
                         }
                     }
@@ -453,6 +484,7 @@ class HomeFragment : Fragment() {
                                             tracksByProject[projectId] = list.data.toMutableList()
                                             projectAdapter.setTracks(projectId, list.data)
                                         }
+
                                         else -> Unit
                                     }
                                     lastTracksTargetProjectId = null
@@ -464,10 +496,12 @@ class HomeFragment : Fragment() {
                                 createTracksDialog = null
                                 viewModel.resetCreateTracksUiState()
                             }
+
                             is UiState.Error -> {
                                 dialog.showDefault()
                                 viewModel.resetCreateTracksUiState()
                             }
+
                             else -> Unit
                         }
                     }
@@ -502,6 +536,7 @@ class HomeFragment : Fragment() {
                             tracksByProject[project.id] = res.data.toMutableList()
                             projectAdapter.setTracks(project.id, res.data) // SUCCESS 상태로 바뀜
                         }
+
                         is DataResult.Error -> {
                             projectAdapter.setTracksError(project.id) // 실패 UI
                         }
@@ -518,6 +553,7 @@ class HomeFragment : Fragment() {
                             tracksByProject[project.id] = res.data.toMutableList()
                             projectAdapter.setTracks(project.id, res.data)
                         }
+
                         is DataResult.Error -> {
                             projectAdapter.setTracksError(project.id)
                         }
@@ -525,7 +561,13 @@ class HomeFragment : Fragment() {
                 }
             },
 
-            onTracksClick = { _, _ -> },
+            onTracksClick = { _, tracksSummary ->
+                val action = HomeFragmentDirections.actionHomeFragmentToVideoNavGraph(
+                    tracksId = tracksSummary.tracksId,
+                    tracksTitle = tracksSummary.trackName
+                )
+                findNavController().navigate(action)
+            },
 
             onTracksDelete = { project, track ->
                 BasicDialog.destructive(
@@ -584,7 +626,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun renderHasTeamspace(hasTeamspace: Boolean) {
-        binding.CreateTeamspaceFirstLayout.visibility = if (hasTeamspace) View.GONE else View.VISIBLE
+        binding.CreateTeamspaceFirstLayout.visibility =
+            if (hasTeamspace) View.GONE else View.VISIBLE
         binding.CreateProjectFirstLayout.visibility = if (hasTeamspace) View.VISIBLE else View.GONE
 
         val shouldShowTip = !hasTeamspace && !hasShownTeamspaceEmptyTip()
@@ -663,6 +706,7 @@ class HomeFragment : Fragment() {
         }
         createProjectDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
     }
+
     private fun collectDeleteTracks() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {

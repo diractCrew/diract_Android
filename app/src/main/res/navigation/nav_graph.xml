@@ -16,12 +16,16 @@
         <action
             android:id="@+id/action_homeFragment_to_manageTeamspaceFragment"
             app:destination="@id/manageTeamspaceFragment" />
-        <!--
-            TODO: 추후 네비게이션 home에서 연결할 때 주석 제거
         <action
             android:id="@+id/action_homeFragment_to_video_nav_graph"
-            app:destination="@id/videoListFragment" />
-        -->
+            app:destination="@id/video_nav_graph">
+            <argument
+                android:name="tracksId"
+                app:argType="string" />
+            <argument
+                android:name="tracksTitle"
+                app:argType="string" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/manageTeamspaceFragment"
@@ -59,4 +63,5 @@
             app:argType="string"
             app:nullable="true" />
     </fragment>
+    <include app:graph="@navigation/video_nav_graph" />
 </navigation>
