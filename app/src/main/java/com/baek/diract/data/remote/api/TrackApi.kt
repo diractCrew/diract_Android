@@ -2,6 +2,7 @@ package com.baek.diract.data.remote.api
 
 import com.baek.diract.data.remote.dto.ApiResponse
 import com.baek.diract.data.remote.dto.TrackDto
+import com.baek.diract.data.remote.dto.TrackVideoDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -24,7 +25,7 @@ interface TrackApi {
     suspend fun getTrackList(
         @Path("tracksId") tracksId: String,
         @Path("sectionId") sectionId: String,
-    ): ApiResponse<TrackDto>
+    ): ApiResponse<List<TrackVideoDto>>
 
     //트랙(Track) 수정 API
     @PATCH("api/tracks/{tracksId}/sections/{sectionId}/track/{trackId}")
@@ -45,9 +46,9 @@ interface TrackApi {
 }
 
 data class CreateTrackRequest(
-    val trackName: String
+    val videoId: String
 )
 
 data class EditTrackRequest(
-    val trackName: String
+    val videoId: String
 )
