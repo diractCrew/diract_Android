@@ -10,11 +10,18 @@ import java.util.Locale
 
 object Formatter {
     private val LOCALIZED_DATE_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
-        .withLocale(Locale.getDefault())
 
     private val STANDARD_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.mm.dd")
     fun LocalDate.toUiString(): String {
         return this.format(LOCALIZED_DATE_FORMATTER)
+    }
+
+    fun LocalDateTime.toUiString(): String {
+        val formatter = DateTimeFormatter
+            .ofLocalizedDate(FormatStyle.LONG)
+            .withLocale(Locale.getDefault())
+
+        return this.format(formatter)
     }
 
     fun Double.toTimeString(): String {
