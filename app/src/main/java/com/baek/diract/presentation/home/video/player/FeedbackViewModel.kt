@@ -105,8 +105,8 @@ class FeedbackViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             teamspaceId = teamspaceRepository.lastTeamspaceId.first() ?: ""
-            loadFeedbacks()
             loadTeamMembers()
+            loadFeedbacks()
         }
     }
 
@@ -183,14 +183,12 @@ class FeedbackViewModel @Inject constructor(
         멘션 관련
      */
 
-    private fun loadTeamMembers() {
-        viewModelScope.launch {
-            when (val result = teamspaceRepository.getMembers(teamspaceId)) {
-                is DataResult.Success -> {
-                    _teamMembers.value = result.data
-                }
-                is DataResult.Error -> {}
+    private suspend fun loadTeamMembers() {
+        when (val result = teamspaceRepository.getMembers(teamspaceId)) {
+            is DataResult.Success -> {
+                _teamMembers.value = result.data
             }
+            is DataResult.Error -> {}
         }
     }
 
@@ -316,7 +314,14 @@ class FeedbackViewModel @Inject constructor(
                 is DataResult.Success -> {
                     _feedbackState.value = UiState.Success(System.currentTimeMillis())
                     feedbacks.value = result.data
-                    _feedbackItem.value = result.data.map { it.toUiItem() }
+                    val uiItems = result.data.map { it.toUiItem() }
+                    _feedbackItem.value = uiItems
+
+                    // 답글 화면이 열려있으면 replyTarget도 갱신
+                    val targetId = _replyTarget.value?.feedbackId
+                    if (targetId != null) {
+                        _replyTarget.value = uiItems.find { it.feedbackId == targetId }
+                    }
                 }
 
                 is DataResult.Error -> {
