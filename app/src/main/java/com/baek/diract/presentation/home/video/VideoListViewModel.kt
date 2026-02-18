@@ -447,10 +447,9 @@ class VideoListViewModel @Inject constructor(
     }
 
     fun getVideoType(item: VideoSummary): VideoType {
-        val isUploader = item.uploaderId == authRepository.getCurrentUser()?.uid
         val hasNoPart = _sections.value.size <= 1
-        return when {
-            !isUploader -> VideoType.OTHER_USER_VIDEO
+        return when (item.isMyVideo) {
+            false -> VideoType.OTHER_USER_VIDEO
             hasNoPart -> VideoType.MY_VIDEO_NO_PART
             else -> VideoType.MY_VIDEO_DEFAULT
         }

@@ -344,7 +344,7 @@ class VideoListFragment : Fragment() {
                 ReportDialogFragment.newInstance(
                     contentType = ReportType.VIDEO,
                     targetId = video.videoId,
-                    reportedId = video.uploaderId
+                    reportedId = null
                 ).show(childFragmentManager, ReportDialogFragment.TAG)
             }
         }

@@ -32,7 +32,7 @@ import com.baek.diract.R
 import com.baek.diract.databinding.FragmentVideoPlayerBinding
 import com.baek.diract.presentation.common.Formatter.toTimeAgoString
 import com.baek.diract.presentation.common.Formatter.toTimeString
-import com.baek.diract.domain.model.FeedbackUser
+import com.baek.diract.domain.model.TeamMemberSummary
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.LoadingOverlay
 import com.baek.diract.presentation.common.UiState
@@ -425,7 +425,7 @@ class VideoPlayerFragment : Fragment() {
                 ReportDialogFragment.newInstance(
                     contentType = ReportType.FEEDBACK,
                     targetId = feedback.feedbackId,
-                    reportedId = feedback.author.userId ?: ""
+                    reportedId = feedback.author.id
                 ).show(childFragmentManager, ReportDialogFragment.TAG)
             }
         }
@@ -669,12 +669,12 @@ class VideoPlayerFragment : Fragment() {
                 showKeyboard(binding.replyView.commentSheet.commentEditTxt)
             }
 
-            OptionItem.ID_DELETE -> feedbackViewModel.deleteReply(reply.replyId)
+            OptionItem.ID_DELETE -> feedbackViewModel.deleteReply(reply.feedbackId, reply.replyId)
             OptionItem.ID_REPORT -> {
                 ReportDialogFragment.newInstance(
                     contentType = ReportType.REPLY,
                     targetId = reply.replyId,
-                    reportedId = reply.author.userId ?: ""
+                    reportedId = reply.author.id
                 ).show(childFragmentManager, ReportDialogFragment.TAG)
             }
         }
@@ -758,7 +758,7 @@ class VideoPlayerFragment : Fragment() {
         }
     }
 
-    private fun onReplyMentionSelected(member: FeedbackUser) {
+    private fun onReplyMentionSelected(member: TeamMemberSummary) {
         val editText = binding.replyView.commentSheet.commentEditTxt
         val text = editText.text ?: return
 
@@ -807,11 +807,9 @@ class VideoPlayerFragment : Fragment() {
                     R.layout.item_added_mention_chip, mentionChipGroup, false
                 ) as Chip
                 chip.text = "@${user.name}"
-                chip.tag = user.userId
+                chip.tag = user.id
                 chip.setOnCloseIconClickListener {
-                    feedbackViewModel.removeReplyMention(
-                        user.userId ?: return@setOnCloseIconClickListener
-                    )
+                    feedbackViewModel.removeReplyMention(user.id)
                     renderReplyMentionChips()
                 }
                 mentionChipGroup.addView(chip)
@@ -954,7 +952,7 @@ class VideoPlayerFragment : Fragment() {
         }
     }
 
-    private fun onMentionSelected(member: FeedbackUser) {
+    private fun onMentionSelected(member: TeamMemberSummary) {
         val editText = binding.feedbackView.commentSheet.commentEditTxt
         val text = editText.text ?: return
 
@@ -972,7 +970,7 @@ class VideoPlayerFragment : Fragment() {
         hideMentionList()
     }
 
-    private fun addMentionChip(member: FeedbackUser) {
+    private fun addMentionChip(member: TeamMemberSummary) {
         feedbackViewModel.addMention(member)
         renderMentionChips()
     }
@@ -1010,11 +1008,9 @@ class VideoPlayerFragment : Fragment() {
                     R.layout.item_added_mention_chip, mentionChipGroup, false
                 ) as Chip
                 chip.text = "@${user.name}"
-                chip.tag = user.userId
+                chip.tag = user.id
                 chip.setOnCloseIconClickListener {
-                    feedbackViewModel.removeMention(
-                        user.userId ?: return@setOnCloseIconClickListener
-                    )
+                    feedbackViewModel.removeMention(user.id)
                     renderMentionChips()
                 }
                 mentionChipGroup.addView(chip)
