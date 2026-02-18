@@ -11,12 +11,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class TrackModule {
-    //TODO: TrackRepository 따로 생성 시 주석 제거
-//    @Binds
-//    @Singleton
-//    abstract fun bindTrackRepository(
-//        impl: TrackRepositoryImpl
-//    ): TrackRepository
 
     companion object {
         @Provides

@@ -13,14 +13,3 @@ data class TracksDto(
     val createdAt: String,
     val updatedAt: String
 )
-
-fun TracksDto.toDomain(): TracksSummary = TracksSummary(
-    tracksId = tracksId,
-    trackName = trackName,
-    projectId = projectId,
-    projectName = projectName,
-    creatorId = creatorId,
-    creatorName = creatorName,
-    createdAt = createdAt,
-    updatedAt = updatedAt
-)
