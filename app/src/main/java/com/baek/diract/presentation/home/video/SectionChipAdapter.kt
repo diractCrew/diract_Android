@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.baek.diract.R
 import com.baek.diract.databinding.ItemSectionChipBinding
 import com.baek.diract.databinding.ItemSetSectionChipBinding
 
@@ -58,7 +59,11 @@ class SectionChipAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: SectionChipItem.SectionUi) {
-            binding.root.text = item.name
+            binding.root.text = if (item.isDefault) {
+                binding.root.context.getString(R.string.section_default_name)
+            } else {
+                item.name
+            }
             binding.root.isSelected = item.isSelected
             binding.root.setOnClickListener {
                 onSectionClick(item)

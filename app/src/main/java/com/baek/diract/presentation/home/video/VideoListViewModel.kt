@@ -95,10 +95,11 @@ class VideoListViewModel @Inject constructor(
     ) { sections, selectedId ->
         buildList {
             add(SectionChipItem.SetSection)
-            addAll(sections.map { section ->
+            addAll(sections.mapIndexed { index, section ->
                 SectionChipItem.SectionUi(
                     id = section.id,
                     name = section.title,
+                    isDefault = index == 0,
                     isSelected = section.id == selectedId
                 )
             })
