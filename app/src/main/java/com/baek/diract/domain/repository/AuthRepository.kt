@@ -2,7 +2,6 @@ package com.baek.diract.domain.repository
 
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.User
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.StateFlow
 
 interface AuthRepository {
@@ -10,9 +9,6 @@ interface AuthRepository {
     // 로그인 상태
     val isLoggedIn: StateFlow<Boolean>
     val currentUserInfo: StateFlow<User?>
-
-    // TODO: 현재 로그인된 사용자 조회 (Firebase 의존 — 추후 삭제 예정)
-    fun getCurrentUser(): FirebaseUser?
 
     //  인증
     suspend fun hasToken(): Boolean
