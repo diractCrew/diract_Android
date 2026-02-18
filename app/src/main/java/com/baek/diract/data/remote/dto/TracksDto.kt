@@ -1,5 +1,6 @@
 package com.baek.diract.data.remote.dto
 
+import com.baek.diract.domain.model.TracksSummary
 import com.google.firebase.Timestamp
 
 data class TracksDto(
@@ -11,4 +12,15 @@ data class TracksDto(
     val creatorName: String,
     val createdAt: String,
     val updatedAt: String
+)
+
+fun TracksDto.toDomain(): TracksSummary = TracksSummary(
+    tracksId = tracksId,
+    trackName = trackName,
+    projectId = projectId,
+    projectName = projectName,
+    creatorId = creatorId,
+    creatorName = creatorName,
+    createdAt = createdAt,
+    updatedAt = updatedAt
 )
