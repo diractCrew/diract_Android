@@ -27,8 +27,7 @@ class ReportViewModel @Inject constructor(
     val targetId: String = savedStateHandle.get<String>(ARG_TARGET_ID)
         ?: throw IllegalArgumentException("targetId is required")
 
-    val reportedId: String = savedStateHandle.get<String>(ARG_REPORTED_ID)
-        ?: throw IllegalArgumentException("reportedId is required")
+    val reportedId: String? = savedStateHandle.get<String>(ARG_REPORTED_ID)
 
     private val _reportState = MutableStateFlow<UiState<Unit>>(UiState.None)
     val reportState: StateFlow<UiState<Unit>> = _reportState.asStateFlow()
@@ -37,6 +36,9 @@ class ReportViewModel @Inject constructor(
     val toastEvent: SharedFlow<ToastEvent> = _toastEvent.asSharedFlow()
 
     fun submitReport(description: String) {
+        if (reportedId == null) {
+            //TODO: 비디오 일 때, authorId = null 임 -> video정보 가져와서 신고하도록
+        }
         viewModelScope.launch {
             _reportState.value = UiState.Loading
             // TODO: Repository를 통해 신고 API 호출
