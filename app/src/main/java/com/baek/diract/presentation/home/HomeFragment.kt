@@ -70,7 +70,7 @@ class HomeFragment : Fragment() {
 
     private enum class EditMode { NONE, PROJECT, TRACKS }
     private var currentEditMode = EditMode.NONE
-
+    private var inviteSheetShown = false
     private val viewModel: HomeViewModel by viewModels()
 
     // ✅ “프로젝트별 tracks 캐시”(HomeFragment가 관리)
@@ -398,11 +398,18 @@ class HomeFragment : Fragment() {
                         when (state) {
                             is UiState.Loading -> dialog.showLoading()
                             is UiState.Success -> {
+                                val created = state.data               // TeamspaceSummary
+                                val newTeamspaceId = created.id
+
                                 dialog.showComplete()
                                 delay(800)
                                 dialog.dismissAllowingStateLoss()
                                 createTeamspaceDialog = null
                                 viewModel.resetCreateTeamspaceUiState()
+
+                                TeamspaceInviteBottomSheet
+                                    .newInstance(newTeamspaceId)
+                                    .show(parentFragmentManager, "TeamspaceInviteBottomSheet")
                             }
                             is UiState.Error -> {
                                 dialog.showDefault()
@@ -637,6 +644,7 @@ class HomeFragment : Fragment() {
     // create dialogs
     // =========================
     private fun showCreateTeamspaceSheet() {
+        inviteSheetShown = false
         viewModel.resetCreateTeamspaceUiState()
         createTeamspaceDialog = InputDialogFragment.newInstance(
             title = getString(R.string.teamspace_create_title),

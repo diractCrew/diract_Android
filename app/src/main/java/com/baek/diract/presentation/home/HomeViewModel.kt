@@ -74,8 +74,10 @@ class HomeViewModel @Inject constructor(
     // =========================
     // Dialog UiState
     // =========================
-    private val _createTeamspaceUiState = MutableStateFlow<UiState<Long>>(UiState.None)
-    val createTeamspaceUiState: StateFlow<UiState<Long>> = _createTeamspaceUiState.asStateFlow()
+    private val _createTeamspaceUiState =
+        MutableStateFlow<UiState<TeamspaceSummary>>(UiState.None)
+    val createTeamspaceUiState: StateFlow<UiState<TeamspaceSummary>> =
+        _createTeamspaceUiState.asStateFlow()
 
     private val _createProjectUiState = MutableStateFlow<UiState<Long>>(UiState.None)
     val createProjectUiState: StateFlow<UiState<Long>> = _createProjectUiState.asStateFlow()
@@ -208,7 +210,12 @@ class HomeViewModel @Inject constructor(
 
             when (val result = teamspaceRepository.createTeamspace(name)) {
                 is DataResult.Success -> {
-                    _createTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
+                    val created = result.data // TeamspaceSummary
+                    _createTeamspaceUiState.value = UiState.Success(created)
+
+                    // ✅ 방금 만든 팀스페이스를 선택 상태로 만들고 싶으면(추천)
+                    teamspaceRepository.saveLastTeamspaceId(created.id)
+
                     loadHome()
                 }
 
