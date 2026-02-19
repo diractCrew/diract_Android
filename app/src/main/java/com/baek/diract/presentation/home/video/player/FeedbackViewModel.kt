@@ -96,7 +96,8 @@ class FeedbackViewModel @Inject constructor(
     val isReplyMentioning: Boolean get() = _isReplyMentioning
 
     private val _replySelectedMentions = MutableStateFlow<List<TeamMemberSummary>>(emptyList())
-    val replySelectedMentions: StateFlow<List<TeamMemberSummary>> = _replySelectedMentions.asStateFlow()
+    val replySelectedMentions: StateFlow<List<TeamMemberSummary>> =
+        _replySelectedMentions.asStateFlow()
 
     // 수정 중인 답글
     private var _editingReply: ReplyItem? = null
@@ -188,6 +189,7 @@ class FeedbackViewModel @Inject constructor(
             is DataResult.Success -> {
                 _teamMembers.value = result.data
             }
+
             is DataResult.Error -> {}
         }
     }
@@ -423,7 +425,13 @@ class FeedbackViewModel @Inject constructor(
     fun editFeedback(feedbackId: String, newContent: String, startTime: Double, endTime: Double?) {
         val tagged = selectedMentions.value.map { it.id }
         viewModelScope.launch {
-            when (feedbackRepository.editFeedback(feedbackId, newContent, startTime, endTime, tagged)) {
+            when (feedbackRepository.editFeedback(
+                feedbackId,
+                newContent,
+                startTime,
+                endTime,
+                tagged
+            )) {
                 is DataResult.Success -> {
                     loadFeedbacks()
                 }
@@ -497,7 +505,13 @@ class FeedbackViewModel @Inject constructor(
         val tempId = "temp_${System.currentTimeMillis()}"
 
         val taggedUsers = _replySelectedMentions.value
-        val taggedUserIds = taggedUsers.map { it.id }
+        val replyTo = _replyToUser.value
+        val taggedUserIds = buildList {
+            addAll(taggedUsers.map { it.id })
+            if (replyTo != null && none { it == replyTo.id }) {
+                add(replyTo.id)
+            }
+        }
 
         val tempItem = ReplyItem(
             replyId = tempId,
