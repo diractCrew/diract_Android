@@ -9,7 +9,7 @@ import com.baek.diract.databinding.FragmentTeamspaceInviteBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
-
+import com.baek.diract.R
 
 @AndroidEntryPoint
 class TeamspaceInviteBottomSheet : BottomSheetDialogFragment() {
