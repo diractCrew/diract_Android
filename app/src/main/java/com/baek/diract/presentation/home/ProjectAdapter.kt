@@ -181,19 +181,16 @@ class ProjectAdapter(
                     val tracks = tracksByProjectId[item.id] ?: emptyList()
                     val hasTracks = tracks.isNotEmpty()
 
-                    // 버튼은 항상 보여주되, 로딩 중엔 비활성
                     btnAddSong.visibility = View.VISIBLE
-                    btnAddSong.isEnabled = (state != TracksLoadState.LOADING)
-
-                    btnAddSong.backgroundTintList = ContextCompat.getColorStateList(
-                        root.context,
-                        if (hasTracks) R.color.fill_assistive else R.color.secondary_strong
-                    )
                     btnAddSong.setOnClickListener { boundProject?.let(onAddTracks) }
 
-                    // ✅ 상태 UI 토글
                     when (state) {
                         TracksLoadState.LOADING -> {
+                            // ✅ 로딩 중: 무조건 회색 + 비활성
+                            btnAddSong.isEnabled = false
+                            btnAddSong.backgroundTintList =
+                                ContextCompat.getColorStateList(root.context, R.color.fill_assistive)
+
                             pbSongLoading.visibility = View.VISIBLE
                             tvSongError.visibility = View.GONE
                             tvSongEmpty.visibility = View.GONE
@@ -202,17 +199,32 @@ class ProjectAdapter(
                         }
 
                         TracksLoadState.ERROR -> {
+                            // ✅ 에러: 일단 버튼은 활성(원하면 비활성도 가능)
+                            btnAddSong.isEnabled = true
+                            btnAddSong.backgroundTintList =
+                                ContextCompat.getColorStateList(
+                                    root.context,
+                                    if (hasTracks) R.color.fill_assistive else R.color.secondary_strong
+                                )
+
                             pbSongLoading.visibility = View.GONE
                             tvSongError.visibility = View.VISIBLE
                             tvSongEmpty.visibility = View.GONE
                             rvSongs.visibility = View.GONE
                             tracksAdapter.submitList(emptyList())
 
-                            // ✅ “재시도” 클릭
                             tvSongError.setOnClickListener { boundProject?.let(onRetryTracks) }
                         }
 
                         else -> {
+                            // ✅ 성공/기본: 기존 정책 유지
+                            btnAddSong.isEnabled = true
+                            btnAddSong.backgroundTintList =
+                                ContextCompat.getColorStateList(
+                                    root.context,
+                                    if (hasTracks) R.color.fill_assistive else R.color.secondary_strong
+                                )
+
                             pbSongLoading.visibility = View.GONE
                             tvSongError.visibility = View.GONE
                             tvSongEmpty.visibility = if (hasTracks) View.GONE else View.VISIBLE
@@ -220,7 +232,9 @@ class ProjectAdapter(
                             tracksAdapter.submitList(tracks)
                         }
                     }
-                } else {
+
+
+            } else {
                     // 접힘 상태는 항상 비움 (재활용 방지)
                     pbSongLoading.visibility = View.GONE
                     tvSongError.visibility = View.GONE

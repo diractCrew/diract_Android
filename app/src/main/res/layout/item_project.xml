@@ -152,6 +152,8 @@
                 android:layout_height="48dp"
                 android:enabled="true"
                 android:text="@string/project_add_song"
+                android:backgroundTint="@color/action_btn_bg_selector"
+                android:textColor="@color/action_btn_text_selector"
                 android:textAppearance="@style/Headline2.Medium"
                 android:textSize="16sp"
                 android:visibility="visible"
