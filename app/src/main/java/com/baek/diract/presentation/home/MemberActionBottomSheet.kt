@@ -16,12 +16,15 @@ class MemberActionBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomsheetMemberActionsBinding? = null
     private val binding get() = _binding!!
 
-    // ✅ arguments 키를 상수로 통일해서 읽기
-    private val memberId by lazy { requireArguments().getString(ARG_ID).orEmpty() }
-    private val memberName by lazy { requireArguments().getString(ARG_NAME).orEmpty() }
+    // args
+    private val teamspaceId: String by lazy { requireArguments().getString(ARG_TEAMSPACE_ID).orEmpty() }
+    private val memberId: String by lazy { requireArguments().getString(ARG_MEMBER_ID).orEmpty() }
+    private val memberName: String by lazy { requireArguments().getString(ARG_MEMBER_NAME).orEmpty() }
 
-    // ✅ Fragment로 전달할 콜백
+    // callbacks
     private var onKickClick: ((String, String) -> Unit)? = null
+    private var onGiveLeaderClick: ((String, String) -> Unit)? = null
+    // (teamspaceId, memberId) 형태로 쓰고 싶으면 여기 타입 바꿔도 됨
 
     private enum class LeaderState { IDLE, LOADING, SUCCESS }
 
@@ -42,24 +45,36 @@ class MemberActionBottomSheet : BottomSheetDialogFragment() {
         renderLeaderState(LeaderState.IDLE)
 
         btnGiveLeader.setOnClickListener {
+            // 여기서 실제 API 호출은 Fragment/VM 쪽으로 던지는게 깔끔함
             renderLeaderState(LeaderState.LOADING)
 
-            view.postDelayed({
-                val success = true
-                if (success) {
-                    renderLeaderState(LeaderState.SUCCESS)
-                } else {
-                    Snackbar.make(requireView(), "팀장 권한 주기를 실패했습니다.", Snackbar.LENGTH_SHORT).show()
-                    renderLeaderState(LeaderState.IDLE)
-                }
-            }, 800)
+            onGiveLeaderClick?.invoke(teamspaceId, memberId)
+            // 성공/실패 결과에 따라 아래 함수를 밖에서 다시 호출해주면 됨
         }
 
-        // ✅ 여기만 핵심 변경: 이미 계산된 memberId/memberName 그대로 콜백
         tvKick.setOnClickListener {
             dismiss()
             onKickClick?.invoke(memberId, memberName)
         }
+    }
+
+    /** 외부(프래그먼트)에서 호출해서 UI 갱신 */
+    fun showLeaderLoading() {
+        if (_binding == null) return
+        renderLeaderState(LeaderState.LOADING)
+    }
+
+    fun showLeaderSuccessAndClose() {
+        if (_binding == null) return
+        renderLeaderState(LeaderState.SUCCESS)
+        // 잠깐 체크 보여주고 닫고 싶으면 postDelayed로 처리
+        binding.root.postDelayed({ dismissAllowingStateLoss() }, 600)
+    }
+
+    fun showLeaderFail(message: String) {
+        if (_binding == null) return
+        Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show()
+        renderLeaderState(LeaderState.IDLE)
     }
 
     private fun renderLeaderState(state: LeaderState) = with(binding) {
@@ -82,23 +97,26 @@ class MemberActionBottomSheet : BottomSheetDialogFragment() {
     override fun getTheme(): Int = R.style.ThemeOverlay_Diract_BottomSheetDialog
 
     companion object {
-        private const val ARG_ID = "arg_id"
-        private const val ARG_NAME = "arg_name"
+        private const val ARG_TEAMSPACE_ID = "arg_teamspace_id"
+        private const val ARG_MEMBER_ID = "arg_member_id"
+        private const val ARG_MEMBER_NAME = "arg_member_name"
 
         fun newInstance(
+            teamspaceId: String,
             memberId: String,
             memberName: String,
+            onGiveLeaderClick: (String, String) -> Unit,
             onKickClick: (String, String) -> Unit
         ): MemberActionBottomSheet {
             return MemberActionBottomSheet().apply {
                 arguments = bundleOf(
-                    ARG_ID to memberId,
-                    ARG_NAME to memberName
+                    ARG_TEAMSPACE_ID to teamspaceId,
+                    ARG_MEMBER_ID to memberId,
+                    ARG_MEMBER_NAME to memberName
                 )
+                this.onGiveLeaderClick = onGiveLeaderClick
                 this.onKickClick = onKickClick
             }
-
         }
-
     }
 }

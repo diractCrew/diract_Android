@@ -7,6 +7,7 @@ import com.baek.diract.data.mapper.toTeamspaceSummary
 import com.baek.diract.data.remote.api.AddMemberRequest
 import com.baek.diract.data.remote.api.CreateTeamspaceRequest
 import com.baek.diract.data.remote.api.TeamspaceApi
+import com.baek.diract.data.remote.api.TransferOwnerRequest
 import com.baek.diract.data.remote.api.UpdateTeamspaceRequest
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.TeamMemberSummary
@@ -145,8 +146,18 @@ class TeamspaceRepositoryImpl @Inject constructor(
         }
     }
     override suspend fun transferLeader(teamspaceId: String, newLeaderId: String): DataResult<Unit> {
-        return DataResult.Error(NotImplementedError("transferLeader API 스펙 필요"))
+        return try {
+            val res = teamspaceApi.transferOwnership(
+                teamspaceId = teamspaceId,
+                request = TransferOwnerRequest(newOwnerId = newLeaderId)
+            )
+            if (res.success) DataResult.Success(Unit)
+            else DataResult.Error(IllegalStateException(res.message ?: "팀장 위임 실패"))
+        } catch (e: Exception) {
+            DataResult.Error(e)
+        }
     }
+
 
     override suspend fun leaveTeamspace(teamspaceId: String, userId: String): DataResult<Unit> {
         android.util.Log.e("TeamspaceApi", "ENTER leaveTeamspace teamspaceId=$teamspaceId userId=$userId")

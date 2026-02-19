@@ -80,13 +80,19 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         TeamMemberAdapter(
             onMoreClick = { _, member ->
                 if (!isLeaderUser) return@TeamMemberAdapter
-                MemberActionBottomSheet
-                    .newInstance(member.id, member.name) { id, name ->
+                MemberActionBottomSheet.newInstance(
+                    teamspaceId = selectedTeamspaceId,
+                    memberId = member.id,
+                    memberName = member.name,
+                    onGiveLeaderClick = { teamspaceId, newOwnerId ->
+                        // 여기서 viewModel.transferLeader(teamspaceId, newOwnerId) 호출
+                    },
+                    onKickClick = { id, name ->
                         showKickMemberDialog(name) {
-                            // TODO: viewModel.kickMember(teamspaceId, id)
+                            // viewModel.kickMembers(listOf(id)) 같은 식으로
                         }
                     }
-                    .show(parentFragmentManager, "member_actions")
+                ).show(parentFragmentManager, "member_actions")
             },
             onSelectionChanged = { selectedIds ->
                 updateKickActionEnabled(selectedIds.isNotEmpty())
