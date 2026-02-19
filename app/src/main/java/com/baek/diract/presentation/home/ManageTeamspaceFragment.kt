@@ -36,7 +36,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
     private var createTeamspaceDialog: InputDialogFragment? = null
     private var renameTeamspaceDialog: InputDialogFragment? = null
     private var pendingRenameName: String? = null
-    private var isLeaderUser: Boolean = true // TODO: 실제 서버/도메인값으로 세팅
+    private var isLeaderUser: Boolean = false
     private var _binding: FragmentManageTeamspaceBinding? = null
     private val viewModel: ManageTeamspaceViewModel by viewModels()
     private val loadingOverlay by lazy { LoadingOverlay(this) }
@@ -47,6 +47,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         val colorRes = if (enabled) R.color.accent_red_normal else R.color.fill_assistive
         binding.actionKickMembers.setTextColor(ContextCompat.getColor(requireContext(), colorRes))
     }
+
     private fun applyRoleUi(isLeader: Boolean) {
         isLeaderUser = isLeader
 
@@ -161,8 +162,12 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                 // 1) 로딩/스와이프 종료
                 launch {
                     viewModel.uiState.collect { state ->
-                        loadingOverlay.setVisible(state is UiState.Loading)
-                        if (state !is UiState.Loading) {
+                        val loading = state is UiState.Loading
+                        loadingOverlay.setVisible(loading)
+
+                        // ✅ 로딩 끝나고 나서만 화면 보여주기
+                        if (!loading) {
+                            binding.contentRoot.isVisible = true
                             binding.swipeRefresh.isRefreshing = false
                         }
                     }
@@ -279,9 +284,12 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
         _binding = FragmentManageTeamspaceBinding.bind(view)
+
+        binding.contentRoot.isVisible = false   // 너 레이아웃에서 컨텐츠를 감싸는 루트 id로 바꿔
+        loadingOverlay.setVisible(true)
+
+
 
         // ✅ Home에서 넘어온 teamspaceId/name 받기 (도메인 모델: id, name)
         selectedTeamspaceId = arguments?.getString("teamspaceId").orEmpty()

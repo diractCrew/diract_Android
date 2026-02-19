@@ -16,9 +16,10 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvTeamspaces"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="460dp"
             android:paddingVertical="8dp"
-            android:clipToPadding="false"/>
+            android:clipToPadding="false"
+            android:overScrollMode="never"/>
 
         <View
             android:layout_width="match_parent"

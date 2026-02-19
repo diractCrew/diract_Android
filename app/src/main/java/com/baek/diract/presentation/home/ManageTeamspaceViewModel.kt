@@ -71,10 +71,15 @@ class ManageTeamspaceViewModel @Inject constructor(
 
     private fun currentUserId(): String =
         authRepository.currentUserInfo.value?.userId.orEmpty()
-
+    private suspend fun ensureUserLoaded() {
+        if (!authRepository.currentUserInfo.value?.userId.isNullOrBlank()) return
+        authRepository.getMe(forceRefresh = false)
+    }
     fun loadMembers() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
+
+            ensureUserLoaded()
             val id = requireTeamspaceId()
 
             // 1) 상세에서 ownerId 얻기
@@ -84,8 +89,12 @@ class ManageTeamspaceViewModel @Inject constructor(
 
                     // ✅ 여기서 바로 내 id 가져와 비교
                     val uid = currentUserId()
-                    _isLeader.value = (uid.isNotBlank() && uid == ownerId)
+                    val isOwner = (uid.isNotBlank() && uid == ownerId)
+                    Log.d("ROLE", "me.userId=[$uid]")
+                    Log.d("ROLE", "teamspace.ownerId=[$ownerId]")
+                    Log.d("ROLE", "isOwner=$isOwner")
 
+                    _isLeader.value = isOwner
                     // 2) 멤버 목록
                     when (val membersResult = teamspaceRepository.getMembers(id)) {
                         is DataResult.Success -> {

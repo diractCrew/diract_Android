@@ -23,11 +23,17 @@ class TeamspaceInviteBottomSheet : BottomSheetDialogFragment() {
     private var _binding: FragmentTeamspaceInviteBinding? = null
     private val binding get() = _binding!!
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // 스타일을 강제로 지정하여 투명화 현상 방지
+        setStyle(STYLE_NORMAL, com.google.android.material.R.style.Theme_Design_Light_BottomSheetDialog)
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        android.util.Log.e("InviteFlow", "=== 초대 시트 onCreateView 호출됨! ===")
         _binding = FragmentTeamspaceInviteBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -49,18 +55,21 @@ class TeamspaceInviteBottomSheet : BottomSheetDialogFragment() {
 
     override fun onStart() {
         super.onStart()
+        // 다이얼로그의 창 크기를 화면에 꽉 차게 강제 설정
+        dialog?.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
 
-        // ✅ "풀"로 강제
-        val bottomSheet =
-            dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-                ?: return
-
-        bottomSheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-
-        val behavior = BottomSheetBehavior.from(bottomSheet)
-        behavior.skipCollapsed = true
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.isDraggable = false // 필요하면 true로
+        val bottomSheet = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        bottomSheet?.let {
+            val behavior = BottomSheetBehavior.from(it)
+            // ✅ 레이아웃 높이를 MATCH_PARENT로 강제
+            it.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.peekHeight = it.height // 현재 높이를 피크 높이로 설정
+            behavior.skipCollapsed = true
+        }
     }
 
     private fun showDefault() {
