@@ -30,12 +30,15 @@ class ManageTeamspaceViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferenceManager: UserPreferenceManager,
 ) : ViewModel() {
-    private val _teamspaceCreatedEvent = MutableSharedFlow<String>(
+    private val _teamspaceCreatedEvent = MutableSharedFlow<Pair<String, String>>(
         replay = 0,
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-    val teamspaceCreatedEvent: SharedFlow<String> = _teamspaceCreatedEvent.asSharedFlow()
+    val teamspaceCreatedEvent: SharedFlow<Pair<String, String>> = _teamspaceCreatedEvent.asSharedFlow()
+    private val _transferLeaderUiState = MutableStateFlow<UiState<Long>>(UiState.None)
+    val transferLeaderUiState: StateFlow<UiState<Long>> = _transferLeaderUiState.asStateFlow()
+
     private val _isLeader = MutableStateFlow(false)
     val isLeader: StateFlow<Boolean> = _isLeader.asStateFlow()
 
@@ -94,12 +97,10 @@ class ManageTeamspaceViewModel @Inject constructor(
                 is DataResult.Success -> {
                     val ownerId = detailResult.data.ownerId
 
-                    // ✅ 여기서 바로 내 id 가져와 비교
+
                     val uid = currentUserId()
                     val isOwner = (uid.isNotBlank() && uid == ownerId)
-                    Log.d("ROLE", "me.userId=[$uid]")
-                    Log.d("ROLE", "teamspace.ownerId=[$ownerId]")
-                    Log.d("ROLE", "isOwner=$isOwner")
+
 
                     _isLeader.value = isOwner
                     // 2) 멤버 목록
@@ -151,7 +152,7 @@ class ManageTeamspaceViewModel @Inject constructor(
                     loadTeamspaces()
                     loadMembers()
 
-                    _teamspaceCreatedEvent.tryEmit(newId) // ✅ 여기 추가
+                    _teamspaceCreatedEvent.tryEmit(newId to name) // ✅ 여기 추가
                     _createTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
                 }
                 is DataResult.Error -> {
@@ -164,7 +165,7 @@ class ManageTeamspaceViewModel @Inject constructor(
             }
         }
     }
-
+    fun resetTransferLeaderUiState() { _transferLeaderUiState.value = UiState.None }
     fun renameTeamspace(newName: String) {
         if (newName.isBlank()) return
 
@@ -249,8 +250,22 @@ class ManageTeamspaceViewModel @Inject constructor(
     }
 
     fun transferLeader(newLeaderId: String) {
+        if (newLeaderId.isBlank()) return
+
         viewModelScope.launch {
-            _toastMessage.emit(ToastEvent(R.string.teamspace_give_owner_failed, true))
+            _transferLeaderUiState.value = UiState.Loading
+            val id = requireTeamspaceId()
+
+            when (val r = teamspaceRepository.transferLeader(id, newLeaderId)) {
+                is DataResult.Success -> {
+                    // 리스트/리더 뱃지 갱신은 여기서 해도 되고, FragmentResult 받은 뒤 해도 됨
+                    loadMembers()
+                    _transferLeaderUiState.value = UiState.Success(System.currentTimeMillis())
+                }
+                is DataResult.Error -> {
+                    _transferLeaderUiState.value = UiState.Error(r.throwable.message, r.throwable)
+                }
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.fragment.app.setFragmentResult
 import com.baek.diract.R
 import com.baek.diract.databinding.BottomsheetMemberActionsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -21,10 +22,9 @@ class MemberActionBottomSheet : BottomSheetDialogFragment() {
     private val memberId: String by lazy { requireArguments().getString(ARG_MEMBER_ID).orEmpty() }
     private val memberName: String by lazy { requireArguments().getString(ARG_MEMBER_NAME).orEmpty() }
 
-    // callbacks
+    // callbacks (프래그먼트/VM에서 API 호출)
     private var onKickClick: ((String, String) -> Unit)? = null
     private var onGiveLeaderClick: ((String, String) -> Unit)? = null
-    // (teamspaceId, memberId) 형태로 쓰고 싶으면 여기 타입 바꿔도 됨
 
     private enum class LeaderState { IDLE, LOADING, SUCCESS }
 
@@ -45,11 +45,11 @@ class MemberActionBottomSheet : BottomSheetDialogFragment() {
         renderLeaderState(LeaderState.IDLE)
 
         btnGiveLeader.setOnClickListener {
-            // 여기서 실제 API 호출은 Fragment/VM 쪽으로 던지는게 깔끔함
+            // 1) 로딩 UI
             renderLeaderState(LeaderState.LOADING)
 
+            // 2) 실제 API 호출은 Fragment/VM에서 처리
             onGiveLeaderClick?.invoke(teamspaceId, memberId)
-            // 성공/실패 결과에 따라 아래 함수를 밖에서 다시 호출해주면 됨
         }
 
         tvKick.setOnClickListener {
@@ -58,17 +58,35 @@ class MemberActionBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    /** 외부(프래그먼트)에서 호출해서 UI 갱신 */
+    /** Fragment/VM에서 "요청 시작" 타이밍에 호출해도 되고, 그냥 버튼에서만 처리해도 됨 */
     fun showLeaderLoading() {
         if (_binding == null) return
         renderLeaderState(LeaderState.LOADING)
     }
 
+    /**
+     * ✅ 핵심: 성공 UI 잠깐 보여주고 + FragmentResult 쏘고 + 자동 dismiss
+     * Fragment/VM에서 API 성공했을 때 이 함수만 호출하면 끝.
+     */
     fun showLeaderSuccessAndClose() {
         if (_binding == null) return
+
         renderLeaderState(LeaderState.SUCCESS)
-        // 잠깐 체크 보여주고 닫고 싶으면 postDelayed로 처리
-        binding.root.postDelayed({ dismissAllowingStateLoss() }, 600)
+
+        // ✅ FragmentResult 전송 (부모 프래그먼트에서 리스너로 받음)
+        parentFragmentManager.setFragmentResult(
+            REQUEST_KEY_TRANSFER_OWNER,
+            bundleOf(
+                RESULT_TEAMSPACE_ID to teamspaceId,
+                RESULT_NEW_OWNER_ID to memberId,
+                RESULT_NEW_OWNER_NAME to memberName
+            )
+        )
+
+        // ✅ 체크 잠깐 보여주고 내려가기
+        binding.root.postDelayed({
+            if (isAdded) dismissAllowingStateLoss()
+        }, 600)
     }
 
     fun showLeaderFail(message: String) {
@@ -100,6 +118,12 @@ class MemberActionBottomSheet : BottomSheetDialogFragment() {
         private const val ARG_TEAMSPACE_ID = "arg_teamspace_id"
         private const val ARG_MEMBER_ID = "arg_member_id"
         private const val ARG_MEMBER_NAME = "arg_member_name"
+
+        // ✅ FragmentResult 키들
+        const val REQUEST_KEY_TRANSFER_OWNER = "request_key_transfer_owner"
+        const val RESULT_TEAMSPACE_ID = "result_teamspace_id"
+        const val RESULT_NEW_OWNER_ID = "result_new_owner_id"
+        const val RESULT_NEW_OWNER_NAME = "result_new_owner_name"
 
         fun newInstance(
             teamspaceId: String,

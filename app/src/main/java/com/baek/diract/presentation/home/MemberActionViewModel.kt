@@ -12,23 +12,30 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+sealed interface LeaderUiState {
+    data object Idle : LeaderUiState
+    data object Loading : LeaderUiState
+    data object Success : LeaderUiState
+    data class Error(val message: String?) : LeaderUiState
+}
+
 @HiltViewModel
 class MemberActionViewModel @Inject constructor(
     private val teamspaceRepository: TeamspaceRepository
 ) : ViewModel() {
 
-    private val _transferState = MutableStateFlow<UiState<Long>>(UiState.None)
-    val transferState: StateFlow<UiState<Long>> = _transferState.asStateFlow()
+    private val _leaderState = MutableStateFlow<LeaderUiState>(LeaderUiState.Idle)
+    val leaderState: StateFlow<LeaderUiState> = _leaderState.asStateFlow()
 
-    fun transfer(teamspaceId: String, newOwnerId: String) {
+    fun reset() { _leaderState.value = LeaderUiState.Idle }
+
+    fun transferLeader(teamspaceId: String, newLeaderId: String) {
         viewModelScope.launch {
-            _transferState.value = UiState.Loading
-            when (val r = teamspaceRepository.transferLeader(teamspaceId, newOwnerId)) {
-                is DataResult.Success -> _transferState.value = UiState.Success(System.currentTimeMillis())
-                is DataResult.Error -> _transferState.value = UiState.Error(r.throwable.message, r.throwable)
+            _leaderState.value = LeaderUiState.Loading
+            when (val r = teamspaceRepository.transferLeader(teamspaceId, newLeaderId)) {
+                is DataResult.Success -> _leaderState.value = LeaderUiState.Success
+                is DataResult.Error -> _leaderState.value = LeaderUiState.Error(r.throwable.message)
             }
         }
     }
-
-    fun reset() { _transferState.value = UiState.None }
 }
