@@ -14,11 +14,12 @@ import com.baek.diract.domain.repository.TeamspaceRepository
 import com.baek.diract.presentation.common.ToastEvent
 import com.baek.diract.presentation.common.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +30,12 @@ class ManageTeamspaceViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferenceManager: UserPreferenceManager,
 ) : ViewModel() {
+    private val _teamspaceCreatedEvent = MutableSharedFlow<String>(
+        replay = 0,
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val teamspaceCreatedEvent: SharedFlow<String> = _teamspaceCreatedEvent.asSharedFlow()
     private val _isLeader = MutableStateFlow(false)
     val isLeader: StateFlow<Boolean> = _isLeader.asStateFlow()
 
@@ -138,14 +145,13 @@ class ManageTeamspaceViewModel @Inject constructor(
 
             when (val result = teamspaceRepository.createTeamspace(name)) {
                 is DataResult.Success -> {
-                    // ✅ 생성된 팀스페이스 id는 UUID String
                     val newId = result.data.id
                     setTeamspaceId(newId)
 
-                    // 목록/멤버 갱신
                     loadTeamspaces()
                     loadMembers()
 
+                    _teamspaceCreatedEvent.tryEmit(newId) // ✅ 여기 추가
                     _createTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
                 }
                 is DataResult.Error -> {

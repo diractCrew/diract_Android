@@ -173,6 +173,18 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                     }
                 }
                 launch {
+                    viewModel.teamspaceCreatedEvent.collect { newTeamspaceId ->
+                        // 1) 생성 다이얼로그 닫기 (떠있다면)
+                        createTeamspaceDialog?.dismiss()
+                        createTeamspaceDialog = null
+
+                        // 2) 초대 풀시트 띄우기
+                        TeamspaceInviteBottomSheet
+                            .newInstance(newTeamspaceId)
+                            .show(parentFragmentManager, "teamspace_invite")
+                    }
+                }
+                launch {
                     viewModel.isLeader.collect { isLeader ->
                         applyRoleUi(isLeader)
                         memberAdapter.setLeaderUser(isLeader)
@@ -211,9 +223,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                             is UiState.Loading -> createTeamspaceDialog?.showLoading()
                             is UiState.Success -> {
                                 createTeamspaceDialog?.showComplete()
-                                delay(800)
-                                createTeamspaceDialog?.dismiss()
-                                createTeamspaceDialog = null
+                                // dismiss는 teamspaceCreatedEvent에서 처리
                                 viewModel.resetCreateTeamspaceUiState()
                             }
                             is UiState.Error -> {
