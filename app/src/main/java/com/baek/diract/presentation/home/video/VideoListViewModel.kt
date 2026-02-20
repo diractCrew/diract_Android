@@ -217,8 +217,6 @@ class VideoListViewModel @Inject constructor(
     fun uploadVideo(videoUri: Uri, title: String) {
         val uploadId = UUID.randomUUID().toString()
         val sectionId = getSelectedSectionId() ?: return
-        val uploaderId = authRepository.getCurrentUser()?.uid ?: return
-
         // 압축 상태로 리스트에 추가
         updateUploadingItem { list ->
             listOf(
@@ -237,7 +235,6 @@ class VideoListViewModel @Inject constructor(
                 title = title,
                 tracksId = tracksId,
                 sectionId = sectionId,
-                uploaderId = uploaderId,
                 onStateChanged = { state ->
                     when (state) {
                         is UploadVideoUseCase.UploadState.Compressing -> {
@@ -289,7 +286,6 @@ class VideoListViewModel @Inject constructor(
     fun retryFailedItem(item: VideoCardItem.Failed) {
         val retryInfo = item.retryInfo ?: return
         val selectedSectionId = item.sectionId
-        val uploaderId = authRepository.getCurrentUser()?.uid ?: return
         val retryId = item.id
 
         when (item.type) {
@@ -302,7 +298,6 @@ class VideoListViewModel @Inject constructor(
                         title = retryInfo.title,
                         tracksId = tracksId,
                         sectionId = selectedSectionId,
-                        uploaderId = uploaderId,
                         onStateChanged = { state ->
                             handleUploadState(retryId, state, retryInfo)
                         }
@@ -324,7 +319,6 @@ class VideoListViewModel @Inject constructor(
                         title = retryInfo.title,
                         tracksId = tracksId,
                         sectionId = selectedSectionId,
-                        uploaderId = uploaderId,
                         onStateChanged = { state ->
                             handleUploadState(retryId, state, retryInfo)
                         }

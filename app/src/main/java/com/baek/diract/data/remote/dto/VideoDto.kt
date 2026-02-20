@@ -8,7 +8,7 @@ data class VideoDto(
     val videoUrl: String,
     val thumbnailUrl: String,
     val uploaderId: String,
-    val videoDuration: Int,
+    val videoDuration: Double,
     val createdAt: String,
     val updatedAt: String
 )
@@ -16,7 +16,7 @@ data class VideoDto(
 fun VideoDto.toPlayDomain(): VideoPlay = VideoPlay(
     id = videoId,
     videoTitle = videoTitle,
-    videoDuration = videoDuration.toDouble(),
+    videoDuration = videoDuration,
     videoUrl = videoUrl,
     uploaderId = uploaderId
 )

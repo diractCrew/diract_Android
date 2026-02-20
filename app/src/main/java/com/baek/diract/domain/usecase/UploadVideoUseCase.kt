@@ -33,7 +33,6 @@ class UploadVideoUseCase @Inject constructor(
         title: String,
         tracksId: String,
         sectionId: String,
-        uploaderId: String,
         onStateChanged: (UploadState) -> Unit
     ): DataResult<Unit> {
         return try {
@@ -59,7 +58,6 @@ class UploadVideoUseCase @Inject constructor(
                 thumbnailUri = compressionResult.thumbnailUri,
                 title = title,
                 duration = compressionResult.durationSeconds,
-                uploaderId = uploaderId,
                 onProgress = { progress ->
                     onStateChanged(UploadState.Uploading(progress))
                 }
@@ -109,7 +107,6 @@ class UploadVideoUseCase @Inject constructor(
         title: String,
         tracksId: String,
         sectionId: String,
-        uploaderId: String,
         onStateChanged: (UploadState) -> Unit
     ): DataResult<Unit> {
         return try {
@@ -122,7 +119,6 @@ class UploadVideoUseCase @Inject constructor(
                 thumbnailUri = thumbnailUri,
                 title = title,
                 duration = duration,
-                uploaderId = uploaderId,
                 onProgress = { progress ->
                     onStateChanged(UploadState.Uploading(progress))
                 }
