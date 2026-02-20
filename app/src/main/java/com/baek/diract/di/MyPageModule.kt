@@ -1,5 +1,6 @@
 package com.baek.diract.di
 
+import com.baek.diract.data.remote.api.InquiryApi
 import com.baek.diract.data.remote.api.ReportApi
 import com.baek.diract.data.repository.MyPageRepositoryImpl
 import com.baek.diract.domain.repository.MyPageRepository
@@ -26,6 +27,12 @@ abstract class MyPageModule {
         @Singleton
         fun provideReportApi(retrofit: Retrofit): ReportApi {
             return retrofit.create(ReportApi::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideInquiryApi(retrofit: Retrofit): InquiryApi {
+            return retrofit.create(InquiryApi::class.java)
         }
     }
 }

@@ -13,4 +13,8 @@ interface MyPageRepository {
         feedbackId: String? = null,
         replyId: String? = null
     ): DataResult<Unit>
+
+    suspend fun inquire(
+        content: String
+    ): DataResult<Unit>
 }

@@ -225,6 +225,8 @@
     <!-- 문의 화면 -->
     <string name="inquiry_hint">작은 피드백이라도 큰 힘이 됩니다.</string>
     <string name="inquiry_error_max_length">100자 미만으로 입력해 주세요.</string>
+    <string name="inquiry_success">소중한 의견이 접수되었습니다.\n조치사항은 로그인 계정으로 안내드리겠습니다.</string>
+    <string name="inquiry_failed">문제가 발생했습니다.</string>
 
     <!-- 입력 다이얼로그 -->
     <string name="input_dialog_counter">%1$d/%2$d</string>

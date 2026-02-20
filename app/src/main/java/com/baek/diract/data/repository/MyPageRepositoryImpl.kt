@@ -1,7 +1,9 @@
 package com.baek.diract.data.repository
 
 import android.util.Log
+import com.baek.diract.data.remote.api.CreateInquiryRequest
 import com.baek.diract.data.remote.api.CreateReportRequest
+import com.baek.diract.data.remote.api.InquiryApi
 import com.baek.diract.data.remote.api.ReportApi
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.repository.MyPageRepository
@@ -9,7 +11,8 @@ import retrofit2.HttpException
 import javax.inject.Inject
 
 class MyPageRepositoryImpl @Inject constructor(
-    private val reportApi: ReportApi
+    private val reportApi: ReportApi,
+    private val inquiryApi: InquiryApi
 ) : MyPageRepository {
 
     override suspend fun report(
@@ -32,6 +35,15 @@ class MyPageRepositoryImpl @Inject constructor(
         )
         val response = reportApi.createReport(request)
         if (!response.success) throw Exception(response.message ?: "신고 실패")
+        Unit
+    }
+
+    override suspend fun inquire(content: String): DataResult<Unit> = safeCall {
+        val request = CreateInquiryRequest(
+            content = content
+        )
+        val response = inquiryApi.createInquiry(request)
+        if (!response.success) throw Exception(response.message ?: "문의 실패")
         Unit
     }
 
