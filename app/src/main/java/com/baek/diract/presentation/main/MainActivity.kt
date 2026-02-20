@@ -108,10 +108,12 @@ class MainActivity : AppCompatActivity() {
             if (uri.host == "video" && uri.path == "/view") {
                 val videoId = uri.getQueryParameter("videoId") ?: return
                 val videoTitle = uri.getQueryParameter("videoTitle") ?: ""
+                val teamspaceId = uri.getQueryParameter("teamspaceId")
                 val bundle = Bundle().apply {
                     putString("videoId", videoId)
                     putString("videoTitle", videoTitle)
                     putString("tracksTitle", null)
+                    putString("teamspaceId", teamspaceId)
                 }
                 navController.navigate(R.id.action_global_to_videoPlayerFragment, bundle)
             }
