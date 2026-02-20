@@ -10,8 +10,6 @@ import com.baek.diract.data.remote.dto.toDomain
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.User
 import com.baek.diract.domain.repository.AuthRepository
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
