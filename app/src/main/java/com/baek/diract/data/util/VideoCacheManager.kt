@@ -3,11 +3,12 @@ package com.baek.diract.data.util
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.google.firebase.storage.FirebaseStorage
+import com.baek.diract.di.DownloadClient
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,12 +16,12 @@ import javax.inject.Singleton
 /*
     비디오 캐시 관리
     - 캐시된 비디오 확인
-    - Storage에서 다운로드 후 캐시 저장
+    - API URL로 다운로드 후 캐시 저장
  */
 @Singleton
 class VideoCacheManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val storage: FirebaseStorage
+    @DownloadClient private val okHttpClient: OkHttpClient
 ) {
     companion object {
         private const val TAG = "VideoCacheManager"
@@ -49,7 +50,7 @@ class VideoCacheManager @Inject constructor(
         return if (file.exists()) Uri.fromFile(file) else null
     }
 
-    // Storage에서 다운로드 후 캐시 저장
+    // URL에서 다운로드 후 캐시 저장
     suspend fun downloadAndCache(
         videoId: String,
         videoUrl: String,
@@ -57,7 +58,6 @@ class VideoCacheManager @Inject constructor(
     ): Uri = withContext(Dispatchers.IO) {
         val cacheFile = getCacheFile(videoId)
 
-        // 이미 캐시되어 있으면 바로 반환
         if (cacheFile.exists()) {
             Log.d(TAG, "캐시에서 로드: $videoId")
             return@withContext Uri.fromFile(cacheFile)
@@ -65,19 +65,28 @@ class VideoCacheManager @Inject constructor(
 
         Log.d(TAG, "다운로드 시작: $videoId")
 
-        // Storage에서 다운로드
-        val storageRef = storage.getReferenceFromUrl(videoUrl)
-        val downloadTask = storageRef.getFile(cacheFile)
+        val request = Request.Builder().url(videoUrl).get().build()
+        val response = okHttpClient.newCall(request).execute()
 
-        // 진행률 콜백
-        onProgress?.let { callback ->
-            downloadTask.addOnProgressListener { snapshot ->
-                val progress = ((snapshot.bytesTransferred * 100) / snapshot.totalByteCount).toInt()
-                callback(progress)
+        if (!response.isSuccessful) throw Exception("다운로드 실패: ${response.code}")
+
+        val body = response.body ?: throw Exception("응답 본문이 없습니다")
+        val contentLength = body.contentLength()
+
+        body.byteStream().use { input ->
+            cacheFile.outputStream().use { output ->
+                val buffer = ByteArray(8192)
+                var downloaded = 0L
+                var read: Int
+                while (input.read(buffer).also { read = it } != -1) {
+                    output.write(buffer, 0, read)
+                    downloaded += read
+                    if (contentLength > 0) {
+                        onProgress?.invoke((downloaded * 100 / contentLength).toInt())
+                    }
+                }
             }
         }
-
-        downloadTask.await()
 
         Log.d(TAG, "다운로드 완료: $videoId (${cacheFile.length() / 1024}KB)")
         onProgress?.invoke(100)

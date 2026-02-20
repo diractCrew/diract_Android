@@ -29,6 +29,10 @@ annotation class AuthRetrofit
 @Retention(AnnotationRetention.BINARY)
 annotation class UploadClient
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class DownloadClient
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -148,6 +152,17 @@ object NetworkModule {
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    // 비디오 다운로드 전용 OkHttpClient (JWT 없음, readTimeout 연장)
+    @Provides
+    @Singleton
+    @DownloadClient
+    fun provideDownloadClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
             .build()
     }
 
