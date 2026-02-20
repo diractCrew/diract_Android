@@ -1,5 +1,6 @@
 package com.baek.diract.data.repository
 
+import android.util.Log
 import com.baek.diract.data.remote.api.CreateFeedbackRequest
 import com.baek.diract.data.remote.api.CreateReplyRequest
 import com.baek.diract.data.remote.api.EditFeedbackRequest
@@ -108,7 +109,14 @@ class FeedbackRepositoryImpl @Inject constructor(
         return try {
             DataResult.Success(block())
         } catch (e: Exception) {
+            val serverMessage = (e as? retrofit2.HttpException)
+                ?.response()?.errorBody()?.string()
+            Log.e(TAG, "serverMessage=$serverMessage", e)
             DataResult.Error(e)
         }
+    }
+
+    companion object {
+        const val TAG = "FeedbackRepository"
     }
 }
