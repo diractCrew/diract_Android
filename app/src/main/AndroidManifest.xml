@@ -52,7 +52,6 @@
         <activity
             android:name=".presentation.main.MainActivity"
             android:configChanges="orientation|screenSize"
-            android:exported="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
     </application>
