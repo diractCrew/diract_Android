@@ -47,13 +47,17 @@ class LoginActivity : AppCompatActivity() {
                 viewModel.authState.collect { state ->
                     val showLoading = state is AuthState.Loading || state is AuthState.LoggedIn
                     binding.loadingView.visibility = if (showLoading) View.VISIBLE else View.GONE
-                    binding.navHostFragment.visibility = if (showLoading) View.GONE else View.VISIBLE
+                    binding.navHostFragment.visibility =
+                        if (showLoading) View.GONE else View.VISIBLE
 
                     when (state) {
                         is AuthState.LoggedIn -> {
                             Log.d(TAG, "로그인 완료 → MainActivity 이동")
                             val mainIntent = Intent(this@LoginActivity, MainActivity::class.java)
                             extractInviteToken()?.let { mainIntent.putExtra("invite_token", it) }
+                            // FCM 백그라운드 알림 클릭 시 deeplink extra를 MainActivity로 전달
+                            intent.getStringExtra("deeplink")
+                                ?.let { mainIntent.putExtra("deeplink", it) }
                             startActivity(mainIntent)
                             finish()
                         }
