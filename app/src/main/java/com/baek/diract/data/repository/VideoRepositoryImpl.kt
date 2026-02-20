@@ -47,7 +47,10 @@ class VideoRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSections(tracksId: String): DataResult<List<Section>> = safeCall {
-        sectionApi.getSectionList(tracksId).data?.map { it.toDomain() } ?: emptyList()
+        sectionApi.getSectionList(tracksId).data
+            ?.sortedBy { it.createdAt }
+            ?.map { it.toDomain() }
+            ?: emptyList()
     }
 
     override suspend fun getVideos(

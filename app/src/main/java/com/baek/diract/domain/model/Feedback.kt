@@ -6,8 +6,8 @@ import java.time.LocalDateTime
 data class Feedback(
     val feedbackId: String,
     val videoId: String,
-    val author: FeedbackUser,
-    val taggedUsers: List<FeedbackUser> = emptyList(),
+    val author: String,
+    val taggedUsers: List<String> = emptyList(),
     val content: String,
     val startTime: Double,
     val endTime: Double? = null,
@@ -15,21 +15,4 @@ data class Feedback(
     val teamspaceId: String,
     val replyCount: Int = 0,
     val updatedAt: LocalDateTime
-) {
-    fun toUiItem(): FeedbackItem {
-        return FeedbackItem(
-            feedbackId = feedbackId,
-            videoId = videoId,
-            author = author,
-            taggedUsers = taggedUsers,
-            content = content,
-            startTime = startTime,
-            endTime = endTime,
-            imgUrl = imgUrl,
-            teamspaceId = teamspaceId,
-            replyCount = replyCount,
-            updatedAt = updatedAt
-        )
-
-    }
-}
+)

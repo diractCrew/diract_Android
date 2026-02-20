@@ -24,9 +24,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val userApi: UserApi,
     private val tokenManager: TokenManager,
-    private val firebaseMessaging: FirebaseMessaging,
-    // Firebase 의존 — 추후 삭제 예정 (다른 ViewModel에서 getCurrentUser 사용 중)
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseMessaging: FirebaseMessaging
 ) : AuthRepository {
 
     // 로그인 상태
@@ -35,8 +33,6 @@ class AuthRepositoryImpl @Inject constructor(
 
     private val _currentUserInfo = MutableStateFlow<User?>(null)
     override val currentUserInfo: StateFlow<User?> = _currentUserInfo.asStateFlow()
-
-    override fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
 
     // 인증
 

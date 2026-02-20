@@ -10,6 +10,7 @@ import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.TeamMemberSummary
 import com.baek.diract.domain.model.TeamspaceSummary
 import com.baek.diract.domain.repository.AuthRepository
+import com.baek.diract.domain.repository.InviteRepository
 import com.baek.diract.domain.repository.TeamspaceRepository
 import com.baek.diract.presentation.common.ToastEvent
 import com.baek.diract.presentation.common.UiState
@@ -27,6 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageTeamspaceViewModel @Inject constructor(
     private val teamspaceRepository: TeamspaceRepository,
+    private val inviteRepository: InviteRepository,
     private val authRepository: AuthRepository,
     private val userPreferenceManager: UserPreferenceManager,
 ) : ViewModel() {
@@ -51,6 +53,9 @@ class ManageTeamspaceViewModel @Inject constructor(
     private val _navEvent = MutableSharedFlow<NavEvent>()
     val navEvent: SharedFlow<NavEvent> = _navEvent.asSharedFlow()
 
+    private val _shareInviteLink = MutableSharedFlow<String>()
+    val shareInviteLink: SharedFlow<String> = _shareInviteLink.asSharedFlow()
+
     private val _members = MutableStateFlow<List<TeamMemberUi>>(emptyList())
     val members: StateFlow<List<TeamMemberUi>> = _members.asStateFlow()
 
@@ -63,8 +68,13 @@ class ManageTeamspaceViewModel @Inject constructor(
     private val _renameTeamspaceUiState = MutableStateFlow<UiState<Long>>(UiState.None)
     val renameTeamspaceUiState: StateFlow<UiState<Long>> = _renameTeamspaceUiState.asStateFlow()
 
-    fun resetCreateTeamspaceUiState() { _createTeamspaceUiState.value = UiState.None }
-    fun resetRenameTeamspaceUiState() { _renameTeamspaceUiState.value = UiState.None }
+    fun resetCreateTeamspaceUiState() {
+        _createTeamspaceUiState.value = UiState.None
+    }
+
+    fun resetRenameTeamspaceUiState() {
+        _renameTeamspaceUiState.value = UiState.None
+    }
 
     private var teamspaceId: String? = null
 
@@ -73,7 +83,10 @@ class ManageTeamspaceViewModel @Inject constructor(
             runCatching { userPreferenceManager.saveLastTeamspaceId(id) }
         }
     }
-    fun setTeamspaceId(id: String) { teamspaceId = id }
+
+    fun setTeamspaceId(id: String) {
+        teamspaceId = id
+    }
 
     private fun requireTeamspaceId(): String =
         teamspaceId?.takeIf { it.isNotBlank() }
@@ -109,6 +122,7 @@ class ManageTeamspaceViewModel @Inject constructor(
                             _members.value = membersResult.data.map { it.toUi(ownerId) }
                             _uiState.value = UiState.Success(System.currentTimeMillis())
                         }
+
                         is DataResult.Error -> {
                             _uiState.value = UiState.Error(
                                 membersResult.throwable.message,
@@ -117,6 +131,7 @@ class ManageTeamspaceViewModel @Inject constructor(
                         }
                     }
                 }
+
                 is DataResult.Error -> {
                     _uiState.value = UiState.Error(
                         detailResult.throwable.message,
@@ -126,7 +141,6 @@ class ManageTeamspaceViewModel @Inject constructor(
             }
         }
     }
-
 
 
     fun loadTeamspaces() {
@@ -155,6 +169,7 @@ class ManageTeamspaceViewModel @Inject constructor(
                     _teamspaceCreatedEvent.tryEmit(newId to name) // ✅ 여기 추가
                     _createTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
                 }
+
                 is DataResult.Error -> {
                     _createTeamspaceUiState.value = UiState.Error(
                         result.throwable.message,
@@ -179,8 +194,10 @@ class ManageTeamspaceViewModel @Inject constructor(
                     loadTeamspaces()
                     _renameTeamspaceUiState.value = UiState.Success(System.currentTimeMillis())
                 }
+
                 is DataResult.Error -> {
-                    _renameTeamspaceUiState.value = UiState.Error(result.throwable.message, result.throwable)
+                    _renameTeamspaceUiState.value =
+                        UiState.Error(result.throwable.message, result.throwable)
                     _toastMessage.emit(ToastEvent(R.string.teamspace_rename_failed, true))
                 }
             }
@@ -199,6 +216,7 @@ class ManageTeamspaceViewModel @Inject constructor(
                     _members.value = _members.value.filterNot { it.id in memberIds }
                     _uiState.value = UiState.Success(System.currentTimeMillis())
                 }
+
                 is DataResult.Error -> {
                     _uiState.value = UiState.Error(result.throwable.message, result.throwable)
                 }
@@ -225,12 +243,14 @@ class ManageTeamspaceViewModel @Inject constructor(
                     _uiState.value = UiState.Success(System.currentTimeMillis())
                     _navEvent.emit(NavEvent.Close)
                 }
+
                 is DataResult.Error -> {
                     _uiState.value = UiState.Error(result.throwable.message, result.throwable)
                     _toastMessage.emit(ToastEvent(R.string.teamspace_leave_failed, true))
                 }
             }
-        }}
+        }
+    }
 
     fun deleteTeamspace() {
         viewModelScope.launch {
@@ -242,8 +262,27 @@ class ManageTeamspaceViewModel @Inject constructor(
                     _uiState.value = UiState.Success(System.currentTimeMillis())
                     _navEvent.emit(NavEvent.Close)
                 }
+
                 is DataResult.Error -> {
                     _uiState.value = UiState.Error(result.throwable.message, result.throwable)
+                }
+            }
+        }
+    }
+
+    fun createInviteLink() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            val id = requireTeamspaceId()
+            when (val result = inviteRepository.createInvite(id)) {
+                is DataResult.Success -> {
+                    _uiState.value = UiState.Success(System.currentTimeMillis())
+                    _shareInviteLink.emit(result.data)
+                }
+
+                is DataResult.Error -> {
+                    _uiState.value = UiState.Error(result.throwable.message, result.throwable)
+                    _toastMessage.emit(ToastEvent(R.string.teamspace_invite_link_failed, true))
                 }
             }
         }

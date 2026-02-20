@@ -6,6 +6,7 @@ sealed class SectionChipItem {
     data class SectionUi(
         val id: String,
         val name: String,
+        val isDefault: Boolean = false,
         val isSelected: Boolean = false
     ) : SectionChipItem()
 }

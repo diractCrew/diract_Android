@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -25,6 +26,7 @@ import com.baek.diract.domain.model.TeamspaceSummary
 import com.baek.diract.domain.model.TracksSummary
 import com.baek.diract.presentation.common.CustomToast
 import com.baek.diract.presentation.common.UiState
+import com.baek.diract.presentation.invite.InviteViewModel
 import com.baek.diract.presentation.common.dialog.BasicDialog
 import com.baek.diract.presentation.common.dialog.InputDialogFragment
 import com.baek.diract.presentation.common.option.OptionItem
@@ -76,6 +78,7 @@ class HomeFragment : Fragment() {
     private var currentEditMode = EditMode.NONE
     private var inviteSheetShown = false
     private val viewModel: HomeViewModel by viewModels()
+    private val inviteViewModel: InviteViewModel by activityViewModels()
 
     // ✅ “프로젝트별 tracks 캐시”(HomeFragment가 관리)
     private val tracksByProject = mutableMapOf<String, MutableList<TracksSummary>>()
@@ -230,6 +233,7 @@ class HomeFragment : Fragment() {
         collectDeleteProject()
         observeHomeDialogs()
         collectDeleteTracks()
+        collectInviteAccept()
         viewModel.loadHome()
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadHome()
@@ -713,6 +717,53 @@ class HomeFragment : Fragment() {
             onConfirm = { name -> viewModel.createProject(name) }
         }
         createProjectDialog?.show(parentFragmentManager, InputDialogFragment.TAG)
+    }
+
+    private fun collectInviteAccept() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                // 토큰이 세팅되면 수락 API 호출
+                launch {
+                    inviteViewModel.pendingToken.collect { token ->
+                        if (!token.isNullOrBlank()) {
+                            inviteViewModel.consumeToken()
+                            inviteViewModel.acceptInvite(token)
+                        }
+                    }
+                }
+
+                // 수락 결과 처리
+                launch {
+                    inviteViewModel.acceptUiState.collect { state ->
+                        when (state) {
+                            is UiState.Loading -> loadingOverlay.show()
+                            is UiState.Success -> {
+                                loadingOverlay.hide()
+                                CustomToast.showPositive(
+                                    requireContext(),
+                                    getString(R.string.invite_accept_success)
+                                )
+                                findNavController().navigate(
+                                    R.id.action_homeFragment_to_manageTeamspaceFragment
+                                )
+                                inviteViewModel.resetAcceptUiState()
+                            }
+
+                            is UiState.Error -> {
+                                loadingOverlay.hide()
+                                val message = state.message
+                                    ?: getString(R.string.invite_accept_failed)
+                                CustomToast.showNegative(requireContext(), message)
+                                inviteViewModel.resetAcceptUiState()
+                            }
+
+                            else -> Unit
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun collectDeleteTracks() {

@@ -1,5 +1,6 @@
 package com.baek.diract.data.remote.dto
 
+import com.baek.diract.domain.model.TracksSummary
 import com.google.firebase.Timestamp
 
 data class TracksDto(

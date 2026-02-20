@@ -14,16 +14,21 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.activity.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.baek.diract.R
 import com.baek.diract.databinding.ActivityMainBinding
+import com.baek.diract.presentation.invite.InviteViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.core.net.toUri
+import androidx.core.content.edit
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private val inviteViewModel: InviteViewModel by viewModels()
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ -> }
@@ -96,24 +101,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleDeeplink(intent: Intent, navController: NavController) {
-        val deeplinkStr = intent.getStringExtra("deeplink") ?: return
-        val uri = Uri.parse(deeplinkStr)
-
-        // dancemachine://video/view?videoId=...&videoTitle=...
-        if (uri.host == "video" && uri.path == "/view") {
-            val videoId = uri.getQueryParameter("videoId") ?: return
-            val videoTitle = uri.getQueryParameter("videoTitle") ?: ""
-
-            val bundle = Bundle().apply {
-                putString("videoId", videoId)
-                putString("videoTitle", videoTitle)
-                putString("tracksTitle", null)
+        // FCM 푸시 딥링크
+        val deeplinkStr = intent.getStringExtra("deeplink")
+        if (deeplinkStr != null) {
+            val uri = deeplinkStr.toUri()
+            if (uri.host == "video" && uri.path == "/view") {
+                val videoId = uri.getQueryParameter("videoId") ?: return
+                val videoTitle = uri.getQueryParameter("videoTitle") ?: ""
+                val bundle = Bundle().apply {
+                    putString("videoId", videoId)
+                    putString("videoTitle", videoTitle)
+                    putString("tracksTitle", null)
+                }
+                navController.navigate(R.id.action_global_to_videoPlayerFragment, bundle)
             }
-            navController.navigate(R.id.action_global_to_videoPlayerFragment, bundle)
+            intent.removeExtra("deeplink")
+            return
         }
 
-        // 딥링크 처리 후 Intent에서 제거 (중복 처리 방지)
-        intent.removeExtra("deeplink")
+        // 초대 링크 (LoginActivity에서 전달)
+        val inviteToken = intent.getStringExtra("invite_token")
+        if (!inviteToken.isNullOrBlank()) {
+            inviteViewModel.setPendingToken(inviteToken)
+            intent.removeExtra("invite_token")
+        }
     }
 
     private fun requestNotificationPermission() {
@@ -130,7 +141,7 @@ class MainActivity : AppCompatActivity() {
         val alreadyRequested = prefs.getBoolean(KEY_NOTIFICATION_REQUESTED, false)
         if (alreadyRequested) return
 
-        prefs.edit().putBoolean(KEY_NOTIFICATION_REQUESTED, true).apply()
+        prefs.edit { putBoolean(KEY_NOTIFICATION_REQUESTED, true) }
         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 

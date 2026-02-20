@@ -1,5 +1,6 @@
 package com.baek.diract.presentation.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -287,6 +288,17 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                     }
                 }
 
+              // 5) 초대 링크 공유 시트
+                launch {
+                    viewModel.shareInviteLink.collect { url ->
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, url)
+                            putExtra(Intent.EXTRA_SUBJECT, "[${selectedTeamspaceName}] 팀 초대")
+                        }
+                        startActivity(Intent.createChooser(intent, null))
+                    }
+                }
                 // 팀스페이스 생성 다이얼로그 상태
                 launch {
                     viewModel.createTeamspaceUiState.collect { state ->
@@ -299,6 +311,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                                 viewModel.resetCreateTeamspaceUiState()
                                 // dismiss는 teamspaceCreatedEvent에서 처리
                             }
+
                             is UiState.Error -> {
                                 dialog.showDefault()
                                 viewModel.resetCreateTeamspaceUiState()
@@ -324,6 +337,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                                 renameTeamspaceDialog = null
                                 viewModel.resetRenameTeamspaceUiState()
                             }
+
                             is UiState.Error -> {
                                 dialog.showDefault()
                                 viewModel.resetRenameTeamspaceUiState()
@@ -378,13 +392,14 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
 
         // Divider (1회)
         if (!dividerAdded) {
-            val divider = MaterialDividerItemDecoration(requireContext(), RecyclerView.VERTICAL).apply {
-                setDividerColor(ContextCompat.getColor(requireContext(), R.color.stroke_strong))
-                setDividerThickness(dp(1))
-                setDividerInsetStart(dp(24))
-                setDividerInsetEnd(dp(24))
-                isLastItemDecorated = false
-            }
+            val divider =
+                MaterialDividerItemDecoration(requireContext(), RecyclerView.VERTICAL).apply {
+                    setDividerColor(ContextCompat.getColor(requireContext(), R.color.stroke_strong))
+                    setDividerThickness(dp(1))
+                    setDividerInsetStart(dp(24))
+                    setDividerInsetEnd(dp(24))
+                    isLastItemDecorated = false
+                }
             binding.rvMembers.addItemDecoration(divider)
             dividerAdded = true
         }
@@ -404,7 +419,8 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_more -> {
-                    val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
+                    val anchor =
+                        binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
                     OptionPopup.builder(requireContext())
                         .addOptions(
                             OptionItem.renameTeamspace(),
@@ -419,11 +435,16 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                         .show(anchor)
                     true
                 }
+
                 else -> false
             }
         }
 
-        // Swipe refresh
+        binding.teamspaceInviteBtn.setOnClickListener {
+            viewModel.createInviteLink()
+        }
+
+        // swipe refresh
         binding.swipeRefresh.setOnRefreshListener {
             if (selectedTeamspaceId.isNotBlank()) viewModel.loadMembers()
             else binding.swipeRefresh.isRefreshing = false

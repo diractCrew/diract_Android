@@ -1,8 +1,7 @@
 package com.baek.diract.data.mapper
 
-import com.baek.diract.data.dto.*
 import com.baek.diract.data.remote.dto.TracksDto
-import com.baek.diract.domain.model.*
+import com.baek.diract.domain.model.TracksSummary
 
 fun TracksDto.toDomain(): TracksSummary = TracksSummary(
     tracksId = tracksId,  // ✅
@@ -14,4 +13,3 @@ fun TracksDto.toDomain(): TracksSummary = TracksSummary(
     createdAt = createdAt,
     updatedAt = updatedAt
 )
-

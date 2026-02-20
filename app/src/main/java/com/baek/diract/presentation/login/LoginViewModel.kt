@@ -29,6 +29,7 @@ class LoginViewModel @Inject constructor(
     private fun checkLoginStatus() {
         viewModelScope.launch {
             if (authRepository.hasToken()) {
+                authRepository.getMe()
                 _authState.value = AuthState.LoggedIn(email = "")
             } else {
                 _authState.value = AuthState.Idle

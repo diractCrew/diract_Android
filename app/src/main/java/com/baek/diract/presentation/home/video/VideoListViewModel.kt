@@ -95,10 +95,11 @@ class VideoListViewModel @Inject constructor(
     ) { sections, selectedId ->
         buildList {
             add(SectionChipItem.SetSection)
-            addAll(sections.map { section ->
+            addAll(sections.mapIndexed { index, section ->
                 SectionChipItem.SectionUi(
                     id = section.id,
                     name = section.title,
+                    isDefault = index == 0,
                     isSelected = section.id == selectedId
                 )
             })
@@ -447,10 +448,9 @@ class VideoListViewModel @Inject constructor(
     }
 
     fun getVideoType(item: VideoSummary): VideoType {
-        val isUploader = item.uploaderId == authRepository.getCurrentUser()?.uid
         val hasNoPart = _sections.value.size <= 1
-        return when {
-            !isUploader -> VideoType.OTHER_USER_VIDEO
+        return when (item.isMyVideo) {
+            false -> VideoType.OTHER_USER_VIDEO
             hasNoPart -> VideoType.MY_VIDEO_NO_PART
             else -> VideoType.MY_VIDEO_DEFAULT
         }

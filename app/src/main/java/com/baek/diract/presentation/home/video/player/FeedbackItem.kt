@@ -1,13 +1,13 @@
 package com.baek.diract.presentation.home.video.player
 
-import com.baek.diract.domain.model.FeedbackUser
+import com.baek.diract.domain.model.TeamMemberSummary
 import java.time.LocalDateTime
 
 data class FeedbackItem(
     val feedbackId: String,
     val videoId: String,
-    val author: FeedbackUser,
-    val taggedUsers: List<FeedbackUser> = emptyList(),
+    val author: TeamMemberSummary,
+    val taggedUsers: List<TeamMemberSummary> = emptyList(),
     val content: String,
     val startTime: Double,
     val endTime: Double? = null,

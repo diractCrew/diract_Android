@@ -11,12 +11,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class SectionModule {
-    //TODO: SectionRepository 따로 생성 시 주석 제거
-//    @Binds
-//    @Singleton
-//    abstract fun bindSectionRepository(
-//        impl: SectionRepositoryImpl
-//    ): SectionRepository
 
     companion object {
         @Provides

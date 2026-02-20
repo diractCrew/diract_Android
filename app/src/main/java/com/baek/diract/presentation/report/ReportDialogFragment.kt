@@ -262,7 +262,7 @@ class ReportDialogFragment : BottomSheetDialogFragment() {
         fun newInstance(
             contentType: ReportType,
             targetId: String,
-            reportedId: String
+            reportedId: String?
         ): ReportDialogFragment {
             return ReportDialogFragment().apply {
                 arguments = Bundle().apply {

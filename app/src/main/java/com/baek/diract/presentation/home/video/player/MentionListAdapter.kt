@@ -6,11 +6,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.baek.diract.databinding.ItemMentionListBinding
-import com.baek.diract.domain.model.FeedbackUser
+import com.baek.diract.domain.model.TeamMemberSummary
 
 class MentionListAdapter(
-    private val onMemberClick: (FeedbackUser) -> Unit
-) : ListAdapter<FeedbackUser, MentionListAdapter.MentionViewHolder>(MentionDiffCallback()) {
+    private val onMemberClick: (TeamMemberSummary) -> Unit
+) : ListAdapter<TeamMemberSummary, MentionListAdapter.MentionViewHolder>(MentionDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MentionViewHolder {
         val binding = ItemMentionListBinding.inflate(
@@ -29,11 +29,11 @@ class MentionListAdapter(
         private val binding: ItemMentionListBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(member: FeedbackUser) {
-            binding.memberNameTxt.text = if (member.userId == FeedbackViewModel.ALL_MEMBER_ID) {
+        fun bind(member: TeamMemberSummary) {
+            binding.memberNameTxt.text = if (member.id == FeedbackViewModel.ALL_MEMBER_ID) {
                 "@All"
             } else {
-                member.name ?: ""
+                member.name
             }
             binding.root.setOnClickListener {
                 onMemberClick(member)
@@ -41,12 +41,18 @@ class MentionListAdapter(
         }
     }
 
-    private class MentionDiffCallback : DiffUtil.ItemCallback<FeedbackUser>() {
-        override fun areItemsTheSame(oldItem: FeedbackUser, newItem: FeedbackUser): Boolean {
-            return oldItem.userId == newItem.userId
+    private class MentionDiffCallback : DiffUtil.ItemCallback<TeamMemberSummary>() {
+        override fun areItemsTheSame(
+            oldItem: TeamMemberSummary,
+            newItem: TeamMemberSummary
+        ): Boolean {
+            return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: FeedbackUser, newItem: FeedbackUser): Boolean {
+        override fun areContentsTheSame(
+            oldItem: TeamMemberSummary,
+            newItem: TeamMemberSummary
+        ): Boolean {
             return oldItem == newItem
         }
     }
