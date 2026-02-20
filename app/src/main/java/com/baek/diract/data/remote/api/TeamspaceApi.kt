@@ -39,7 +39,14 @@ interface TeamspaceApi{
     @GET("api/teamspaces/{teamspaceId}/members")
     suspend fun getMembers(@Path("teamspaceId") teamspaceId: String): ApiResponse<List<TeamspaceMemberDto>>
 
+    @PATCH("api/teamspaces/{teamspaceId}/transfer-ownership")
+    suspend fun transferOwnership(
+        @Path("teamspaceId") teamspaceId: String,
+        @Body request: TransferOwnerRequest
+    ): ApiResponse<TeamspaceDto>
+
 }
 data class CreateTeamspaceRequest(val teamspaceName: String)
 data class UpdateTeamspaceRequest(val teamspaceName: String)
 data class AddMemberRequest(val userId: String)
+data class TransferOwnerRequest(val newOwnerId: String)
