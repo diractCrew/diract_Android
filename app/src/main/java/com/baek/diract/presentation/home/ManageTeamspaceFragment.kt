@@ -1,5 +1,6 @@
 package com.baek.diract.presentation.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -47,6 +48,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         val colorRes = if (enabled) R.color.accent_red_normal else R.color.fill_assistive
         binding.actionKickMembers.setTextColor(ContextCompat.getColor(requireContext(), colorRes))
     }
+
     private fun applyRoleUi(isLeader: Boolean) {
         isLeaderUser = isLeader
 
@@ -61,6 +63,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
             binding.tvDeleteTeamspace.isVisible = isLeader       // 삭제는 팀장만
         }
     }
+
     private fun exitKickMode() {
         isKickMode = false
         binding.cancelBtn.isVisible = false
@@ -75,6 +78,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         updateKickActionEnabled(false)
         memberAdapter.setKickMode(false)
     }
+
     private val memberAdapter by lazy {
         TeamMemberAdapter(
             onMoreClick = { _, member ->
@@ -92,6 +96,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
             }
         )
     }
+
     private fun enterKickMode() {
         isKickMode = true
         binding.cancelBtn.isVisible = true
@@ -102,6 +107,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         updateKickActionEnabled(false)
         memberAdapter.setKickMode(true)
     }
+
     private fun showCreateTeamspaceSheet() {
         viewModel.resetCreateTeamspaceUiState()
 
@@ -199,6 +205,18 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                         renderMembers(list)
                     }
                 }
+
+                // 5) 초대 링크 공유 시트
+                launch {
+                    viewModel.shareInviteLink.collect { url ->
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, url)
+                            putExtra(Intent.EXTRA_SUBJECT, "[${selectedTeamspaceName}] 팀 초대")
+                        }
+                        startActivity(Intent.createChooser(intent, null))
+                    }
+                }
                 launch {
                     viewModel.createTeamspaceUiState.collect { state ->
                         when (state) {
@@ -211,6 +229,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                                 createTeamspaceDialog = null
                                 viewModel.resetCreateTeamspaceUiState()
                             }
+
                             is UiState.Error -> {
                                 createTeamspaceDialog?.showDefault()
                                 viewModel.resetCreateTeamspaceUiState()
@@ -234,6 +253,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                                 renameTeamspaceDialog = null
                                 viewModel.resetRenameTeamspaceUiState()
                             }
+
                             is UiState.Error -> {
                                 renameTeamspaceDialog?.showDefault()
                                 viewModel.resetRenameTeamspaceUiState()
@@ -245,6 +265,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
             }
         }
     }
+
     private var dividerAdded = false
     private fun showKickMemberDialog(memberName: String, onConfirm: () -> Unit) {
         BasicDialog.destructive(
@@ -277,6 +298,7 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
             message = getString(R.string.dialog_teamspace_leader_cannot_leave_message)
         ).show()
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -310,13 +332,14 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
 
         // divider
         if (!dividerAdded) {
-            val divider = MaterialDividerItemDecoration(requireContext(), RecyclerView.VERTICAL).apply {
-                setDividerColor(ContextCompat.getColor(requireContext(), R.color.stroke_strong))
-                setDividerThickness(dp(1))
-                setDividerInsetStart(dp(24))
-                setDividerInsetEnd(dp(24))
-                isLastItemDecorated = false
-            }
+            val divider =
+                MaterialDividerItemDecoration(requireContext(), RecyclerView.VERTICAL).apply {
+                    setDividerColor(ContextCompat.getColor(requireContext(), R.color.stroke_strong))
+                    setDividerThickness(dp(1))
+                    setDividerInsetStart(dp(24))
+                    setDividerInsetEnd(dp(24))
+                    isLastItemDecorated = false
+                }
             binding.rvMembers.addItemDecoration(divider)
             dividerAdded = true
         }
@@ -325,7 +348,8 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_more -> {
-                    val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
+                    val anchor =
+                        binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
                     OptionPopup.builder(requireContext())
                         .addOptions(
                             OptionItem.renameTeamspace(),
@@ -340,8 +364,13 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
                         .show(anchor)
                     true
                 }
+
                 else -> false
             }
+        }
+
+        binding.teamspaceInviteBtn.setOnClickListener {
+            viewModel.createInviteLink()
         }
 
         binding.toolbar.setNavigationOnClickListener {
@@ -437,7 +466,6 @@ class ManageTeamspaceFragment : Fragment(R.layout.fragment_manage_teamspace) {
             ).show()
         }
     }
-
 
 
     override fun onDestroyView() {
