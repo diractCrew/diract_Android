@@ -3,9 +3,12 @@ package com.baek.diract.presentation.home.video.upload
 import android.Manifest
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -64,13 +67,22 @@ class UploadVideoFragment : BottomSheetDialogFragment() {
     private var player: ExoPlayer? = null
 
     private var hasShownMaxLengthToast = false
+    private var navigatedToSettings = false
 
-    //갤러지 접근 허용
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             viewModel.loadGalleryVideos()
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // 선택한 것만 허용 → 부분 접근으로 로드
+            viewModel.loadGalleryVideos()
+            binding.partialAccessBanner.visibility = View.VISIBLE
         }
     }
 
@@ -85,7 +97,7 @@ class UploadVideoFragment : BottomSheetDialogFragment() {
                 it.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
                 behavior.state = BottomSheetBehavior.STATE_EXPANDED
                 behavior.skipCollapsed = true
-                behavior.isDraggable = true
+                behavior.isDraggable = false
             }
         }
         return dialog
@@ -111,22 +123,47 @@ class UploadVideoFragment : BottomSheetDialogFragment() {
     }
 
     private fun checkPermissionAndLoadVideos() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_VIDEO
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-
         when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                permission
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                viewModel.loadGalleryVideos()
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+                when {
+                    ContextCompat.checkSelfPermission(
+                        requireContext(), Manifest.permission.READ_MEDIA_VIDEO
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        viewModel.loadGalleryVideos()
+                    }
+
+                    ContextCompat.checkSelfPermission(
+                        requireContext(), Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        // 선택한 것만 허용 상태 → 부분 접근으로 로드
+                        viewModel.loadGalleryVideos()
+                        binding.partialAccessBanner.visibility = View.VISIBLE
+                    }
+
+                    else -> requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
+                }
+            }
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                if (ContextCompat.checkSelfPermission(
+                        requireContext(), Manifest.permission.READ_MEDIA_VIDEO
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    viewModel.loadGalleryVideos()
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
+                }
             }
 
             else -> {
-                requestPermissionLauncher.launch(permission)
+                if (ContextCompat.checkSelfPermission(
+                        requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    viewModel.loadGalleryVideos()
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
             }
         }
     }
@@ -157,6 +194,24 @@ class UploadVideoFragment : BottomSheetDialogFragment() {
         })
 
         setupTitleInput()
+
+        binding.allowAllBtn.setOnClickListener {
+            navigatedToSettings = true
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", requireContext().packageName, null)
+            }
+            startActivity(intent)
+        }
+    }
+
+    // 설정 화면에서 돌아왔을 때 권한 상태 재확인 및 영상 재로드
+    override fun onResume() {
+        super.onResume()
+        if (navigatedToSettings) {
+            navigatedToSettings = false
+            binding.partialAccessBanner.visibility = View.GONE
+            checkPermissionAndLoadVideos()
+        }
     }
 
     private fun initAdapter() {

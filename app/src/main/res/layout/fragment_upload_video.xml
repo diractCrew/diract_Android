@@ -67,7 +67,8 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:overScrollMode="always">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -227,6 +228,35 @@
                     </com.google.android.material.tabs.TabLayout>
                 </FrameLayout>
             </FrameLayout>
+
+            <!-- 부분 허용 안내 배너 -->
+            <LinearLayout
+                android:id="@+id/partialAccessBanner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/gallery_partial_access_message"
+                    android:textAppearance="@style/Caption1.Medium"
+                    android:textColor="@color/label_normal" />
+
+                <TextView
+                    android:id="@+id/allowAllBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="10dp"
+                    android:text="@string/gallery_allow_all"
+                    android:textAppearance="@style/Caption1.Medium"
+                    android:textColor="@color/secondary_strong" />
+
+            </LinearLayout>
 
             <!-- 갤러리 비디오 그리드 -->
             <androidx.recyclerview.widget.RecyclerView
