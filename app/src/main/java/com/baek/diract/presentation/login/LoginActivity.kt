@@ -52,7 +52,9 @@ class LoginActivity : AppCompatActivity() {
                     when (state) {
                         is AuthState.LoggedIn -> {
                             Log.d(TAG, "로그인 완료 → MainActivity 이동")
-                            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                            val mainIntent = Intent(this@LoginActivity, MainActivity::class.java)
+                            extractInviteToken()?.let { mainIntent.putExtra("invite_token", it) }
+                            startActivity(mainIntent)
                             finish()
                         }
 
@@ -77,6 +79,14 @@ class LoginActivity : AppCompatActivity() {
         if (navController.currentDestination?.id != R.id.termsFragment) {
             navController.navigate(R.id.action_loginFragment_to_termsFragment)
         }
+    }
+
+    // 초대 링크(App Links)로 진입한 경우 token 추출
+    private fun extractInviteToken(): String? {
+        if (intent?.action != Intent.ACTION_VIEW) return null
+        val uri = intent.data ?: return null
+        if (uri.host != "dancemachine-5243b.web.app") return null
+        return uri.getQueryParameter("token")
     }
 
     companion object {
