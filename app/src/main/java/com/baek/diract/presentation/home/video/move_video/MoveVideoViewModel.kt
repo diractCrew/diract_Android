@@ -33,14 +33,14 @@ class MoveVideoViewModel @Inject constructor(
         "trackId값 없이 MoveVideo 접근이 불가능합니다."
     }
 
-    private val defaultSectionId: String = checkNotNull(savedStateHandle[KEY_SECTION_ID]) {
+    private val initialSectionId: String = checkNotNull(savedStateHandle[KEY_SECTION_ID]) {
         "sectionId값 없이 MoveVideo 접근이 불가능합니다."
     }
 
     private val _sections = MutableStateFlow<List<Section>>(emptyList())
     val sections: StateFlow<List<Section>> = _sections.asStateFlow()
 
-    private val _selectedSectionId = MutableStateFlow(defaultSectionId)
+    private val _selectedSectionId = MutableStateFlow(initialSectionId)
     val selectedSectionId: StateFlow<String> = _selectedSectionId.asStateFlow()
 
     private val _loadState = MutableStateFlow<UiState<Unit>>(UiState.None)
@@ -51,7 +51,7 @@ class MoveVideoViewModel @Inject constructor(
 
     // 현재 섹션과 다른 섹션을 선택했는지 여부
     val isMoved: Boolean
-        get() = _selectedSectionId.value != defaultSectionId
+        get() = _selectedSectionId.value != initialSectionId
 
     private val _toastMessage = MutableSharedFlow<ToastEvent>()
     val toastMessage: SharedFlow<ToastEvent> = _toastMessage.asSharedFlow()
@@ -88,14 +88,14 @@ class MoveVideoViewModel @Inject constructor(
 
     fun moveVideo() {
         val toSectionId = _selectedSectionId.value
-        if (toSectionId == defaultSectionId) return
+        if (toSectionId == initialSectionId) return
 
         viewModelScope.launch {
             _moveState.value = UiState.Loading
 
             when (val result = videoRepository.moveVideoSection(
                 tracksId = tracksId,
-                fromSectionId = defaultSectionId,
+                fromSectionId = initialSectionId,
                 toSectionId = toSectionId,
                 trackId = trackId
             )) {
