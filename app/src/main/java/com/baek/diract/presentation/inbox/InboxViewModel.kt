@@ -39,6 +39,11 @@ class InboxViewModel @Inject constructor(
     }
 
     fun markAsRead(notificationId: String) {
+        // 로컬 상태 즉시 업데이트 → DiffCallback이 해당 아이템만 리바인드
+        val current = (_uiState.value as? UiState.Success)?.data ?: return
+        _uiState.value = UiState.Success(
+            current.map { if (it.notificationId == notificationId) it.copy(isRead = true) else it }
+        )
         viewModelScope.launch {
             notificationRepository.markNotificationAsRead(notificationId)
         }
