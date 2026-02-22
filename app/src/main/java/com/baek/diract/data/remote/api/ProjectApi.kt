@@ -30,7 +30,7 @@ interface ProjectApi {
         @Path("teamspaceId") teamspaceId: String
     ): ApiResponse<List<ProjectDto>>
 
-    // 내가 만든 프로젝트 목록 조회 (인증으로 userId 받음 → Path/Query 없음)
+    // 내가 만든 프로젝트 목록 조회
     @GET("api/projects")
     suspend fun getMyProjects(): ApiResponse<List<ProjectDto>>
 

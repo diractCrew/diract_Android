@@ -11,5 +11,6 @@ data class TracksDto(
     val creatorId: String,
     val creatorName: String,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val videoCount: Int? = 0
 )

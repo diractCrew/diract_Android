@@ -87,8 +87,8 @@ class TracksAdapter(
 
             // ---------- 보기 모드 ----------
             tvTitle.text = item.trackName
-
-            tvCount.visibility = View.GONE
+            tvCount.visibility = View.VISIBLE
+            tvCount.text = item.videoCount.toString()
 
             // 리스너 초기화(재활용 대응)
             cardViewMode.setOnClickListener(null)
