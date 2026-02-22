@@ -6,6 +6,7 @@ import com.baek.diract.R
 import com.baek.diract.domain.common.DataResult
 import com.baek.diract.domain.model.User
 import com.baek.diract.domain.repository.AuthRepository
+import com.baek.diract.domain.repository.MyPageRepository
 import com.baek.diract.presentation.common.ToastEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val myPageRepository: MyPageRepository
 ) : ViewModel() {
 
     val userInfo: StateFlow<User?> = authRepository.currentUserInfo
@@ -86,13 +88,18 @@ class MyPageViewModel @Inject constructor(
     fun submitInquiry(content: String) {
         viewModelScope.launch {
             _isSubmittingInquiry.value = true
-            // TODO: 문의 접수 API 호출
-            /*
-                TODO: 문의하기 api 호출
-                - 성공/실패 시 토스트 emit하기
-             */
-            _isSubmittingInquiry.value = false
-            _navigateBack.emit(Unit)
+            when (myPageRepository.inquire(content)) {
+                is DataResult.Success -> {
+                    _isSubmittingInquiry.value = false
+                    _toastEvent.emit(ToastEvent(R.string.inquiry_success, isErr = false))
+                    _navigateBack.emit(Unit)
+                }
+
+                is DataResult.Error -> {
+                    _isSubmittingInquiry.value = false
+                    _toastEvent.emit(ToastEvent(R.string.inquiry_failed, isErr = true))
+                }
+            }
         }
     }
 
@@ -111,7 +118,7 @@ class MyPageViewModel @Inject constructor(
     fun deleteAccount() {
         viewModelScope.launch {
             _isLoading.value = true
-            when (val result = authRepository.deleteAccount()) {
+            when (authRepository.deleteAccount()) {
                 is DataResult.Success -> {
                     _isLoading.value = false
                     _navigateToLogin.emit(Unit)

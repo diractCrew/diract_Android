@@ -328,7 +328,6 @@ class VideoListFragment : Fragment() {
             }
 
             OptionItem.ID_DELETE -> {
-                // TODO: 삭제 확인 다이얼로그 표시
                 BasicDialog.destructive(
                     context = requireContext(),
                     title = getString(R.string.dialog_delete_video_title, video.title),

@@ -287,6 +287,7 @@ class HomeFragment : Fragment() {
         val bottomNav = requireActivity().findViewById<View>(R.id.bottom_nav)
 
         bottomNav?.post {
+            if (_binding == null) return@post
             val navHeight = bottomNav.height
 
             ViewCompat.setOnApplyWindowInsetsListener(binding.rvProjects) { v, insets ->

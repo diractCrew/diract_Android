@@ -40,6 +40,8 @@ class FeedbackViewModel @Inject constructor(
         "videoId값 없이 플레이어에 접근이 불가능합니다."
     }
 
+    private val argTeamspaceId: String? = savedStateHandle[KEY_TEAMSPACE_ID]
+
     private val user get() = authRepository.currentUserInfo.value
     private val uid get() = user?.userId
     private lateinit var teamspaceId: String
@@ -105,7 +107,7 @@ class FeedbackViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            teamspaceId = teamspaceRepository.lastTeamspaceId.first() ?: ""
+            teamspaceId = argTeamspaceId ?: (teamspaceRepository.lastTeamspaceId.first() ?: "")
             loadTeamMembers()
             loadFeedbacks()
         }
@@ -629,5 +631,6 @@ class FeedbackViewModel @Inject constructor(
     companion object {
         const val ALL_MEMBER_ID = "ALL"
         private const val KEY_VIDEO_ID = "videoId"
+        private const val KEY_TEAMSPACE_ID = "teamspaceId"
     }
 }

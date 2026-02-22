@@ -94,6 +94,7 @@ class MoveVideoFragment : BottomSheetDialogFragment() {
         adapter = MoveToSectionAdapter { section ->
             viewModel.selectSection(section)
         }
+        adapter.setSelectedSection(viewModel.selectedSectionId.value)
 
         binding.rvPartList.apply {
             adapter = this@MoveVideoFragment.adapter
@@ -150,6 +151,7 @@ class MoveVideoFragment : BottomSheetDialogFragment() {
 
     private suspend fun observeSections() {
         viewModel.sections.collect { sections ->
+            adapter.setDefaultSection(sections.firstOrNull()?.id)
             adapter.submitList(sections)
         }
     }

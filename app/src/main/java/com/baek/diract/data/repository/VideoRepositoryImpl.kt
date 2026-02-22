@@ -7,6 +7,7 @@ import com.baek.diract.data.remote.api.CreateSectionRequest
 import com.baek.diract.data.remote.api.CreateTrackRequest
 import com.baek.diract.data.remote.api.CreateVideoRequest
 import com.baek.diract.data.remote.api.EditSectionRequest
+import com.baek.diract.data.remote.api.MoveTrackRequest
 import com.baek.diract.data.remote.api.EditVideoRequest
 import com.baek.diract.data.remote.api.SectionApi
 import com.baek.diract.data.remote.api.TrackApi
@@ -174,14 +175,13 @@ class VideoRepositoryImpl @Inject constructor(
         Unit
     }
 
-    //TODO: api 구현되면 적용
     override suspend fun moveVideoSection(
         tracksId: String,
         fromSectionId: String,
         toSectionId: String,
         trackId: String
-    ): DataResult<Unit> {
-        return DataResult.Error(Exception("moveVideoSection: api 미구현"))
+    ): DataResult<Unit> = safeCall {
+        trackApi.moveTrack(tracksId, fromSectionId, trackId, MoveTrackRequest(toSectionId))
     }
 
     override suspend fun deleteVideo(

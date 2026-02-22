@@ -63,9 +63,16 @@ class ReportDialogFragment : BottomSheetDialogFragment() {
         dialog.setCanceledOnTouchOutside(false)
 
         dialog.setOnShowListener {
+            // 전체화면 상태에서도 dialog window 자체를 전체 화면으로 강제 설정
+            dialog.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+
             val bottomSheet = dialog.findViewById<FrameLayout>(R.id.design_bottom_sheet)
             bottomSheet?.let { sheet ->
                 sheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                sheet.requestLayout()
                 BottomSheetBehavior.from(sheet).apply {
                     state = BottomSheetBehavior.STATE_EXPANDED
                     skipCollapsed = true
@@ -91,7 +98,6 @@ class ReportDialogFragment : BottomSheetDialogFragment() {
         setupInput()
         setupConfirmButton()
         observeViewModel()
-        setupWindowInsets()
         setupTouchOutsideToDismissKeyboard()
     }
 
@@ -173,25 +179,6 @@ class ReportDialogFragment : BottomSheetDialogFragment() {
             if (content.isBlank()) return@setOnClickListener
 
             viewModel.submitReport(content)
-        }
-    }
-
-    private fun setupWindowInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.actionContainer) { v, insets ->
-            val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-
-            val bottomPadding = maxOf(ime.bottom, navBar.bottom)
-            val vertPadding =
-                resources.getDimensionPixelSize(com.baek.diract.R.dimen.action_container_vert_padding)
-            v.updatePadding(bottom = bottomPadding + vertPadding)
-
-            val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            if (!imeVisible) {
-                binding.inputTxt.clearFocus()
-            }
-
-            insets
         }
     }
 

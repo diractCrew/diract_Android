@@ -50,6 +50,7 @@ class MyPageFragment : Fragment() {
             }
         }
     }
+
     private fun setupOnClickListener() {
 
         binding.nameBtn.setOnClickListener {
@@ -83,11 +84,6 @@ class MyPageFragment : Fragment() {
 
         binding.inquiryBtn.setOnClickListener {
             val action = MyPageFragmentDirections.actionMyPageFragmentToInquiryFragment()
-            findNavController().navigate(action)
-        }
-
-        binding.aboutDiractBtn.setOnClickListener {
-            val action = MyPageFragmentDirections.actionMyPageFragmentToAboutDiractFragment()
             findNavController().navigate(action)
         }
     }

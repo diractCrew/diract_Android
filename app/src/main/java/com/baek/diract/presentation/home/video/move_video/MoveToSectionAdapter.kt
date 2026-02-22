@@ -14,6 +14,11 @@ class MoveToSectionAdapter(
 ) : ListAdapter<Section, MoveToSectionAdapter.SectionViewHolder>(SectionDiffCallback()) {
 
     private var selectedSectionId: String? = null
+    private var defaultSectionId: String? = null
+
+    fun setDefaultSection(sectionId: String?) {
+        defaultSectionId = sectionId
+    }
 
     fun setSelectedSection(sectionId: String?) {
         val oldSelectedId = selectedSectionId
@@ -57,7 +62,11 @@ class MoveToSectionAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(section: Section) {
-            binding.sectionNameTxt.text = section.title
+            binding.sectionNameTxt.text = if (section.id == defaultSectionId) {
+                binding.root.context.getString(R.string.section_default_name)
+            } else {
+                section.title
+            }
             bindSelectionState(section)
 
             binding.root.setOnClickListener {

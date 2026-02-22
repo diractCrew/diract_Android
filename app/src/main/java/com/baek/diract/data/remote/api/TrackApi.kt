@@ -43,6 +43,15 @@ interface TrackApi {
         @Path("sectionId") sectionId: String,
         @Path("trackId") trackId: String
     ): ApiResponse<Unit>
+
+    //트랙(비디오)이동 api
+    @PATCH("api/tracks/{tracksId}/sections/{sectionId}/track/{trackId}/move")
+    suspend fun moveTrack(
+        @Path("tracksId") tracksId: String,
+        @Path("sectionId") sectionId: String,
+        @Path("trackId") trackId: String,
+        @Body request: MoveTrackRequest
+    ): ApiResponse<Unit>
 }
 
 data class CreateTrackRequest(
@@ -52,3 +61,8 @@ data class CreateTrackRequest(
 data class EditTrackRequest(
     val videoId: String
 )
+
+data class MoveTrackRequest(
+    val targetSectionId: String
+)
+
