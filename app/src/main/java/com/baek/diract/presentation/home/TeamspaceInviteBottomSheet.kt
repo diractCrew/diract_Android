@@ -1,14 +1,25 @@
 package com.baek.diract.presentation.home
 
 import com.baek.diract.R
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.baek.diract.databinding.FragmentTeamspaceInviteBinding
+import com.baek.diract.presentation.common.CustomToast
+import com.baek.diract.presentation.common.UiState
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -20,14 +31,17 @@ class TeamspaceInviteBottomSheet : BottomSheetDialogFragment() {
             arguments = Bundle().apply { putString(ARG_TEAMSPACE_ID, teamspaceId) }
         }
     }
+
     private var _binding: FragmentTeamspaceInviteBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: TeamspaceInviteViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 스타일을 강제로 지정하여 투명화 현상 방지
         setStyle(STYLE_NORMAL, com.google.android.material.R.style.Theme_Design_Light_BottomSheetDialog)
     }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,21 +55,50 @@ class TeamspaceInviteBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 기본 상태
         showDefault()
 
         binding.closeBtn.setOnClickListener { dismiss() }
         binding.btnInviteLater.setOnClickListener { dismiss() }
 
         binding.inviteBtn.setOnClickListener {
-            // TODO: 초대 동작 (로딩/완료 상태 전환 가능)
-            // showLoading()
+            viewModel.createInviteLink()
         }
+
+        observeViewModel()
+    }
+
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.inviteState.collect { state ->
+                    when (state) {
+                        is UiState.Loading -> showLoading()
+                        is UiState.Success -> {
+                            copyToClipboard(state.data)
+                            showComplete()
+                        }
+                        is UiState.Error -> {
+                            showDefault()
+                            CustomToast.showNegative(
+                                requireContext(),
+                                R.string.teamspace_invite_link_failed,
+                                Toast.LENGTH_SHORT
+                            )
+                        }
+                        is UiState.None -> Unit
+                    }
+                }
+            }
+        }
+    }
+
+    private fun copyToClipboard(url: String) {
+        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("invite_link", url))
     }
 
     override fun onStart() {
         super.onStart()
-        // 다이얼로그의 창 크기를 화면에 꽉 차게 강제 설정
         dialog?.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
@@ -64,10 +107,9 @@ class TeamspaceInviteBottomSheet : BottomSheetDialogFragment() {
         val bottomSheet = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
         bottomSheet?.let {
             val behavior = BottomSheetBehavior.from(it)
-            // ✅ 레이아웃 높이를 MATCH_PARENT로 강제
             it.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            behavior.peekHeight = it.height // 현재 높이를 피크 높이로 설정
+            behavior.peekHeight = it.height
             behavior.skipCollapsed = true
         }
     }
@@ -76,6 +118,20 @@ class TeamspaceInviteBottomSheet : BottomSheetDialogFragment() {
         binding.inviteBtn.visibility = View.VISIBLE
         binding.loadingView.visibility = View.GONE
         binding.completeView.visibility = View.GONE
+        binding.blockingView.visibility = View.GONE
+    }
+
+    private fun showLoading() {
+        binding.inviteBtn.visibility = View.GONE
+        binding.loadingView.visibility = View.VISIBLE
+        binding.completeView.visibility = View.GONE
+        binding.blockingView.visibility = View.VISIBLE
+    }
+
+    private fun showComplete() {
+        binding.inviteBtn.visibility = View.GONE
+        binding.loadingView.visibility = View.GONE
+        binding.completeView.visibility = View.VISIBLE
         binding.blockingView.visibility = View.GONE
     }
 
