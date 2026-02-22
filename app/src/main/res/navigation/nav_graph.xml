@@ -36,7 +36,11 @@
         android:id="@+id/inboxFragment"
         android:name="com.baek.diract.presentation.inbox.InboxFragment"
         android:label="fragment_inbox"
-        tools:layout="@layout/fragment_inbox" />
+        tools:layout="@layout/fragment_inbox">
+        <action
+            android:id="@+id/action_inboxFragment_to_videoPlayerFragment"
+            app:destination="@id/videoPlayerFragment" />
+    </fragment>
     <include app:graph="@navigation/mypage_nav_graph" />
 
     <!-- 푸시 알림 딥링크용 글로벌 액션 -->
@@ -59,6 +63,11 @@
             app:nullable="true" />
         <argument
             android:name="tracksTitle"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="teamspaceId"
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />

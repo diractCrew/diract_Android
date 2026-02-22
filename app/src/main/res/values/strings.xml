@@ -297,6 +297,10 @@
     <!-- 알림 화면 -->
     <string name="inbox_empty">받은 알림이 없습니다</string>
     <string name="fail_to_load_notification">알림 불러오기를 실패했습니다.</string>
+    <string name="inbox_feedback_title">%1$s이/가 피드백을 남겼어요.</string>
+    <string name="inbox_reply_title">%1$s이/가 답글을 남겼어요.</string>
+    <string name="inbox_feedback_title_with_video">%1$s에 %2$s이/가 피드백을 남겼어요.</string>
+    <string name="inbox_reply_title_with_video">%1$s에 %2$s이/가 답글을 남겼어요.</string>
 
     <!-- 신고하기 -->
     <string name="report_title">신고하기</string>
