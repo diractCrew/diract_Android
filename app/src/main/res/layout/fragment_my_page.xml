@@ -245,28 +245,6 @@
                 android:layout_marginHorizontal="16dp"
                 android:background="@color/stroke_normal" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/aboutDiractBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="16dp"
-                android:text="@string/about_diract"
-                android:textAlignment="textStart"
-                android:textAppearance="@style/Headline2.Medium"
-                android:textColor="@color/label_strong"
-                app:icon="@drawable/ic_arrow_forward"
-                app:iconGravity="end"
-                app:iconSize="18dp"
-                app:iconTint="@color/label_normal" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginHorizontal="16dp"
-                android:background="@color/stroke_normal" />
-
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

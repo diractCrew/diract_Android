@@ -10,18 +10,6 @@
         android:name="com.baek.diract.presentation.mypage.MyPageFragment"
         android:label="fragment_my_page"
         tools:layout="@layout/fragment_my_page">
-        <!--TODO: 추후 네비게이션 제대로 연결할 때 action -  myPageFragment_to_video_nav_graph 제거-->
-
-        <action
-            android:id="@+id/action_myPageFragment_to_video_nav_graph"
-            app:destination="@id/video_nav_graph">
-            <argument
-                android:name="tracksId"
-                app:argType="string" />
-            <argument
-                android:name="tracksTitle"
-                app:argType="string" />
-        </action>
 
         <action
             android:id="@+id/action_myPageFragment_to_inquiryFragment"
@@ -32,12 +20,8 @@
         <action
             android:id="@+id/action_myPageFragment_to_accountSettingFragment"
             app:destination="@id/accountSettingFragment" />
-        <action
-            android:id="@+id/action_myPageFragment_to_aboutDiractFragment"
-            app:destination="@id/aboutDiractFragment" />
     </fragment>
 
-    <include app:graph="@navigation/video_nav_graph" />
     <fragment
         android:id="@+id/inquiryFragment"
         android:name="com.baek.diract.presentation.mypage.InquiryFragment"
@@ -53,9 +37,4 @@
         android:name="com.baek.diract.presentation.mypage.AccountSettingFragment"
         android:label="fragment_account_setting"
         tools:layout="@layout/fragment_account_setting" />
-    <fragment
-        android:id="@+id/aboutDiractFragment"
-        android:name="com.baek.diract.presentation.mypage.AboutDiractFragment"
-        android:label="fragment_about_diract"
-        tools:layout="@layout/fragment_about_diract" />
 </navigation>
