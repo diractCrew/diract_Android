@@ -13,6 +13,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.baek.diract.R
+import kotlin.math.min
 
 class TeamspaceSwitcherPopup(
     private val context: Context,
@@ -30,15 +31,26 @@ class TeamspaceSwitcherPopup(
         // 1) 팀스페이스 목록
         val rv = content.findViewById<RecyclerView>(R.id.rvTeamspaces)
         rv.layoutManager = LinearLayoutManager(context)
-        rv.adapter = Adapter(items, selectedId) { selected ->
+        val adapter = Adapter(items, selectedId) { selected ->
             dismiss()
             onSelect(selected)
         }
+        rv.adapter = adapter
 
         // 2) 새 팀스페이스 만들기
         content.findViewById<View>(R.id.createTeamspaceRow).setOnClickListener {
             dismiss()
             onCreate()
+        }
+
+        // ✅ 3) RV 높이를 아이템 수에 맞게 조절 (최대 460dp)
+        content.post {
+            adjustRecyclerHeight(rv, adapter.itemCount, maxDp = 460)
+            // 높이 바뀐 뒤 popup 위치/폭 계산이 정확해지게 다시 measure
+            content.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
         }
 
         val pw = PopupWindow(
@@ -79,12 +91,44 @@ class TeamspaceSwitcherPopup(
         popup = null
     }
 
+    private fun adjustRecyclerHeight(rv: RecyclerView, itemCount: Int, maxDp: Int) {
+        if (itemCount <= 0) {
+            rv.layoutParams = rv.layoutParams.apply { height = 0 }
+            return
+        }
+
+        val maxPx = dp(rv, maxDp)
+
+        // 아이템 높이가 고정인 경우가 대부분이라 1개 높이만 측정해서 곱함
+        val itemHeight = measureOneItemHeight(rv) ?: dp(rv, 56) // fallback
+        val padding = rv.paddingTop + rv.paddingBottom
+        val desired = itemHeight * itemCount + padding
+
+        rv.layoutParams = rv.layoutParams.apply {
+            height = min(desired, maxPx)
+        }
+        rv.requestLayout()
+    }
+
+    private fun measureOneItemHeight(rv: RecyclerView): Int? {
+        val ad = rv.adapter ?: return null
+        if (ad.itemCount <= 0) return null
+
+        val vh = ad.createViewHolder(rv, ad.getItemViewType(0))
+        vh.itemView.measure(
+            View.MeasureSpec.makeMeasureSpec(rv.width.takeIf { it > 0 } ?: dp(rv, 232), View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        val h = vh.itemView.measuredHeight
+        return if (h > 0) h else null
+    }
+
     private fun dp(v: View, dp: Int): Int =
         (dp * v.resources.displayMetrics.density).toInt()
 
     private class Adapter(
         private val items: List<TeamspaceUi>,
-        private val selectedId: String?,             // ✅ Long -> String
+        private val selectedId: String?,
         private val onSelect: (TeamspaceUi) -> Unit
     ) : RecyclerView.Adapter<Adapter.ItemVH>() {
 
@@ -131,5 +175,4 @@ class TeamspaceSwitcherPopup(
     }
 }
 
-// ✅ Long -> String (UUID)
 data class TeamspaceUi(val id: String, val name: String)
