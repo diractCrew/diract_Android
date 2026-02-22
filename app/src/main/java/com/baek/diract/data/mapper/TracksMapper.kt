@@ -11,5 +11,6 @@ fun TracksDto.toDomain(): TracksSummary = TracksSummary(
     creatorId = creatorId,
     creatorName = creatorName,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    videoCount = videoCount ?: 0
 )

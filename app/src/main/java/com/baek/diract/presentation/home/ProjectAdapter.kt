@@ -85,6 +85,11 @@ class ProjectAdapter(
     /** ✅ HomeFragment가 서버에서 받아온 tracks 주입 */
     fun setTracks(projectId: String, lists: List<TracksSummary>) {
         tracksByProjectId[projectId] = lists
+
+        tracksCountByProjectId = tracksCountByProjectId.toMutableMap().apply {
+            put(projectId, lists.size)
+        }
+
         tracksStateByProjectId[projectId] = TracksLoadState.SUCCESS
         val pos = currentList.indexOfFirst { it.id == projectId }
         if (pos != -1) notifyItemChanged(pos)
@@ -160,7 +165,12 @@ class ProjectAdapter(
 
             if (!isEditingProject) {
                 tvProjectName.text = item.name
+                val tracksCount = tracksByProjectId[item.id]?.size
+                    ?: tracksCountByProjectId[item.id]  // 서버에서 따로 내려주면 이걸 우선
+                    ?: 0
 
+                tvProjectCount.visibility = View.VISIBLE
+                tvProjectCount.text = tracksCount.toString()
                 val expanded = (item.id == expandedProjectId)
                 cardExpanded.visibility = if (expanded) View.VISIBLE else View.GONE
                 ivOpenSongs.rotation = if (expanded) 90f else 0f
