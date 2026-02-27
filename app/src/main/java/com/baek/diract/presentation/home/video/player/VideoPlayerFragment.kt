@@ -1894,21 +1894,9 @@ class VideoPlayerFragment : Fragment() {
         binding.root.requestApplyInsets()
     }
 
-    override fun onPause() {
-        super.onPause()
-        player?.let {
-            // 현재 재생 상태를 ViewModel에 저장
-            viewModel.savePlaybackState(it.currentPosition, it.playWhenReady)
-            it.pause()
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // ViewModel에 저장된 playWhenReady 상태에 따라 재생
-        if (viewModel.playWhenReady) {
-            player?.play()
-        }
+    override fun onStop() {
+        super.onStop()
+        releasePlayer()
     }
 
     override fun onDestroyView() {

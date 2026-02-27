@@ -181,26 +181,29 @@ class InputDialogFragment : BottomSheetDialogFragment() {
     }
 
     fun showDefault() {
-        binding.confirmBtn.visibility = View.VISIBLE
-        binding.loadingView.visibility = View.GONE
-        binding.completeView.visibility = View.GONE
-        binding.blockingView.visibility = View.GONE
+        val b = _binding ?: return
+        b.confirmBtn.visibility = View.VISIBLE
+        b.loadingView.visibility = View.GONE
+        b.completeView.visibility = View.GONE
+        b.blockingView.visibility = View.GONE
     }
 
     /** 로딩 상태로 변경 */
     fun showLoading() {
-        binding.confirmBtn.visibility = View.GONE
-        binding.loadingView.visibility = View.VISIBLE
-        binding.completeView.visibility = View.GONE
-        binding.blockingView.visibility = View.VISIBLE
+        val b = _binding ?: return
+        b.confirmBtn.visibility = View.GONE
+        b.loadingView.visibility = View.VISIBLE
+        b.completeView.visibility = View.GONE
+        b.blockingView.visibility = View.VISIBLE
     }
 
     /** 완료 상태로 변경 */
     fun showComplete() {
-        binding.confirmBtn.visibility = View.GONE
-        binding.loadingView.visibility = View.GONE
-        binding.completeView.visibility = View.VISIBLE
-        binding.blockingView.visibility = View.VISIBLE
+        val b = _binding ?: return
+        b.confirmBtn.visibility = View.GONE
+        b.loadingView.visibility = View.GONE
+        b.completeView.visibility = View.VISIBLE
+        b.blockingView.visibility = View.VISIBLE
     }
 
     private fun setupTextWatcher() {
