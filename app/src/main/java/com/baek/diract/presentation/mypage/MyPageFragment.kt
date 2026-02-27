@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.baek.diract.BuildConfig
 import com.baek.diract.R
 import com.baek.diract.databinding.FragmentMyPageBinding
 import com.baek.diract.presentation.common.WebViewDialogFragment
@@ -52,6 +53,7 @@ class MyPageFragment : Fragment() {
     }
 
     private fun setupOnClickListener() {
+        binding.appVersion.text = BuildConfig.VERSION_NAME
 
         binding.nameBtn.setOnClickListener {
             val action = MyPageFragmentDirections.actionMyPageFragmentToEditUserNameFragment()
