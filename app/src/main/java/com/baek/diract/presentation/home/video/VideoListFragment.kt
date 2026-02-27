@@ -241,6 +241,7 @@ class VideoListFragment : Fragment() {
                                 editNameDialog?.showComplete()
                                 delay(800)
                                 editNameDialog?.dismiss()
+                                editNameDialog = null
                                 viewModel.resetEditUiState()
                             }
 
