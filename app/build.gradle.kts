@@ -52,10 +52,23 @@ android {
             "\"$webClientId\""
         )
     }
+    signingConfigs {
+        create("release") {
+            val props = Properties().apply {
+                load(rootProject.file("keystore.properties").inputStream())
+            }
+            storeFile = file(props["storeFile"] as String)
+            storePassword = props["storePassword"] as String
+            keyAlias = props["keyAlias"] as String
+            keyPassword = props["keyPassword"] as String
+        }
+    }
+
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
