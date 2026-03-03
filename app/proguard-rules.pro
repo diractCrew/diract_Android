@@ -1,3 +1,7 @@
+# Retrofit / Gson 직렬화 대상 DTO 필드명 보호
+-keep class com.baek.diract.data.remote.dto.** { *; }
+-keepclassmembers class com.baek.diract.data.remote.api.** { <fields>; }
+
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
